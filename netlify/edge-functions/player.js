@@ -35,17 +35,16 @@ export default async (request, context) => {
     const user = raw.toLowerCase();
 
     // Light server-side data pull; a failure just yields generic metadata, never a broken page.
-    let profile = null, stats = null, dbg = "";
+    let profile = null, stats = null;
     try {
       const opt = { headers: { "User-Agent": UA, "Accept": "application/json" } };
       const [pr, st] = await Promise.all([
         fetch(`https://api.chess.com/pub/player/${encodeURIComponent(user)}`, opt),
         fetch(`https://api.chess.com/pub/player/${encodeURIComponent(user)}/stats`, opt),
       ]);
-      dbg = `p=${pr.status} s=${st.status}`;
       if (pr.ok) profile = await pr.json();
       if (st.ok) stats = await st.json();
-    } catch (e) { dbg = "err:" + (e && e.message ? e.message : String(e)); }
+    } catch (_) { /* generic metadata below */ }
 
     const exists = !!(profile && profile.username);
     const name = exists ? (profile.name || profile.username) : raw;
@@ -99,7 +98,6 @@ export default async (request, context) => {
       .replace(/<meta property="og:title"[^>]*>/i, `<meta property="og:title" content="${esc(title)}">`)
       .replace(/<meta property="og:description"[^>]*>/i, `<meta property="og:description" content="${esc(desc)}">`)
       .replace(/<meta property="og:url"[^>]*>/i, `<meta property="og:url" content="${esc(canon)}">`)
-      .replace("</head>", `<!-- rb-debug ${esc(dbg)} --></head>`)
       .replace("<!--SSR-->", ssr);
 
     return new Response(html, {
