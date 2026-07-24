@@ -13932,6 +13932,18 @@ document.addEventListener("keydown",e=>{
 
 
 const TABS=["overview","log","insights","charts","trends","openings","blown","tree","endgames","mates","review","compare","glossary"];
+// SEO feature deep-links. These content-rich tabs ALSO live at a clean path — /player/<user>/<slug>
+// — so a crawler sees a distinct, indexable page per feature instead of a #hash fragment (which
+// Google folds into the base page). The edge function server-renders matching metadata + a summary
+// at each of these paths; the sitemap lists them for the curated players. Kept in sync both ways.
+const FEATURE_SLUGS={ "playing-style":"insights", "blown-leads":"blown", "missed-mates":"mates", "openings":"openings", "endgames":"endgames", "tilt":"trends" };
+const TAB_SLUGS=Object.fromEntries(Object.entries(FEATURE_SLUGS).map(([s,t])=>[t,s]));   // tab -> slug
+// The feature tab named by the current address's PATH (/player/<user>/<slug>), or "" if none.
+function pathFeatureTab(){
+  try{ const m=/^\/player\/[^\/?#]+\/([^\/?#]+)/i.exec(location.pathname);
+       if(m){ const t=FEATURE_SLUGS[m[1].toLowerCase()]; if(t) return t; } }catch(e){}
+  return "";
+}
 let CURRENT_TAB="log";
 function showTab(which, opts={}){
   const changed = CURRENT_TAB!==which;
@@ -14762,19 +14774,23 @@ function readHash(){
 function writeHash(tab, extra={}, replace=false){
   if(!CAN_ROUTE) return;
   const u=$("user").value.trim().toLowerCase();
-  // The player lives in the PATH (/player/<user>) so links are clean and shareable; the tab and
-  // any extras stay in the hash. No user loaded → the app's own /app.html path.
-  const base = u ? `/player/${encodeURIComponent(u)}` : "/app.html";
-  const parts=[`tab=${tab}`];
+  // Where the tab lives depends on the tab. A FEATURE tab lives in the PATH (/player/<user>/<slug>)
+  // so it's a clean, indexable, shareable page. Overview is the player's base page. Any other tab
+  // (log, review, compare…) stays a #tab= fragment on the base path. No user → the app's /app.html.
+  let base, parts=[];
+  if(!u){ base="/app.html"; parts.push(`tab=${tab}`); }
+  else if(TAB_SLUGS[tab]) base=`/player/${encodeURIComponent(u)}/${TAB_SLUGS[tab]}`;
+  else if(tab==="overview") base=`/player/${encodeURIComponent(u)}`;
+  else { base=`/player/${encodeURIComponent(u)}`; parts.push(`tab=${tab}`); }
   // Carry the fetch config in the URL when it's non-default, so the address bar is itself a
-  // shareable preload link (e.g. /player/erik#tab=insights&tc=all&range=m:999). rapid + last-100
+  // shareable preload link (e.g. /player/erik/playing-style#tc=all&range=m:999). rapid + last-100
   // are the defaults and stay omitted, keeping everyday URLs clean.
   try{ const tcv=$("tc").value, rgv=$("months").value;
     if(tcv && tcv!=="rapid") parts.push(`tc=${tcv}`);
     if(rgv && rgv!=="g:100") parts.push(`range=${rgv}`);
   }catch(e){}
   for(const k in extra) if(extra[k]) parts.push(`${k}=${encodeURIComponent(extra[k])}`);
-  const hash="#"+parts.join("&");
+  const hash = parts.length ? "#"+parts.join("&") : "";
   const next=base+hash;
   if(location.pathname+location.hash===next) return;
   SUPPRESS_HASH=true;                        // our own write shouldn't bounce back through the router
@@ -14787,11 +14803,19 @@ function writeHash(tab, extra={}, replace=false){
 // Apply whatever the address bar says.
 function applyHash(){
   const q=readHash();
-  if(!q.tab) return false;
-  if(!TABS.includes(q.tab)) return false;
+  // An explicit #tab= is a click / navigation intent and WINS; the PATH feature slug is only the
+  // fallback for a clean feature URL (which carries no #tab=). Without this, an inline #tab= link
+  // (the Insights coach cross-links, article links) would be dead while the address is already a
+  // /player/<user>/<slug> feature page, because the slug would shadow the freshly-set hash.
+  const hashTab = TABS.includes(q.tab) ? q.tab : "";
+  const tab = hashTab || pathFeatureTab();
+  if(!tab) return false;
   if($("welcome").hidden===false) enterApp();
-  showTab(q.tab, {fromHash:true});
-  if(q.tab==="review" && q.game){
+  showTab(tab, {fromHash:true});
+  // A #tab= click that landed on a stale feature path: rewrite the address to the tab's own clean
+  // URL (writeHash guards itself with SUPPRESS_HASH, so this won't re-enter the router).
+  if(hashTab && hashTab!==pathFeatureTab()) writeHash(tab, {}, true);
+  if(tab==="review" && q.game){
     const g=gameByIdInList(q.game);
     if(g) reviewGame(g.url, true, {fromHash:true});
   }
@@ -14800,7 +14824,7 @@ function applyHash(){
   // top first; this scroll runs a frame later, after the panel has rendered.
   if(q.goto){
     const el=$(q.goto);
-    if(el && !$("panel-"+q.tab).hidden)
+    if(el && !$("panel-"+tab).hidden)
       requestAnimationFrame(()=>el.scrollIntoView({behavior:"smooth", block:"start"}));
   }
   return true;
@@ -14809,7 +14833,12 @@ window.addEventListener("hashchange",()=>{
   if(SUPPRESS_HASH) return;
   applyHash();
 });
-window.addEventListener("popstate",()=>{ if(!SUPPRESS_HASH) applyHash(); });
+window.addEventListener("popstate",()=>{
+  if(SUPPRESS_HASH) return;
+  // Back/forward to the clean /player/<user> base (no feature slug, no #tab) gives applyHash nothing
+  // to match — restore the overview explicitly so the view always follows the address.
+  if(!applyHash() && $("welcome").hidden && /^\/player\/[^\/?#]+\/?$/.test(location.pathname)) showTab("overview",{fromHash:true});
+});
 
 
 /* ============ SIDEBAR ============
@@ -14969,6 +14998,11 @@ const HASH=readHash();
 // so the whole existing cache/fetch flow below works unchanged. Path wins if both are present.
 const PATH_USER=(()=>{ try{ const m=/^\/player\/([^\/?#]+)/i.exec(location.pathname); return m?decodeURIComponent(m[1]).trim().toLowerCase():""; }catch(e){ return ""; } })();
 if(PATH_USER) HASH.user=PATH_USER;
+// A feature deep-link (/player/<user>/blown-leads) carries the tab in the PATH. Map it to the tab
+// name and feed it into HASH.tab, so every boot branch below — which already reads HASH.tab — opens
+// the right page. The path wins over any #tab in the hash.
+const PATH_FEATURE_TAB=pathFeatureTab();
+if(PATH_FEATURE_TAB) HASH.tab=PATH_FEATURE_TAB;
 // A shared link can name a different player — honor it.
 if(HASH.user) $("user").value=HASH.user;
 // A deep link can also preset the fetch config, e.g. /player/erik#tab=insights&tc=all&range=max

@@ -46,6 +46,19 @@ PLAYERS = [
     "nemsko",
 ]
 
+# Per-player feature pages live at /player/<user>/<slug>. The edge function server-renders each with
+# its own title/description/intro, so every one is a distinct, indexable page. Each curated player
+# gets one URL per feature. Keep this list in sync with FEATURES in
+# netlify/edge-functions/player.js and FEATURE_SLUGS in app.html.
+FEATURE_SLUGS = [
+    "playing-style",
+    "blown-leads",
+    "missed-mates",
+    "openings",
+    "endgames",
+    "tilt",
+]
+
 # app.html is the tool itself — a single-page app. It used to be skipped on the theory that
 # its runtime-generated content gives a crawler nothing to index, but a crawler never types a
 # username: it sees the static welcome shell (hero, feature grid, how-it-works), which is real,
@@ -116,16 +129,19 @@ def main():
         lines += ["  <url>", f"    <loc>{loc}</loc>", f"    <lastmod>{lastmod}</lastmod>", "  </url>"]
         prev = was.get("" if p == "index.html" else p)
         rows.append((p, prev, lastmod))
-    # Curated /player/<user> pages — no file, no lastmod (see PLAYERS note above).
+    # Curated /player/<user> pages plus their per-feature pages — no file, no lastmod (see notes above).
     for user in PLAYERS:
         lines += ["  <url>", f"    <loc>{BASE}player/{user}</loc>", "  </url>"]
+        for slug in FEATURE_SLUGS:
+            lines += ["  <url>", f"    <loc>{BASE}player/{user}/{slug}</loc>", "  </url>"]
     lines.append("</urlset>")
     out = "\n".join(lines) + "\n"
 
     open(sm, "w", encoding="utf-8", newline="\n").write(out)
 
     changed = sum(1 for _, prev, now in rows if prev != now)
-    print(f"{len(pages)} pages + {len(PLAYERS)} player profiles -> sitemap.xml   ({changed} lastmod corrected)\n")
+    player_urls = len(PLAYERS) * (1 + len(FEATURE_SLUGS))
+    print(f"{len(pages)} pages + {player_urls} player URLs ({len(PLAYERS)} profiles x {1+len(FEATURE_SLUGS)}) -> sitemap.xml   ({changed} lastmod corrected)\n")
     print(f"{'PAGE':<46}{'WAS':<12}{'NOW':<12}")
     print("-" * 70)
     for p, prev, now in rows:
