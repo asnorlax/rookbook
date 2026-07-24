@@ -4,7 +4,7 @@
 // archives, so it stays fast at the edge). The client app then hydrates the full interactive
 // analysis on top. Runs on Deno. Deploy via Git or `netlify deploy` — drag-and-drop won't run it.
 
-const UA = "Rookbook (rookbook.net) player page — contact rookbookchess@gmail.com";
+const UA = "Rookbook (rookbook.net) player page - contact rookbookchess@gmail.com";
 const SITE = "https://rookbook.net";
 
 const esc = (s) =>
