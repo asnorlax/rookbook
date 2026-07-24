@@ -3185,16 +3185,20 @@ function apiPump(){
     job().finally(()=>{ API_ACTIVE--; apiPump(); });
   }
 }
-function api(url, {retries=3, fresh=false}={}){
+function api(url, {retries=3, fresh=false, signal}={}){
   return new Promise((resolve,reject)=>{
     const job = async ()=>{
       let wait=800;
       for(let i=0;i<=retries;i++){
+        // Stop pressed before this attempt even starts — bail without another request.
+        if(signal && signal.aborted) return reject(new DOMException("Aborted","AbortError"));
         try{
           // fresh: bypass the browser's HTTP cache — chess.com serves monthly archives
           // with cache headers, so "this month" can come back stale and miss games
           // finished minutes ago
-          const r=await fetch(url, fresh?{cache:"no-store"}:undefined);
+          const opt = fresh?{cache:"no-store"}:{};
+          if(signal) opt.signal=signal;             // Stop can abort the in-flight download now
+          const r=await fetch(url, opt);
           if(r.status===429){                       // rate limited \u2014 back off and try again
             await new Promise(s=>setTimeout(s,wait));
             wait*=2;
@@ -3202,6 +3206,7 @@ function api(url, {retries=3, fresh=false}={}){
           }
           return resolve(r);
         }catch(e){
+          if((signal && signal.aborted) || (e && e.name==="AbortError")) return reject(e);  // Stop hit — don't retry
           if(i===retries) return reject(e);
           await new Promise(s=>setTimeout(s,wait));
           wait*=2;
@@ -4731,7 +4736,9 @@ async function fetchGamesFor(u, rangeVal, tc, onStatus=()=>{}){
     if(byGames && out.length>=target) break;
     onStatus(byGames ? `Fetching\u2026 ${out.length} of ${target} games so far`
                      : `Fetching month ${i+1} of ${urls.length}\u2026${slow}`);
-    const res = await api(urls[i]);
+    let res;
+    try{ res = await api(urls[i], {signal: FETCH_ABORT && FETCH_ABORT.signal}); }
+    catch(e){ if(e && e.name==="AbortError") break; continue; }   // Stop aborted this download — keep prior months
     if(!res.ok) continue;
     const month = (await res.json()).games || [];
     // Walk the month newest-game-first: a game-count target can then stop exactly at
@@ -4740,6 +4747,7 @@ async function fetchGamesFor(u, rangeVal, tc, onStatus=()=>{}){
     // never freezes the page (same trick the stats-engine migration uses).
     let t0=performance.now();
     for(let k=month.length-1;k>=0;k--){
+      if(FETCH_CANCEL) break;                     // Stop mid-parse: keep what's parsed so far
       if(byGames && out.length>=target) break;
       const g=month[k];
       if(!wantGame(g, tc)) continue;
@@ -4808,7 +4816,9 @@ async function fetchNewSince(u, sinceMs, tc, onStatus=()=>{}, cap=Infinity){
     if(FETCH_CANCEL) break;                       // user hit Stop — keep what we have
     if(out.length>=cap) break;                    // a "last N games" range never needs more than N new ones
     onStatus(`Checking for new games\u2026 ${out.length} found`);
-    const res=await api(url, {fresh:true});   // months this walk touches are exactly the possibly-stale ones
+    let res;
+    try{ res=await api(url, {fresh:true, signal: FETCH_ABORT && FETCH_ABORT.signal}); }   // months this walk touches are exactly the possibly-stale ones
+    catch(e){ if(e && e.name==="AbortError") break; continue; }   // Stop aborted this download — keep what we have
     if(!res.ok) continue;
     const month=(await res.json()).games || [];
     let anyNew=false;
@@ -4832,18 +4842,22 @@ let BG_TOKEN=0;            // bumping this orphans any background refresh alread
 let SHOWN_USER=null;       // the account currently loaded — used to send a NEW search to the overview
 
 let FETCH_CANCEL=false;
+let FETCH_ABORT=null;         // AbortController for the in-flight fetch, so Stop cuts it immediately
+let DEEP_RANGE_DEFAULT=false; // a /player/<user> deep-link forced last-100; don't persist that as a pref
 async function fetchGames(force){
   // Clicking Fetch while a fetch runs means "stop" — 130 months is a long commitment
   // to have no exit from. The month loops check the flag between requests, so what's
   // already downloaded is kept.
   if(FETCHING){
     FETCH_CANCEL=true;
-    $("status").textContent="Stopping after the current month\u2026";
+    if(FETCH_ABORT){ try{ FETCH_ABORT.abort(); }catch(e){} }   // cut the in-flight download NOW
+    $("status").textContent="Stopping\u2026 keeping what's already loaded.";
     return;
   }
   const u = $("user").value.trim().toLowerCase();
   if(!u){ $("status").textContent="Type a username first."; return; }
   FETCHING=true; FETCH_CANCEL=false; BG_TOKEN++;   // the user asked — background work stands down
+  FETCH_ABORT = (typeof AbortController!=="undefined") ? new AbortController() : null;
   const btn=$("load");
   btn.style.minWidth=Math.ceil(btn.getBoundingClientRect().width)+"px";
   btn.textContent="Stop";
@@ -4890,7 +4904,13 @@ async function fetchGames(force){
           ? `Added ${newCount} new game${newCount===1?"":"s"} to ${keptCount} already saved — engine work on the old ones kept.`+trimmed
           : `No new games since your last save. Loaded ${keptCount} from cache.`+trimmed)
       : `${games.length} game${games.length===1?"":"s"} loaded for ${u}.`);
-    $("status").textContent = how + (note && !canTopUp ? "  "+note : "");
+    // Landed here from a shared /player/<user> link: say plainly that this is the last 100,
+    // and where to widen it — otherwise the capped view looks like their whole history. Only
+    // when the cap was actually hit (games.length >= N); a small account loaded everything.
+    const capN = (()=>{ const mm=/^g:(\d+)$/.exec($("months").value); return mm?parseInt(mm[1],10):0; })();
+    const deepNote = (DEEP_RANGE_DEFAULT && capN && games.length>=capN)
+      ? `  Showing the last ${games.length} games — pick a wider Range above to load more.` : "";
+    $("status").textContent = how + (note && !canTopUp ? "  "+note : "") + deepNote;
     saveSnapshot(u, games);
     savePrefs();
     pushRecent(u, games);
@@ -4924,7 +4944,7 @@ async function fetchGames(force){
   }catch(e){
     $("status").textContent = "Couldn't fetch: " + e.message;
   }finally{
-    FETCHING=false; FETCH_CANCEL=false;
+    FETCHING=false; FETCH_CANCEL=false; FETCH_ABORT=null;
     btn.textContent="Fetch games";
     btn.title="";
     btn.disabled=false;
@@ -8601,7 +8621,14 @@ function renderTrends(list){
 
 // ================= memory (prefs + snapshot) =================
 function savePrefs(){
-  LS.set("rookbook:prefs",{user:$("user").value.trim(),range:$("months").value,tc:$("tc").value});
+  let range=$("months").value;
+  if(DEEP_RANGE_DEFAULT){
+    // The last-100 we forced for a /player/<user> deep-link is a display default, not the
+    // visitor's choice — keep their previously saved range so a shared link never resets it.
+    const prev=LS.get("rookbook:prefs");
+    if(prev && prev.range) range=prev.range;
+  }
+  LS.set("rookbook:prefs",{user:$("user").value.trim(),range,tc:$("tc").value});
 }
 function loadPrefs(){
   const p=LS.get("rookbook:prefs"); if(!p) return;
@@ -14402,6 +14429,9 @@ function headerSearch(){
 }
 $("load").addEventListener("click",headerSearch);
 $("loadFull").addEventListener("click",()=>fetchGames(true));
+// Once the visitor picks a Range themselves, the deep-link last-100 default no longer applies:
+// stop preserving the old pref and stop showing the "showing the last N" note.
+$("months").addEventListener("change",()=>{ DEEP_RANGE_DEFAULT=false; });
 $("csv").addEventListener("click",exportCsv);
 $("user").addEventListener("keydown",e=>{ if(e.key==="Enter") headerSearch(); });
 
@@ -14934,7 +14964,14 @@ const URL_TC=NORM_TC(HASH.tc), URL_RANGE=NORM_RANGE(HASH.range), URL_FETCH_CFG=!
 if(URL_TC){ $("tc").value=URL_TC; try{ syncScoutTc(); }catch(e){}
   // "all" un-scopes the Insights page from your main format; a specific class lets it auto-scope.
   try{ if(URL_TC==="all") localStorage.setItem("rookbook:insTc","all"); else localStorage.removeItem("rookbook:insTc"); }catch(e){} }
-if(URL_RANGE) $("months").value=URL_RANGE;
+if(URL_RANGE){
+  $("months").value=URL_RANGE;
+} else if(PATH_USER){
+  // A clean /player/<user> link (no explicit range) must NOT inherit the visitor's saved range
+  // and quietly pull years of history — a shared link should be fast. Default to the last 100.
+  $("months").value="g:100";
+  DEEP_RANGE_DEFAULT=true;
+}
 const wanted = HASH.user ? HASH.user.toLowerCase() : savedUser;
 
 // Distinguish "never fetched" from "we had your games and can't read them". The second

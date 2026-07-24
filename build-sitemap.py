@@ -11,15 +11,40 @@ only trusts lastmod when it looks reliable, so a drifting one is worse than none
 Every .html page ships except the ones listed in SKIP below. Run it before deploying
 whenever you have added or changed a page.
 
-No dependencies. Standard library only.
+lastmod comes from git's last-commit date for each file, not the filesystem mtime: a
+clone or checkout rewrites every file with today's mtime, which would falsely flag the
+whole site as changed today. A file with uncommitted edits is changing right now, so it
+uses its mtime instead; if git isn't available it falls back to mtime everywhere.
+
+Standard library only (git is invoked if present, with a graceful mtime fallback).
 """
 
 import datetime
 import os
 import re
+import subprocess
 import sys
 
 BASE = "https://rookbook.net/"
+
+# Curated player profiles. These /player/<user> pages have no file on disk — the Netlify edge
+# function (netlify/edge-functions/player.js) server-renders them with real, indexable stats —
+# so they must be listed explicitly or a crawler never learns they exist. High-profile accounts
+# whose pages carry substantial content and draw name-search traffic. Usernames are lowercase /
+# canonical (exactly what chess.com's API returns, and what the page's <link rel=canonical> uses).
+#
+# lastmod is deliberately OMITTED for these: the stats update continuously and we can't know when,
+# so any date would be a guess — and not lying about freshness is this whole script's reason to exist.
+PLAYERS = [
+    "magnuscarlsen",
+    "hikaru",
+    "gothamchess",
+    "alexandrabotez",
+    "danielnaroditsky",
+    "annacramling",
+    "chessbrah",
+    "nemsko",
+]
 
 # app.html is the tool itself — a single-page app. It used to be skipped on the theory that
 # its runtime-generated content gives a crawler nothing to index, but a crawler never types a
@@ -37,6 +62,32 @@ def should_ship(name):
     if name in SKIP or name.startswith("_") or name.startswith("google"):
         return False
     return True
+
+
+def last_change(folder, name):
+    """Date a page's CONTENT last changed, as YYYY-MM-DD.
+
+    Prefer git's last-commit date: filesystem mtime is unreliable because a clone/checkout
+    stamps every file with today's date. Two exceptions fall back to mtime — a file with
+    uncommitted edits (it's changing now, so the stale commit date would under-report) and
+    the case where git isn't available or doesn't know the file."""
+    path = os.path.join(folder, name)
+    mdate = datetime.date.fromtimestamp(os.path.getmtime(path)).isoformat()
+
+    def git(*args):
+        return subprocess.run(["git", "-C", folder, *args],
+                              capture_output=True, text=True, timeout=10)
+
+    try:
+        dirty = git("status", "--porcelain", "--", name)
+        if dirty.returncode == 0 and dirty.stdout.strip():
+            return mdate                     # uncommitted edits -> the change is happening now
+        committed = git("log", "-1", "--format=%cs", "--", name)
+        if committed.returncode == 0 and committed.stdout.strip():
+            return committed.stdout.strip()  # %cs = committer date, short (YYYY-MM-DD)
+    except Exception:
+        pass                                 # no git, timeout, etc. -> mtime
+    return mdate
 
 
 def main():
@@ -61,18 +112,20 @@ def main():
         # index.html is the site root; everything else keeps its filename, matching the
         # canonical tag on the page itself
         loc = BASE if p == "index.html" else BASE + p
-        mtime = datetime.date.fromtimestamp(os.path.getmtime(os.path.join(folder, p)))
-        lastmod = mtime.isoformat()
+        lastmod = last_change(folder, p)
         lines += ["  <url>", f"    <loc>{loc}</loc>", f"    <lastmod>{lastmod}</lastmod>", "  </url>"]
         prev = was.get("" if p == "index.html" else p)
         rows.append((p, prev, lastmod))
+    # Curated /player/<user> pages — no file, no lastmod (see PLAYERS note above).
+    for user in PLAYERS:
+        lines += ["  <url>", f"    <loc>{BASE}player/{user}</loc>", "  </url>"]
     lines.append("</urlset>")
     out = "\n".join(lines) + "\n"
 
     open(sm, "w", encoding="utf-8", newline="\n").write(out)
 
     changed = sum(1 for _, prev, now in rows if prev != now)
-    print(f"{len(pages)} pages -> sitemap.xml   ({changed} lastmod corrected)\n")
+    print(f"{len(pages)} pages + {len(PLAYERS)} player profiles -> sitemap.xml   ({changed} lastmod corrected)\n")
     print(f"{'PAGE':<46}{'WAS':<12}{'NOW':<12}")
     print("-" * 70)
     for p, prev, now in rows:
