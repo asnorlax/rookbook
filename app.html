@@ -2426,6 +2426,10 @@ addEventListener("load", function(){
 });
 setTimeout(function(){ document.documentElement.classList.remove("has-cache"); }, 4000);
 addEventListener("load", function(){ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 0); });
+// The server-rendered player summary (#ssr-seo) is the crawler / no-JS fallback and the
+// pre-hydration content. Once JS has the interactive app up, hide it so real visitors don't
+// see a duplicate stats block at the bottom. Crawlers that don't run JS still get it.
+addEventListener("load", function(){ var s=document.getElementById("ssr-seo"); if(s) s.style.display="none"; });
 setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 4000);
 </script>
 <noscript>
