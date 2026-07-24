@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why Is Accuracy Missing on Some Chess.com Games? | Rookbook</title>
+<meta name="description" content="A blank accuracy score just means nobody ran Game Review on that game. What the number actually measures, and why quiet positions inflate it.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/chess-accuracy-explained.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why Is Accuracy Missing on Some Chess.com Games? | Rookbook">
+<meta property="og:description" content="A blank accuracy score just means nobody ran Game Review on that game. What the number actually measures, and why quiet positions inflate it.">
+<meta property="og:url" content="https://rookbook.net/chess-accuracy-explained.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Why is accuracy missing on some chess.com games?", "description": "A blank accuracy score just means nobody ran Game Review on that game. What the number actually measures, and why quiet positions inflate it.", "url": "https://rookbook.net/chess-accuracy-explained.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Why is accuracy missing on some of my chess.com games?", "acceptedAnswer": {"@type": "Answer", "text": "chess.com only calculates accuracy when a game goes through Game Review. Until that happens the game has no accuracy value at all. Open the game on chess.com, run Game Review, and the score will exist from then on. Tools that read chess.com's public data can only show what has already been computed."}}, {"@type": "Question", "name": "What does chess accuracy actually measure?", "acceptedAnswer": {"@type": "Answer", "text": "It compares your moves against a strong engine's preferred moves and compresses the result into a score out of 100. It is heavily affected by the type of position: quiet positions score high for everyone, sharp tactical positions score lower, and it does not distinguish one game-losing blunder from many small inaccuracies."}}, {"@type": "Question", "name": "What is a good chess accuracy score?", "acceptedAnswer": {"@type": "Answer", "text": "There is no universal figure, because faster time controls produce lower accuracy for every player. The meaningful comparison is against your own accuracy in the same time control over time, and against your opponent's accuracy in the same game."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:20px 0;padding:0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--rule)}
+  figcaption{font-size:12px;color:#6A675B;margin-top:7px;line-height:1.6}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Why is accuracy missing on some chess.com games?</h1>
+<p class="lede">Some of your games show an accuracy score and some show nothing at all. It isn't a bug, and there's a specific reason &mdash; along with a few things the number does and doesn't tell you. <a href="/">Rookbook</a> shows yours across your whole history.</p>
+
+<h2>Why some games have no accuracy score</h2>
+<p>chess.com doesn't calculate accuracy for every game automatically. It's computed when a game goes through <b>Game Review</b>, and until that happens the game simply has no accuracy value attached &mdash; not a zero, not a low score, nothing.</p>
+<p>So a blank isn't a bad result. It means nobody has run the review on that game yet. Open the game on chess.com, run Game Review, and the number appears from then on. Any tool reading chess.com's public data, including Rookbook, can only show what chess.com has already computed.</p>
+<div class="box">
+  <p>If you're looking at your history and half the accuracy column is empty, that's normal for most accounts. Reviews are run per game, usually only on the ones people care about.</p>
+</div>
+
+<figure>
+  <picture>
+    <source srcset="/shot-accuracy-gaps.webp" type="image/webp">
+    <img src="/shot-accuracy-gaps.png" alt="Rookbook's game log with accuracy and opponent accuracy columns, several rows showing ? because those games never went through Game Review." width="1352" height="439" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>The blanks aren't zeros or bad scores. Those games simply haven't been through Game Review, so no accuracy figure exists for them.</figcaption>
+</figure>
+
+<h2>What accuracy actually measures</h2>
+<p>Accuracy compares your moves against what a strong engine would have played, then compresses the result into a single 0&ndash;100 figure. Higher means your moves tracked the engine's preference more closely.</p>
+<p>Two things follow from that, and both matter more than people expect:</p>
+<ul>
+  <li><b>It's position-dependent, not just skill-dependent.</b> A quiet, locked position where few moves change the evaluation will score high almost regardless of who's playing. A sharp tactical melee punishes small errors heavily. The same player scores differently in different games without playing better or worse.</li>
+  <li><b>It doesn't distinguish a fatal mistake from a harmless one.</b> Twenty tiny inaccuracies can cost you more accuracy points than one blunder that lost the game outright. Accuracy is an average, and averages hide the moment that decided the result.</li>
+</ul>
+
+<h2>What's a good accuracy?</h2>
+<p>Less useful a question than it sounds, because the honest answer is "compared to what." Faster time controls produce lower accuracy for everyone &mdash; there's simply less time to find the right move &mdash; so a blitz figure and a rapid figure aren't comparable numbers.</p>
+<p>The comparison that means something is against yourself in the same format, over time, and against the opponents you actually face. Rising accuracy in rapid over a few hundred games is real improvement. A single high-accuracy game is mostly a quiet position.</p>
+
+<h2>A more useful way to read it</h2>
+<p>Rather than chasing a target number, the two comparisons worth making are:</p>
+<ul>
+  <li><b>Your accuracy against your opponent's, in the same game.</b> Winning while scoring lower than your opponent usually means they made one decisive error and you didn't &mdash; which is a different story from outplaying them steadily.</li>
+  <li><b>Your accuracy in wins against your accuracy in losses.</b> If they're close, your results are being decided by single moments rather than by overall quality, and reviewing those moments beats grinding general study.</li>
+</ul>
+<p>Rookbook shows both automatically across your history, alongside the games where accuracy is missing so you know what's actually included in the average.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=trends">See your accuracy over time on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>Why is accuracy missing on some chess.com games?</b> Because that game hasn't been through Game Review. Run the review on chess.com and the number will exist from then on.</p>
+<p><b>Does higher accuracy always mean I played better?</b> No. Quiet positions inflate it and sharp ones deflate it, so the same quality of play can produce very different scores across games.</p>
+<p><b>Why is my blitz accuracy so much lower than my rapid?</b> Less thinking time produces more inaccuracies for everyone. Compare within a time control, never across.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/losing-winning-positions.html">Why do I keep losing winning positions?</a></li><li><a href="/why-am-i-stuck-at-the-same-rating.html">Why am I stuck at the same chess rating?</a></li><li><a href="/how-to-stop-blundering.html">How to stop blundering in chess</a></li><li><a href="/chess-com-banned-opponents.html">Chess.com banned opponents</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>

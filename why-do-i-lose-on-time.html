@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why Do I Keep Losing on Time in Chess? | Rookbook</title>
+<meta name="description" content="Time losses usually start with one long think on move twelve, not a slow endgame. Which moves deserve the clock, and why flagging while winning differs.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/why-do-i-lose-on-time.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why Do I Keep Losing on Time in Chess? | Rookbook">
+<meta property="og:description" content="Time losses usually start with one long think on move twelve, not a slow endgame. Which moves deserve the clock, and why flagging while winning differs.">
+<meta property="og:url" content="https://rookbook.net/why-do-i-lose-on-time.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Why do I keep losing on time in chess?", "description": "Time losses usually start with one long think on move twelve, not a slow endgame. Which moves deserve the clock, and why flagging while winning differs.", "url": "https://rookbook.net/why-do-i-lose-on-time.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Why do I keep losing on time in chess?", "acceptedAnswer": {"@type": "Answer", "text": "Usually one long think early in the game on a position that was not critical, or re-deciding your plan from scratch on every move instead of continuing a line you already calculated. Both leave too little time for the ending, where most time losses actually occur."}}, {"@type": "Question", "name": "How much time should I spend on a chess move?", "acceptedAnswer": {"@type": "Answer", "text": "Spend time on decisions that genuinely branch: changes of pawn structure, king safety, and choices between plans. Recaptures, forced replies and opening moves should be quick. If you have thought for a minute and your candidate moves have not changed, play the first one."}}, {"@type": "Question", "name": "Why do I lose on time when I am winning?", "acceptedAnswer": {"@type": "Answer", "text": "Players often slow down when ahead because they are afraid of throwing the game away, and the caution burns the clock needed to convert. When clearly winning, simplify quickly rather than carefully; trades reduce the complexity that caused the long thinks."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:20px 0;padding:0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--rule)}
+  figcaption{font-size:12px;color:#6A675B;margin-top:7px;line-height:1.6}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Why do I keep losing on time in chess?</h1>
+<p class="lede">Losing on time in a position you were winning is the most avoidable way to drop rating, and almost nobody studies it, because it doesn't feel like a chess mistake. <a href="/">Rookbook</a> rebuilds your clock from every game you've played.</p>
+
+<h2>Where the time actually goes</h2>
+<p>Most players assume they lose on time because the endgame took too long. Usually it went much earlier. Two patterns account for the bulk of it:</p>
+<ul>
+  <li><b>The long think on move 12.</b> A single four-minute decision in a position that wasn't critical. The move you eventually play is often the one you'd have played in twenty seconds, and now the rest of the game has to be played in a hurry.</li>
+  <li><b>Re-deciding.</b> You calculate a line, play the first move, then start again from scratch on the next move instead of continuing the plan. This is invisible while it's happening and enormously expensive.</li>
+</ul>
+<p>The tell is the distribution rather than the average. A player who spends fifteen seconds a move throughout is in a different situation from one averaging fifteen seconds because they spent four minutes once and three seconds everywhere else.</p>
+
+<h2>Which moves deserve time</h2>
+<p>Time should go to positions where the choice actually matters &mdash; when a capture changes the structure, when your king safety is about to change, or when you're choosing between plans rather than moves. It should not go to recaptures, forced replies, or the opening.</p>
+<div class="box">
+  <p>A practical rule: if you've been thinking for a minute and the candidate moves haven't changed, play the one you started with. The extra minute almost never changes the decision, and it will cost you the ending.</p>
+</div>
+
+<h2>Flagging in won positions is a separate problem</h2>
+<p>If you mainly lose on time while <em>ahead</em>, the cause is usually the opposite of carelessness. Players slow down when winning because they're afraid of throwing it away, and the caution burns the clock that would have converted the game.</p>
+<p>The fix is counterintuitive: when clearly winning, simplify quickly rather than carefully. A trade that reduces material is nearly always right when ahead, takes seconds to decide, and removes the complexity that was making you think in the first place.</p>
+
+<figure>
+  <picture>
+    <source srcset="/shot-clock.webp" type="image/webp">
+    <img src="/shot-clock.png" alt="A breakdown of where clock time goes across a set of games, including average seconds per move and the longest single think." width="1352" height="420" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>Clock time reconstructed from the move timestamps in each game — including the longest single think, which is usually the one that costs the ending.</figcaption>
+</figure>
+
+<h2>Increment changes everything</h2>
+<p>Games with an increment reward completely different habits from games without. With five seconds a move you can nearly always play on; with none, a technically winning ending can be unwinnable in practice. It's worth knowing whether your time losses cluster in one format &mdash; plenty of players are fine in 10+5 and bleed rating in 10+0 without ever noticing the pattern.</p>
+
+<h2>See your own clock</h2>
+<p>Rookbook reads your chess.com history and reconstructs the clock from each game's move timestamps &mdash; your average time per move, your longest single think, how much you had left at the end, and how that compares with your opponent. It also flags the games you lost on time while ahead on material, which is the list worth looking at first.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=insights">See where your clock goes on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>Why do I keep losing on time in chess?</b> Usually one long think early in a game that wasn't critical, or re-deciding your plan from scratch each move. Both are invisible while they happen and leave too little time for the ending.</p>
+<p><b>How much time should I spend per move?</b> Time should go to genuinely branching decisions &mdash; changes of structure, king safety, choices between plans. Recaptures, forced replies and opening moves should be quick.</p>
+<p><b>Should I play with increment?</b> If you often lose winning endings on time, increment will help a lot. It's worth checking whether your time losses cluster in one format before changing how you play.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/how-to-stop-blundering.html">How to stop blundering in chess</a></li><li><a href="/how-many-chess-games-per-day.html">How many chess games should you play a day?</a></li><li><a href="/losing-winning-positions.html">Why do I keep losing winning positions?</a></li><li><a href="/rapid-or-blitz-to-improve.html">Should I play rapid or blitz to improve?</a></li><li><a href="/losing-winning-endgames.html">Why do I keep losing winning endgames?</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>

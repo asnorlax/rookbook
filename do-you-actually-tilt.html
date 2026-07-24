@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Do You Actually Tilt at Chess? | Rookbook</title>
+<meta name="description" content="Most players are sure they tilt. Measured over a few hundred games, most don't. How to test it on your own results, and why small samples fool you.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/do-you-actually-tilt.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Do You Actually Tilt at Chess? | Rookbook">
+<meta property="og:description" content="Most players are sure they tilt. Measured over a few hundred games, most don't. How to test it on your own results, and why small samples fool you.">
+<meta property="og:url" content="https://rookbook.net/do-you-actually-tilt.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Do you actually tilt at chess?", "description": "Most players are sure they tilt. Measured over a few hundred games, most don't. How to test it on your own results, and why small samples fool you.", "url": "https://rookbook.net/do-you-actually-tilt.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is chess tilt real, and how do I know if I tilt?", "acceptedAnswer": {"@type": "Answer", "text": "Tilt is testable: split your games by what happened immediately before them and compare win rates. It only counts as evidence if the gap is larger than normal variation for that sample size. On small samples, differences of five or ten percentage points happen by chance alone, which is why most people believe they tilt more than the data shows."}}, {"@type": "Question", "name": "How many games do I need to detect tilt?", "acceptedAnswer": {"@type": "Answer", "text": "Enough that each bucket holds a couple of hundred games. With a 51% baseline, a bucket of 45 games wobbles about seven points on luck alone, while a bucket of 230 games wobbles about three. Below a few hundred games total, only very large effects are detectable."}}, {"@type": "Question", "name": "Should I stop playing chess after two losses?", "acceptedAnswer": {"@type": "Answer", "text": "Only if your own results show it costs you. It is common advice but it is not universal, and for many players the drop after losses is inside normal variation. Session length and time of day are more often the real cause than the losses themselves."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:20px 0;padding:0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--rule)}
+  figcaption{font-size:12px;color:#6A675B;margin-top:7px;line-height:1.6}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Do you actually tilt at chess?</h1>
+<p class="lede">Everyone believes they tilt. Measured against a few hundred games, most players don't. What does your game history actually suggest? Check your tilt stats with <a href="/">Rookbook</a>.</p>
+
+<h2>What tilt would look like in the data</h2>
+<p>Tilt has a testable definition: your results get worse <em>because</em> of what just happened, not because of who you're playing. If it's real, your win rate after two losses should be meaningfully below your win rate after a win, using the same opponents and the same time control.</p>
+<p>So you split your games by what preceded them &mdash; after a win, after one loss, after two, after three or more &mdash; and compare. That's it. The trap is in what counts as "meaningfully below."</p>
+
+<figure>
+  <picture>
+    <source srcset="/shot-tilt.webp" type="image/webp">
+    <img src="/shot-tilt.png" alt="Rookbook’s tilt curve: win rate after a win, after one loss, after two, and after three or more. All four bars are neutral because none of the gaps beat normal variation." width="1352" height="420" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>A real tilt curve. Every bar is neutral — the gaps are inside what chance produces at these sample sizes, so nothing is claimed. That is the usual result.</figcaption>
+</figure>
+
+<h2>Why most tilt evidence is noise</h2>
+<p>Say you win 51% of your games overall, and after two losses you win 54%. Sounds like the opposite of tilt. But if that bucket only holds fifty games, 54% is nothing &mdash; a player with no tilt whatsoever lands there roughly a third of the time on luck alone.</p>
+<p>The reason is that percentages from small samples wobble hard. A useful rule of thumb: to halve the wobble you need four times the games. Concretely, with a 51% baseline:</p>
+<ul>
+  <li><b>45 games</b> in a bucket &mdash; anything inside roughly &plusmn;7 points is ordinary</li>
+  <li><b>110 games</b> &mdash; roughly &plusmn;5 points</li>
+  <li><b>230 games</b> &mdash; roughly &plusmn;3 points</li>
+</ul>
+<p>Which means a 5-point drop after two losses is a real finding on 230 games and completely meaningless on 45. Most people never have enough games in the "after three losses" bucket for it to say anything, because losing three in a row is rarer than it feels.</p>
+<div class="box">
+  <p>This is also why streaks feel so convincing. Human memory keeps the four-loss evening and discards the twelve ordinary ones, so the pattern seems obvious long before the data supports it.</p>
+</div>
+
+<h2>What's usually happening instead</h2>
+<p>When people investigate a tilt feeling and find nothing, the cause is often something more boring and easier to fix:</p>
+<ul>
+  <li><b>Session length.</b> Not the losses &mdash; the hours. If your win rate holds steady after losses but sags on your tenth game of a sitting, that's fatigue, not tilt.</li>
+  <li><b>Time of day.</b> Late-night games are frequently a player's worst, and they're also when long sessions happen.</li>
+  <li><b>Opponent strength drift.</b> A losing streak drops your rating, which changes who you're matched against. Some of what looks like tilt is just the ladder correcting.</li>
+  <li><b>Faster moves after a loss.</b> Playing the next game immediately, and quicker, is a real effect and shows up in average think time before it shows up in results.</li>
+</ul>
+
+<h2>Check it on your own games</h2>
+<p>Rookbook pulls your chess.com history and splits your results by what came immediately before each game, and separately by where the game fell in a sitting. Crucially, it only colors a result when the gap is bigger than the noise for that sample size &mdash; so a panel that stays neutral is telling you something real: on this data, a loss doesn't predict your next one.</p>
+<p>That's a genuinely useful thing to learn about yourself, and most players assume the opposite.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=insights">See your tilt stats on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>Is tilt real in chess?</b> As a phenomenon, yes &mdash; playing angry or rushed demonstrably costs rating. What's unreliable is the individual's ability to detect it in themselves without measuring, because memory heavily weights the bad sessions.</p>
+<p><b>How many games do I need to tell?</b> Enough that each bucket holds a couple of hundred games, which usually means several hundred total. Below that, only very large effects are detectable.</p>
+<p><b>Should I stop playing after two losses?</b> Only if your own numbers show it costs you. The advice is repeated everywhere as though it's universal; for plenty of players the data doesn't support it, and quitting early just means fewer games.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/how-many-chess-games-per-day.html">How many chess games should you play a day?</a></li><li><a href="/why-am-i-stuck-at-the-same-rating.html">Why am I stuck at the same chess rating?</a></li><li><a href="/losing-winning-positions.html">Why do I keep losing winning positions?</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>

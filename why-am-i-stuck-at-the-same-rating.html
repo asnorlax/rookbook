@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why Am I Stuck at the Same Chess Rating? | Rookbook</title>
+<meta name="description" content="Plateaus persist when what you study isn't what's costing you games. The four realistic reasons rating stalls, and how to find which one is yours.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/why-am-i-stuck-at-the-same-rating.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why Am I Stuck at the Same Chess Rating? | Rookbook">
+<meta property="og:description" content="Plateaus persist when what you study isn't what's costing you games. The four realistic reasons rating stalls, and how to find which one is yours.">
+<meta property="og:url" content="https://rookbook.net/why-am-i-stuck-at-the-same-rating.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Why am I stuck at the same chess rating?", "description": "Plateaus persist when what you study isn't what's costing you games. The four realistic reasons rating stalls, and how to find which one is yours.", "url": "https://rookbook.net/why-am-i-stuck-at-the-same-rating.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Why am I stuck at the same chess rating?", "acceptedAnswer": {"@type": "Answer", "text": "Usually because the thing you are studying is not the thing costing you games. Most club players lose rating to hanging pieces, failing to convert winning positions, running out of time, or poor endgame technique, but spend their study time on openings, which decide very few games at that level."}}, {"@type": "Question", "name": "How do I find out what is actually costing me rating?", "acceptedAnswer": {"@type": "Answer", "text": "Look at your own game history rather than your memory of it. Check how many of your losses were already decided by move fifteen, how often you were ahead on material and still lost, and how often you lost on time. Memory heavily overweights recent painful losses."}}, {"@type": "Question", "name": "How long does a chess plateau last?", "acceptedAnswer": {"@type": "Answer", "text": "Months is normal. The length matters less than whether your practice matches your actual weakness; plateaus persist mainly when a player keeps improving an area that was never the problem."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:20px 0;padding:0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--rule)}
+  figcaption{font-size:12px;color:#6A675B;margin-top:7px;line-height:1.6}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Why am I stuck at the same chess rating?</h1>
+<p class="lede">You've played hundreds of games, you've watched the videos, and the number hasn't moved. Plateaus are normal &mdash; but staying on one usually means you're practicing the thing you're already good at. <a href="/">Rookbook</a> can show you which leak is actually costing you.</p>
+
+<h2>Why rating stalls</h2>
+<p>Rating is a measure of results against people who are also improving. Standing still doesn't mean you've learned nothing; it means you've learned roughly as much as the people you play. To move, you have to fix something they haven't.</p>
+<p>The trap is that most players study the part of the game they enjoy. Openings feel productive because progress is visible &mdash; you either know the line or you don't. But almost nobody at club level loses because of the opening. They lose in the middle of the game, and then again in the ending.</p>
+
+<h2>Find the actual leak first</h2>
+<p>Before choosing what to study, it's worth knowing where the rating is going. There are only a few realistic answers, and they suggest completely different work:</p>
+<ul>
+  <li><b>You hang pieces.</b> The most common by far, and the least studied because it feels like carelessness rather than a skill. It isn't &mdash; board vision is trainable.</li>
+  <li><b>You get winning positions and lose them.</b> A conversion problem. You already outplay people; you just can't finish. Fixing this is the fastest rating gain available to most players, because the wins are already half-earned.</li>
+  <li><b>You lose on the clock.</b> Not a chess problem at all. No amount of theory helps if you're flagging in equal positions.</li>
+  <li><b>You get ground down in endings.</b> Slower to fix, but very durable once fixed.</li>
+</ul>
+<div class="box">
+  <p>A useful test: of your last twenty losses, how many were decided before move fifteen? If the answer is "almost none", your opening is fine and studying more of it is procrastination.</p>
+</div>
+
+<h2>Why your memory is a bad guide</h2>
+<p>Ask most players where they lose rating and they'll describe their most painful recent loss. That's memory doing what memory does &mdash; keeping the vivid one, discarding the ordinary twenty. It's why so many people are convinced they tilt, or that they always lose to one particular opening, when the data says otherwise.</p>
+<p>The other trap is small samples. A run of eight losses feels like proof that something has broken. Across a few hundred games, runs like that happen to players whose skill hasn't changed at all. Before you rebuild your repertoire because of a bad week, it's worth checking whether the week was unusual.</p>
+
+<h2>What actually breaks a plateau</h2>
+<p>Pick one leak and work only on it for a month. Studying three things at once is why plateaus persist &mdash; the effort spreads too thin to move any single number.</p>
+<p>Concretely, in rough order of return for club players: stop hanging pieces, then convert winning positions, then manage the clock, then learn technique in the endings you actually reach. Openings come last, and even then only the ones you get every week.</p>
+
+<figure>
+  <picture>
+    <source srcset="/shot-plateau.webp" type="image/webp">
+    <img src="/shot-plateau.png" alt="A rating history in Rookbook: a flat opening stretch, a climb, a long sideways spell, then a second climb to a peak of 800." width="1352" height="418" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>A plateau as it actually looks: months of movement inside the same narrow band. The useful question isn't how long it lasts, it's which leak is holding it there.</figcaption>
+</figure>
+
+<h2>Measuring it on your own games</h2>
+<p>Rookbook reads your chess.com history and replays every game to work out where the rating actually went &mdash; how often you were winning and lost anyway, what a losing streak really costs you, how often you flag, and which endings you fail to convert.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=insights">Find your leak on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>How long do chess plateaus normally last?</b> Months is common. What matters isn't the length but whether you're working on the thing that's actually costing you games &mdash; plateaus persist when the study and the leak don't match.</p>
+<p><b>Should I learn more openings to get past a plateau?</b> Usually not. Openings feel productive but decide very few club games. Check how many of your losses were already lost by move fifteen before spending a month on theory.</p>
+<p><b>Does playing more games help?</b> Only if you look at them. Volume without review mostly reinforces existing habits, which is exactly what a plateau is.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/losing-winning-positions.html">Why do I keep losing winning positions?</a></li><li><a href="/how-to-stop-blundering.html">How to stop blundering in chess</a></li><li><a href="/why-do-i-lose-on-time.html">Why do I keep losing on time in chess?</a></li><li><a href="/how-to-review-your-chess-games.html">How to review your own chess games</a></li><li><a href="/rapid-or-blitz-to-improve.html">Should I play rapid or blitz to improve?</a></li><li><a href="/why-do-i-lose-to-lower-rated-players.html">Why do I lose to lower-rated players?</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>

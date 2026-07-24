@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Should I Play Rapid or Blitz to Improve? | Rookbook</title>
+<meta name="description" content="The standard advice is to play slower. Whether it's true for you is measurable: win rate, accuracy and clock use side by side across every format you play.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/rapid-or-blitz-to-improve.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Should I Play Rapid or Blitz to Improve? | Rookbook">
+<meta property="og:description" content="The standard advice is to play slower. Whether it's true for you is measurable: win rate, accuracy and clock use side by side across every format you play.">
+<meta property="og:url" content="https://rookbook.net/rapid-or-blitz-to-improve.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Should I play rapid or blitz to improve?", "description": "The standard advice is to play slower. Whether it's true for you is measurable: win rate, accuracy and clock use side by side across every format you play.", "url": "https://rookbook.net/rapid-or-blitz-to-improve.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Should I play rapid or blitz to improve at chess?", "acceptedAnswer": {"@type": "Answer", "text": "Rapid gives you time to calculate, so it trains the skill most players are missing. But the honest answer depends on your own numbers. Compare your accuracy in each format: if it holds up in blitz and only your win rate falls, the clock is beating you rather than your chess, and the fix is time management rather than a different time control."}}, {"@type": "Question", "name": "Is blitz bad for your chess?", "acceptedAnswer": {"@type": "Answer", "text": "Blitz is not harmful in itself. It becomes a problem when it is the only thing you play, because you never practice calculating a position you have not seen before, and when you never review the games, which is easy to skip when each one lasts five minutes."}}, {"@type": "Question", "name": "Can I compare my rapid and blitz ratings?", "acceptedAnswer": {"@type": "Answer", "text": "No. Each time control is a separate rating pool with a different player mix, so the same number means different strength in each. Track each format against its own history rather than against the others."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:20px 0;padding:0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--rule)}
+  figcaption{font-size:12px;color:#6A675B;margin-top:7px;line-height:1.6}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Should I play rapid or blitz to improve?</h1>
+<p class="lede">Everyone gets told to play slower. It's decent advice and it's given without knowing anything about you &mdash; which is a shame, because your own games already answer the question. <a href="/">Rookbook</a> puts your formats side by side.</p>
+
+<h2>What the standard advice gets right</h2>
+<p>The case for rapid is simple: you can't practice calculating if you never have time to calculate. In a three-minute game you play the move that looks right, and looking right is pattern recognition &mdash; a skill you already have. Longer games are the only ones where you're forced to work out a position you don't recognize, which is the thing that actually improves.</p>
+<p>The second argument is quieter and stronger. Slow games are reviewable. A rapid game has a shape you can remember afterwards: an opening, a plan, a moment it turned. Blitz games blur together, and a game you can't remember is a game you can't learn from.</p>
+
+<h2>Where it breaks down</h2>
+<p>The advice assumes your problem is calculation. Often it isn't. Plenty of players calculate perfectly well and lose anyway &mdash; to the clock, to the first game of a session, to positions they were already winning. For them, "play more rapid" is a prescription for a disease they don't have.</p>
+<p>It also ignores volume. Ten blitz games and one rapid game take the same hour, and the blitz hour contains ten openings, ten middlegames and ten endings. If your weakness is that you've simply seen too few positions, that hour is not wasted.</p>
+
+<h2>The numbers that settle it</h2>
+<p>You don't have to argue about this in the abstract. Four numbers, read per format, tell you which camp you're in:</p>
+<ul>
+  <li><b>Accuracy per format.</b> The important one. If your accuracy in blitz is close to your rapid accuracy, your chess is holding up under time pressure and something else is losing the games. If it falls off a cliff, you're guessing, and slower games are the right prescription.</li>
+  <li><b>Win rate per format.</b> Read next to accuracy, never alone. Accuracy steady and win rate collapsing is a clock problem. Both falling together is a chess problem.</li>
+  <li><b>Seconds per move.</b> Often nearly identical across formats, which is the giveaway. A player averaging eight seconds a move in both rapid and blitz isn't really playing rapid &mdash; they're playing blitz with a longer clock and handing back the advantage they paid for.</li>
+  <li><b>How much of your clock you actually use.</b> If you finish rapid games with most of your time unspent, adding more time won't help. The time you already have isn't being used.</li>
+</ul>
+
+<div class="box">
+  <p>The most common finding is the least dramatic one: the same seconds-per-move in every format. If that's you, the format isn't your problem &mdash; the habit of moving before you've finished thinking is, and it follows you into whatever time control you pick.</p>
+</div>
+
+<figure>
+  <picture>
+    <source srcset="/shot-format-faceoff.webp" type="image/webp">
+    <img src="/shot-format-faceoff.png" alt="Rookbook's format face-off: games, win rate, average accuracy, seconds per move, clock used, castling rate and game length compared across rapid, daily and blitz." width="876" height="873" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>The same player on three different clocks. Here the win rate falls from 55% in rapid to 36% in blitz while accuracy barely moves &mdash; and only 3% of the blitz clock ever gets used.</figcaption>
+</figure>
+
+<h2>Your ratings are not comparable</h2>
+<p>Each time control is its own rating pool with its own mix of players, so the same number means a different thing in each. A 900 blitz rating and a 900 rapid rating are not the same strength, and the gap between them says more about who plays each format than about you.</p>
+<p>This matters because cross-format comparison is a reliable way to feel worse for no reason. Track each format against its own history. A blitz rating that climbed forty points is progress even if it's still two hundred below your rapid.</p>
+
+<h2>The honest answer</h2>
+<p>Play the format you'll actually review. That's not a dodge &mdash; it's the only factor that reliably separates players who improve from players who log a lot of games. A rapid game you never look at again teaches you about as much as a bullet game you never look at again.</p>
+<p>If you're going to review, rapid gives you more to review per game. If you know yourself well enough to know you won't, then the volume argument wins and blitz is fine, as long as you're honest that you're playing for enjoyment rather than improvement. Both are legitimate. Confusing one for the other is what stings.</p>
+
+<h2>See your own split</h2>
+<p>Rookbook reads your chess.com history and compares your formats directly: games played, win rate, average accuracy, seconds per move, how much of the clock you used, how often you castled and how long your games ran. It ignores your time-class filter while doing it &mdash; comparing the formats is the entire point.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=insights">Compare your formats on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>Should I play rapid or blitz to improve?</b> Rapid, if your accuracy drops sharply in faster games &mdash; that's a calculation problem and only time fixes it. If your accuracy holds and only your results fall, the clock is beating you, and a longer time control just gives you more of it to waste.</p>
+<p><b>Is blitz bad for my chess?</b> Not by itself. It's a problem when it's the only thing you play, and when you never review it &mdash; which is easy to skip when a game lasts five minutes.</p>
+<p><b>Can I compare my blitz and rapid ratings?</b> No. They're separate pools with different opposition. Compare each format with its own past, not with the other.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/why-do-i-lose-on-time.html">Why do I keep losing on time in chess?</a></li><li><a href="/how-many-chess-games-per-day.html">How many chess games should you play a day?</a></li><li><a href="/why-am-i-stuck-at-the-same-rating.html">Why am I stuck at the same chess rating?</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>

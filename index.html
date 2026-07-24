@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rookbook | The Stats Chess.com Doesn't Show You</title>
+<meta name="description" content="Free Chess.com stats tracker. Blown leads, missed checkmates, tilt, time trouble: see where your games slip away. No account; your games never leave your browser.">
+<link rel="canonical" href="https://rookbook.net/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rookbook | The Stats Chess.com Doesn't Show You">
+<meta property="og:description" content="Free Chess.com stats tracker. Blown leads, missed checkmates, tilt, time trouble: see where your games slip away. No account; your games never leave your browser.">
+<meta property="og:url" content="https://rookbook.net/">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<meta name="theme-color" content="#0E0F10">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<!-- Same GoatCounter property as the app, so / keeps reporting after the landing takes over.
+     Dashboard: https://rookbookchess.goatcounter.com -->
+<script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Rookbook","url":"https://rookbook.net/","applicationCategory":"GameApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"description":"Free Chess.com game tracker: blown leads, missed checkmates, tilt and time-trouble analysis, run entirely in the browser."}</script>
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<style>
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;src:url("/poppins-600.woff2") format("woff2")}
+</style>
+<style>
+  :root{
+    --bg:#0E0F10; --panel:#161719; --panel2:#191B1D; --ink:#E7DFC4; --dim:#9A947C;
+    --rule:#313436; --green:#6FA47B; --win:#7CC287; --loss:#E0776C; --draw:#D3B25A;
+    --sq-light:#E9E0C4; --sq-dark:#6FA47B;
+    --mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:"Poppins",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    /* reading sans for body prose — Poppins is the display face for headings only */
+    --ui:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--bg);scroll-behavior:smooth}
+  body{
+    font-family:var(--ui); color:var(--ink); min-height:100vh;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 34px, rgba(231,223,196,.025) 34px 35px),
+      var(--bg);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 24px}
+
+  /* top bar */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px 14px;flex-wrap:wrap;
+    padding-bottom:22px;border-bottom:1px solid var(--rule);margin-bottom:52px}
+  .nav{white-space:nowrap}
+  .wm{font-family:var(--sans);font-size:21px;font-weight:600;letter-spacing:-.01em;display:inline-flex;align-items:center}
+  .wm .logo{width:28px;height:28px;border-radius:6px;margin-right:9px;flex:0 0 auto}
+  .wm b{color:var(--ink);font-weight:600} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px;color:var(--dim)}
+  .nav a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  .nav a:hover{border-bottom-style:solid}
+  @media (max-width:480px){ .nav{font-size:11px} }
+
+  /* section scaffold */
+  .scene{display:grid;grid-template-columns:1.02fr 1.15fr;gap:48px;align-items:center;scroll-margin-top:18px;
+    padding:40px 0}
+  .scene.hero{padding-top:0;padding-bottom:44px}
+  .scene.flip .copy{order:2}
+  h1{font-family:var(--sans);font-weight:600;font-size:40px;line-height:1.08;letter-spacing:-.02em;color:var(--ink);margin-bottom:18px}
+  h2{font-family:var(--sans);font-weight:600;font-size:40px;line-height:1.08;letter-spacing:-.02em;color:var(--ink);margin-bottom:18px}
+  h1 .em, h2 .em{color:var(--green)}
+  .sub{font-size:15px;line-height:1.74;color:var(--dim);max-width:46ch}
+  .sub.lede{font-size:15px}
+  .sub b{color:var(--ink);font-weight:500}
+  .copy .sub{margin-bottom:24px}
+
+  .form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px}
+  /* Squared to 0 to match app.html's global `button` rule — someone types a username here
+     and is looking at the app's Fetch button a second later, so the two surfaces should
+     not have different corners. Case stays sentence-case rather than the app's uppercase:
+     the app is a tool you've committed to, this is the first thing a stranger reads. */
+  .form input{
+    font-family:var(--mono);font-size:14px;color:var(--ink);background:var(--panel);
+    border:1px solid var(--rule);border-radius:0;padding:14px 15px;min-width:220px;flex:1}
+  .form input::placeholder{color:#6A675B}
+  .form input:focus{outline:none;border-color:var(--green)}
+  /* Matched to app.html's `button` + `.wel-form button`: same face, case, tracking, weight,
+     border and size. The app's welcome screen is the very next thing a visitor sees, and it
+     already carries this exact button with this exact label. */
+  .form button{
+    font-family:var(--mono);font-size:14px;letter-spacing:.08em;text-transform:uppercase;
+    font-weight:700;color:#131813;background:var(--green);
+    border:2px solid var(--green);border-radius:0;padding:15px 28px;
+    cursor:pointer;transition:background .15s,border-color .15s}
+  .form button:hover{background:#82b78e;border-color:#82b78e}
+  /* The sample is a link, not a rival button — again matching the app, where it reads
+     "No username handy? Peek at a sample account →" under the single primary action. */
+  .form .ghost{font-family:var(--mono);font-size:13px;color:var(--green);
+    background:transparent;border:none;border-bottom:1px dotted var(--green);
+    padding:0;align-self:center;margin-left:4px;
+    text-decoration:none;transition:border-bottom-style .15s}
+  .form .ghost:hover{border-bottom-style:solid}
+  .form .ghost:hover{filter:brightness(1.15);background:rgba(111,164,123,.08)}
+  /* When the one-row form can't fit, wrap on purpose: input owns the first row,
+     the two buttons split the second as a matched pair, and on the narrowest
+     phones they stack full-width. No more ragged three-row wrap. */
+  @media (max-width:720px){
+    .form input{flex:1 1 100%}
+    /* the button owns the row; the sample link sits under it rather than stretching to
+       match, now that it is a link instead of a second button */
+    .form button{flex:1 1 auto;justify-content:center;text-align:center;white-space:nowrap}
+    .form .ghost{flex:1 1 100%;margin-left:0;margin-top:2px}
+  }
+  .privacy{margin-top:10px}
+  .demo{font-size:13px;color:var(--dim);margin-bottom:16px}
+  .demo a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  .demo a:hover{border-bottom-style:solid}
+  .privacy{font-size:12px;color:#6A675B;display:flex;align-items:center;gap:7px}
+  .privacy .dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex:0 0 auto}
+  a.jump{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a.jump:hover{color:var(--green);border-bottom-style:solid}
+
+  /* chart card */
+  .card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:16px 16px 14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.02) inset, 0 18px 40px -24px rgba(0,0,0,.7)}
+  .card-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;gap:10px}
+  .card-title{font-family:var(--sans);font-size:12.5px;font-weight:500;color:var(--ink)}
+  .card-res{font-size:11px;letter-spacing:.02em}
+  .card-res.bad{color:var(--loss)} .card-res.dim{color:var(--dim)}
+  figure{margin:0}
+  svg{display:block;width:100%;height:auto;max-height:270px;margin:0 auto}
+  figcaption{font-size:11.5px;line-height:1.6;color:var(--dim);margin-top:10px}
+  figcaption b{color:var(--ink);font-weight:500}
+
+  /* shared svg atoms */
+  .base{stroke:var(--rule);stroke-width:1;stroke-dasharray:3 4}
+  .grid{stroke:rgba(231,223,196,.05);stroke-width:1}
+  .axlab{font-family:var(--mono);font-size:9px;fill:#6A675B}
+  .tag{font-family:var(--mono);font-size:10.5px}
+
+  /* draw-on lines (transition-driven, fired by .in) */
+  .ln{fill:none;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round;
+    stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .95s ease-out}
+  .in .ln{stroke-dashoffset:0}
+  .ln.d1{transition-delay:.15s} .ln.d2{stroke-dashoffset:1;transition:stroke-dashoffset .8s ease-in .95s}
+  .in .ln.d2{stroke-dashoffset:0}
+  .up{stroke:var(--win)} .dn{stroke:var(--loss)} .neu{stroke:var(--ink)}
+
+  .reveal{opacity:0;transform:translateY(4px);transition:opacity .5s ease-out, transform .5s ease-out}
+  .in .reveal{opacity:1;transform:none}
+  .reveal.t1{transition-delay:1.55s} .reveal.t2{transition-delay:1.8s}
+
+  .mk{fill:var(--bg)}
+  .mk.up{stroke:var(--win);stroke-width:2} .mk.dn{stroke:var(--loss);stroke-width:2}
+
+  /* bars */
+  .drain{transform:scaleX(1);transform-origin:left;transition:transform 1.15s ease-in .2s}
+  .in .drain{transform:scaleX(0)}
+  /* opening win-rate bars grow from their own left edge — fill-box, or the origin
+     resolves against the whole SVG and they slide in from the wrong place */
+  .obar{transform:scaleX(0);transform-box:fill-box;transform-origin:left;
+    transition:transform .85s cubic-bezier(.2,.7,.2,1) .2s}
+  .in .obar{transform:scaleX(1)}
+  .obar.o2{transition-delay:.35s} .obar.o3{transition-delay:.5s}
+  .clockdig{font-family:var(--mono);font-size:26px;font-weight:600}
+  /* SVG presentation attributes can't read CSS variables, so the opening line and the
+     engine move get classes rather than font-family="var(--mono)" */
+  .oline{font-family:var(--mono);font-size:19px;fill:#E7DFC4}
+  .omove{font-family:var(--mono);font-size:20px;font-weight:600;fill:#7CC287}
+
+  /* real rookbook board — muted squares, Staunton pieces, gold move rings (matches the app) */
+  .bwrap{position:relative;width:fit-content;margin:2px auto 0}
+  .bgrid{display:grid;grid-template-columns:repeat(8,33px);grid-template-rows:repeat(8,33px);border-radius:4px;overflow:hidden}
+  .bsq{display:flex;align-items:center;justify-content:center;position:relative}
+  .bsq.l{background:#B9BCB0} .bsq.d{background:#6E7A68}
+  .bsq svg.pc{width:88%;height:88%;display:block;position:relative;z-index:2;opacity:0;transition:opacity .5s ease-out}
+  .in .bsq svg.pc{opacity:1}
+  .bsq.from::before,.bsq.to::before{content:"";position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .45s ease-out .55s}
+  .bsq.from::before{box-shadow:inset 0 0 0 2px rgba(211,178,90,.9);background:rgba(211,178,90,.12)}
+  .bsq.to::before{box-shadow:inset 0 0 0 3px #D3B25A;background:rgba(211,178,90,.22)}
+  .in .bsq.from::before,.in .bsq.to::before{opacity:1}
+  .bovl{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:0;transition:opacity .55s ease-out .55s}
+  .in .bovl{opacity:1}
+
+  /* feature reading */
+  .foot{border-top:1px solid var(--rule);margin-top:6px;padding:24px 0 30px;text-align:center}
+  .foot .read{font-size:11.5px;line-height:1.9;color:#6A675B}
+  .foot .read a{color:#6A675B;text-decoration:none;border-bottom:1px solid rgba(154,148,124,.22)}
+  .foot .read a:hover{color:var(--green);border-bottom-color:var(--green)}
+  .foot-meta{font-size:12px;color:var(--dim);margin-top:16px;line-height:1.7}
+  .wm-sm{font-family:var(--sans);font-weight:600;font-size:13px}
+  .wm-sm b{color:var(--ink);font-weight:600} .wm-sm i{color:var(--green);font-style:normal}
+  .foot-legal{font-size:11px;color:#6A675B;margin-top:9px}
+
+  /* full-width sections — the two-column scene grid doesn't suit a list */
+  .scene.wide{grid-template-columns:1fr;padding:44px 0}
+  .scene.wide .copy .sub{margin-bottom:0}
+
+  /* everything it measures */
+  .mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(208px,1fr));gap:1px;
+    background:var(--rule);border:1px solid var(--rule);border-radius:12px;overflow:hidden;margin-top:26px}
+  .mcell{background:var(--panel);padding:15px 17px}
+  .mcell h3{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--ink);margin:0 0 5px}
+  .mcell p{font-size:12px;line-height:1.62;color:#6A675B;margin:0}
+  /* this page has no global `a` color — only .nav, .demo and .foot — so a link anywhere
+     else falls back to browser blue on a dark background. Match the site's idiom. */
+  .mcell a, .step a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  .mcell a:hover, .step a:hover{border-bottom-style:solid}
+
+  /* how it works */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:26px}
+  .step{padding-top:15px;border-top:2px solid var(--green)}
+  .step .n{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--green)}
+  .step h3{font-family:var(--sans);font-size:14px;font-weight:500;color:var(--ink);margin:7px 0 6px}
+  .step p{font-size:12.5px;line-height:1.7;color:var(--dim);margin:0}
+  @media (max-width:720px){ .steps{grid-template-columns:1fr;gap:20px} }
+
+  @media (max-width:840px){
+    .scene{grid-template-columns:1fr;gap:30px;padding:30px 0}
+    .scene.flip .copy{order:0}
+    h1{font-size:32px} h2{font-size:32px}
+
+    /* Heading, then the picture, then the explanation. The card used to come first, which
+       handed a phone reader a chessboard before telling them what section they were in.
+       h2 and .sub aren't siblings of .card, so order alone can't interleave them —
+       display:contents dissolves the .copy wrapper for the width of this query only. */
+    /* :has(> .card) rather than a list of exceptions — only a scene with a card has
+       anything to interleave. It also keeps the card-less sections (the measures grid,
+       the steps, the closing CTA) out of it, since dissolving their wrapper would float
+       loose children above their own heading. Browsers without :has() simply drop these
+       four rules and get heading → text → card, which is the fallback we'd have picked. */
+    .scene:not(.hero):has(> .card) .copy{display:contents}
+    .scene:not(.hero):has(> .card) .copy h2{order:1;margin-bottom:0}
+    .scene:not(.hero):has(> .card) .card{order:2}
+    .scene:not(.hero):has(> .card) .copy .sub{order:3;margin-bottom:0}
+
+    /* The hero keeps its copy intact: headline, pitch and the whole sign-up path land
+       before the chart. Leading with an unlabeled chart there pushed the input onto
+       the fold at 812px, and below it on anything smaller. */
+    .scene.hero .card{order:0}
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    .ln,.ln.d2{stroke-dashoffset:0;transition:none}
+    .reveal{opacity:1;transform:none;transition:none}
+    .bsq svg.pc{opacity:1;transition:none}
+    .bsq.from::before,.bsq.to::before{opacity:1;transition:none}
+    .bovl{opacity:1;transition:none}
+    .drain{transform:scaleX(0);transition:none}
+    .obar{transform:none;transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <span class="wm" style="order:0"><img class="logo" alt="rookbook" src="/logo.png" width="28" height="28"><b>rook</b><i>book</i></span>
+    <nav class="nav">
+      <!-- "Open the app", not "Analyze my games": this jumps past the form directly below
+           it to the app's own welcome screen. For a returning visitor that's the point —
+           they land straight in their dashboard. For a newcomer the old label promised the
+           form and delivered a second, different one. -->
+      <a href="/app.html">Open the app</a> &middot;
+      <a href="/reading.html">Reading</a> &middot;
+      <a href="/glossary.html">Glossary</a>
+    </nav>
+  </div>
+
+  <!-- ===================== HERO: blown lead ===================== -->
+  <section class="scene hero" id="hero">
+    <div class="copy">
+      <h1>See how you<br><span class="em">actually play.</span></h1>
+      <p class="sub lede">rookbook reads your Chess.com history and shows you the whole picture &mdash; your <b>style and strengths</b>, the <a class="jump" href="#hero">blown leads</a> and <a class="jump" href="#mate">missed mates</a>, and the <a class="jump" href="#openings">one opening</a> quietly sinking you. Free, nothing leaves your browser.</p>
+      <div class="form">
+        <input type="text" id="u1" placeholder="your chess.com username" spellcheck="false" autocomplete="off" aria-label="chess.com username">
+        <button type="button" data-go="u1">Analyze my games</button>
+        <a class="ghost" href="/app.html#demo">or peek at a sample account &rarr;</a>
+      </div>
+      <div class="demo" id="wback" hidden></div>
+      <div class="privacy"><span class="dot"></span>Free. No sign-in. Your games never leave your browser.</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">One game, start to finish</span><span class="card-res bad">Resigned · move 41</span></div>
+      <figure>
+        <svg viewBox="0 0 520 280" role="img" aria-label="Material through one game: a lead of +5 that collapses to a resignation.">
+          <line class="grid" x1="130" y1="30" x2="130" y2="250"/>
+          <line class="grid" x1="230" y1="30" x2="230" y2="250"/>
+          <line class="grid" x1="330" y1="30" x2="330" y2="250"/>
+          <line class="grid" x1="430" y1="30" x2="430" y2="250"/>
+          <line class="base" x1="40" y1="150" x2="486" y2="150"/>
+          <text class="axlab" x="42" y="144">even</text>
+          <text class="axlab" x="42" y="82">+5</text>
+          <text class="axlab" x="42" y="236">&minus;6</text>
+          <path class="ln up d1" pathLength="1" d="M40,150 L95,150 L95,105 L160,105 L160,75 L250,75"/>
+          <path class="ln dn d2" pathLength="1" d="M250,75 L250,135 L312,135 L312,195 L372,195 L372,240 L460,240"/>
+          <g class="reveal t1"><circle class="mk up" cx="205" cy="75" r="4"/>
+            <text class="tag" fill="#7CC287" x="205" y="61" text-anchor="middle">&#9650; +5 &middot; you were winning</text></g>
+          <g class="reveal t2"><circle class="mk dn" cx="460" cy="240" r="4"/>
+            <text class="tag" fill="#E0776C" x="454" y="233" text-anchor="end">gave it all back</text></g>
+        </svg>
+        <figcaption><b>rookbook finds these automatically</b>. Every game you led and lost, opened to the move it turned.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== MISSED MATE (board) ===================== -->
+  <section class="scene flip" id="mate">
+    <div class="copy">
+      <h2>The mates you <span class="em">never saw.</span></h2>
+      <p class="sub">Every game where a forced checkmate was on the board and you played
+        something else. <b>Found and replayed to the exact move</b>, so the pattern sticks
+        and you finish it next time. Even the games you won.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Mate in one you missed</span><span class="card-res bad">Bh3#</span></div>
+      <figure>
+        <div class="bwrap"><div class="bgrid"><div class="bsq l"></div><div class="bsq d"></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 21.2 6 L 23.8 6 L 23.8 9 L 26.6 9 L 26.6 11.6 L 23.8 11.6 L 23.8 14.6 L 21.2 14.6 L 21.2 11.6 L 18.4 11.6 L 18.4 9 L 21.2 9 Z M 22.5 16.4 C 26.4 12.8 33 14.8 32.8 20.2 C 32.7 24 29.2 27 27.4 30 L 17.6 30 C 15.8 27 12.3 24 12.2 20.2 C 12 14.8 18.6 12.8 22.5 16.4 Z M 14.2 32 L 30.8 32 C 31.8 33.4 32.6 35.2 32.8 37 L 12.2 37 C 12.4 35.2 13.2 33.4 14.2 32 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/><path d="M 22.5 17 L 22.5 29" fill="none" stroke="#4E4F51" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="bsq d"></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 11.4 12.6 A 1.8 1.8 0 1 1 11.38 12.6 Z M 22.5 8 A 1.8 1.8 0 1 1 22.48 8 Z M 33.6 12.6 A 1.8 1.8 0 1 1 33.58 12.6 Z M 16.9 10.4 A 1.8 1.8 0 1 1 16.88 10.4 Z M 28.1 10.4 A 1.8 1.8 0 1 1 28.08 10.4 Z M 14.9 30.2 L 11.6 15.8 L 16.5 21.6 L 19.4 13.2 L 22.5 20.4 L 25.6 13.2 L 28.5 21.6 L 33.4 15.8 L 30.1 30.2 Z M 14.2 32 L 30.8 32 C 31.8 33.4 32.6 35.2 32.8 37 L 12.2 37 C 12.4 35.2 13.2 33.4 14.2 32 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq d"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 6.2 A 2.2 2.2 0 1 1 22.48 6.2 Z M 22.5 10.8 C 18.2 13.6 15.9 17.6 15.9 21.4 C 15.9 24.2 17.3 26.4 19.4 27.6 L 25.6 27.6 C 27.7 26.4 29.1 24.2 29.1 21.4 C 29.1 17.6 26.8 13.6 22.5 10.8 Z M 17.9 29.4 L 27.1 29.4 L 28 31.4 L 17 31.4 Z M 13.2 37 C 13.2 34.6 16.4 33.2 22.5 33.2 C 28.6 33.2 31.8 34.6 31.8 37 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/><path d="M 22.5 14.6 L 22.5 22.6 M 19.1 18.6 L 25.9 18.6" fill="none" stroke="#4E4F51" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 13.5 37 C 13.5 30.5 15.5 26 19.5 23.2 L 15.5 21.8 C 13.6 21.8 11.5 21.7 9.6 21.2 L 8.2 20.5 C 7.9 19.7 8.2 18.8 9.2 18.4 C 8.5 17.6 8.7 16.5 9.7 16.1 C 12.6 14.3 16.1 12.4 18.8 11.6 L 19.6 7.8 L 22.4 10.9 L 24.2 8.4 L 25.4 11.6 C 30.5 13.2 34 18.5 34.5 25.5 C 34.9 30 34.6 34 34.4 37 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/><path d="M 16.9 16 A 1 1 0 1 1 16.88 16 M 8.9 20.1 L 11.4 19.3 M 26 14.4 C 29.6 17.4 31.6 21.6 32.2 26.6" fill="none" stroke="#4E4F51" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="bsq d"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 11.8 37 L 33.2 37 L 33.2 33.8 L 30.6 31.4 L 30.6 29.8 L 28.6 27.6 L 28.6 16.4 L 30.6 14.4 L 30.6 8.8 L 26.9 8.8 L 26.9 11.6 L 24.4 11.6 L 24.4 8.8 L 20.6 8.8 L 20.6 11.6 L 18.1 11.6 L 18.1 8.8 L 14.4 8.8 L 14.4 14.4 L 16.4 16.4 L 16.4 27.6 L 14.4 29.8 L 14.4 31.4 L 11.8 33.8 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/><path d="M 16.4 27.6 L 28.6 27.6 M 16.4 16.4 L 28.6 16.4" fill="none" stroke="#4E4F51" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="bsq d"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 6.2 A 2.2 2.2 0 1 1 22.48 6.2 Z M 22.5 10.8 C 18.2 13.6 15.9 17.6 15.9 21.4 C 15.9 24.2 17.3 26.4 19.4 27.6 L 25.6 27.6 C 27.7 26.4 29.1 24.2 29.1 21.4 C 29.1 17.6 26.8 13.6 22.5 10.8 Z M 17.9 29.4 L 27.1 29.4 L 28 31.4 L 17 31.4 Z M 13.2 37 C 13.2 34.6 16.4 33.2 22.5 33.2 C 28.6 33.2 31.8 34.6 31.8 37 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/><path d="M 22.5 14.6 L 22.5 22.6 M 19.1 18.6 L 25.9 18.6" fill="none" stroke="#1B1C1E" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="bsq l"></div><div class="bsq d"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq l"></div><div class="bsq d"></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq d"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq l"></div><div class="bsq d"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq l"></div><div class="bsq d"></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq d"></div><div class="bsq l"></div><div class="bsq d"></div><div class="bsq d"></div><div class="bsq l"></div><div class="bsq d"></div><div class="bsq l"></div><div class="bsq d"></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 13.5 37 C 13.5 30.5 15.5 26 19.5 23.2 L 15.5 21.8 C 13.6 21.8 11.5 21.7 9.6 21.2 L 8.2 20.5 C 7.9 19.7 8.2 18.8 9.2 18.4 C 8.5 17.6 8.7 16.5 9.7 16.1 C 12.6 14.3 16.1 12.4 18.8 11.6 L 19.6 7.8 L 22.4 10.9 L 24.2 8.4 L 25.4 11.6 C 30.5 13.2 34 18.5 34.5 25.5 C 34.9 30 34.6 34 34.4 37 Z" fill="#F8F7F2" stroke="#4E4F51" stroke-width="1.6" stroke-linejoin="round"/><path d="M 16.9 16 A 1 1 0 1 1 16.88 16 M 8.9 20.1 L 11.4 19.3 M 26 14.4 C 29.6 17.4 31.6 21.6 32.2 26.6" fill="none" stroke="#4E4F51" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="bsq d"></div><div class="bsq l"></div><div class="bsq l"></div><div class="bsq d"></div><div class="bsq l"></div><div class="bsq d"></div><div class="bsq l"></div><div class="bsq d"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 13.5 37 C 13.5 30.5 15.5 26 19.5 23.2 L 15.5 21.8 C 13.6 21.8 11.5 21.7 9.6 21.2 L 8.2 20.5 C 7.9 19.7 8.2 18.8 9.2 18.4 C 8.5 17.6 8.7 16.5 9.7 16.1 C 12.6 14.3 16.1 12.4 18.8 11.6 L 19.6 7.8 L 22.4 10.9 L 24.2 8.4 L 25.4 11.6 C 30.5 13.2 34 18.5 34.5 25.5 C 34.9 30 34.6 34 34.4 37 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/><path d="M 16.9 16 A 1 1 0 1 1 16.88 16 M 8.9 20.1 L 11.4 19.3 M 26 14.4 C 29.6 17.4 31.6 21.6 32.2 26.6" fill="none" stroke="#1B1C1E" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="bsq l"></div><div class="bsq d"></div><div class="bsq d"></div><div class="bsq l"></div><div class="bsq d"></div><div class="bsq l"></div><div class="bsq d"></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq d"></div><div class="bsq l"></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq d"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq d"></div><div class="bsq l"></div><div class="bsq d"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq d"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 8.8 A 4.4 4.4 0 0 0 19.4 16.3 C 17.4 17.5 16.2 19.6 16.2 21.9 C 16.2 23.9 17.1 25.6 18.5 26.7 C 15.4 28.1 12.8 31.6 12.8 37 L 32.2 37 C 32.2 31.6 29.6 28.1 26.5 26.7 C 27.9 25.6 28.8 23.9 28.8 21.9 C 28.8 19.6 27.6 17.5 25.6 16.3 A 4.4 4.4 0 0 0 22.5 8.8 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq d"></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 21.2 6 L 23.8 6 L 23.8 9 L 26.6 9 L 26.6 11.6 L 23.8 11.6 L 23.8 14.6 L 21.2 14.6 L 21.2 11.6 L 18.4 11.6 L 18.4 9 L 21.2 9 Z M 22.5 16.4 C 26.4 12.8 33 14.8 32.8 20.2 C 32.7 24 29.2 27 27.4 30 L 17.6 30 C 15.8 27 12.3 24 12.2 20.2 C 12 14.8 18.6 12.8 22.5 16.4 Z M 14.2 32 L 30.8 32 C 31.8 33.4 32.6 35.2 32.8 37 L 12.2 37 C 12.4 35.2 13.2 33.4 14.2 32 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/><path d="M 22.5 17 L 22.5 29" fill="none" stroke="#1B1C1E" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="bsq d"></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 11.4 12.6 A 1.8 1.8 0 1 1 11.38 12.6 Z M 22.5 8 A 1.8 1.8 0 1 1 22.48 8 Z M 33.6 12.6 A 1.8 1.8 0 1 1 33.58 12.6 Z M 16.9 10.4 A 1.8 1.8 0 1 1 16.88 10.4 Z M 28.1 10.4 A 1.8 1.8 0 1 1 28.08 10.4 Z M 14.9 30.2 L 11.6 15.8 L 16.5 21.6 L 19.4 13.2 L 22.5 20.4 L 25.6 13.2 L 28.5 21.6 L 33.4 15.8 L 30.1 30.2 Z M 14.2 32 L 30.8 32 C 31.8 33.4 32.6 35.2 32.8 37 L 12.2 37 C 12.4 35.2 13.2 33.4 14.2 32 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="bsq d"></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 22.5 6.2 A 2.2 2.2 0 1 1 22.48 6.2 Z M 22.5 10.8 C 18.2 13.6 15.9 17.6 15.9 21.4 C 15.9 24.2 17.3 26.4 19.4 27.6 L 25.6 27.6 C 27.7 26.4 29.1 24.2 29.1 21.4 C 29.1 17.6 26.8 13.6 22.5 10.8 Z M 17.9 29.4 L 27.1 29.4 L 28 31.4 L 17 31.4 Z M 13.2 37 C 13.2 34.6 16.4 33.2 22.5 33.2 C 28.6 33.2 31.8 34.6 31.8 37 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/><path d="M 22.5 14.6 L 22.5 22.6 M 19.1 18.6 L 25.9 18.6" fill="none" stroke="#1B1C1E" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="bsq d"></div><div class="bsq l"><svg class="pc" viewBox="0 0 45 45" aria-hidden="true"><path d="M 11.8 37 L 33.2 37 L 33.2 33.8 L 30.6 31.4 L 30.6 29.8 L 28.6 27.6 L 28.6 16.4 L 30.6 14.4 L 30.6 8.8 L 26.9 8.8 L 26.9 11.6 L 24.4 11.6 L 24.4 8.8 L 20.6 8.8 L 20.6 11.6 L 18.1 11.6 L 18.1 8.8 L 14.4 8.8 L 14.4 14.4 L 16.4 16.4 L 16.4 27.6 L 14.4 29.8 L 14.4 31.4 L 11.8 33.8 Z" fill="#4A4B4D" stroke="#1B1C1E" stroke-width="1.6" stroke-linejoin="round"/><path d="M 16.4 27.6 L 28.6 27.6 M 16.4 16.4 L 28.6 16.4" fill="none" stroke="#1B1C1E" stroke-width="1.5" stroke-linecap="round"/></svg></div></div><svg class="bovl" viewBox="0 0 384 384" preserveAspectRatio="xMinYMin meet"><defs><marker id="mmk" markerWidth="3.2" markerHeight="3.2" refX="1.7" refY="1.6" orient="auto"><path d="M0,0 L3.2,1.6 L0,3.2 z" fill="#7CC287"/></marker></defs><line x1="264" y1="360" x2="35.5" y2="131.5" stroke="#0E0F10" stroke-width="9" stroke-linecap="round" opacity="0.35"/><line x1="264" y1="360" x2="35.5" y2="131.5" stroke="#7CC287" stroke-width="6" stroke-linecap="round" opacity="0.95" marker-end="url(#mmk)"/></svg></div>
+        <figcaption><b>Bh3 is mate</b>. Instead, on move 12 you played b5. You lost this game 13 moves later.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== TIME TROUBLE ===================== -->
+  <section class="scene" id="openings">
+    <div class="copy">
+      <h2>Sharpen your <span class="em">openings.</span></h2>
+      <p class="sub">rookbook walks every line you play often enough to matter, finds the one
+        where your results fall off a cliff, and asks the engine what to play instead.
+        <b>One line, one move</b> &mdash; not a reading list of openings to go and study.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Trouble spot &middot; as White</span><span class="card-res bad">25% win rate</span></div>
+      <figure>
+        <svg viewBox="0 0 470 226" role="img" aria-label="A trouble spot after 1.Nf3 c5 2.h3 b6: you score 25% across 8 games against your overall 54%. You continue Nh2 in all 8; the engine's way out is e3.">
+          <text class="tag" fill="#D3B25A" x="0" y="13">&#9888; TROUBLE SPOT</text>
+          <text class="oline" x="0" y="46">1.Nf3 c5  2.h3 b6</text>
+
+          <text class="axlab" x="0" y="82">this line</text>
+          <rect x="128" y="71" width="180" height="14" rx="3" fill="#26282a"/>
+          <rect class="obar" x="128" y="71" width="45" height="14" rx="3" fill="#E0776C"/>
+          <text class="tag" fill="#E0776C" x="320" y="82">25%</text>
+          <text class="axlab" x="366" y="82">8 games</text>
+
+          <text class="axlab" x="0" y="112">your overall</text>
+          <rect x="128" y="101" width="180" height="14" rx="3" fill="#26282a"/>
+          <rect class="obar o2" x="128" y="101" width="97" height="14" rx="3" fill="#9A947C"/>
+          <text class="tag" fill="#9A947C" x="320" y="112">54%</text>
+
+          <line class="base" x1="0" y1="140" x2="470" y2="140"/>
+
+          <text class="axlab" x="0" y="168">you play</text>
+          <text class="tag" fill="#E0776C" x="128" y="168">Nh2</text>
+          <text class="axlab" x="180" y="168">in 8 of 8 games</text>
+
+          <text class="axlab" x="0" y="203">engine's way out</text>
+          <text class="omove" x="128" y="206">e3</text>
+          <text class="tag reveal t2" fill="#7CC287" x="176" y="203">+1.1 &#183; holds the position together</text>
+        </svg>
+        <figcaption><b>Found without you going looking.</b> Eight games down the same four moves, twenty-nine points below your normal &mdash; and the one move that stops the rot.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== ENDGAME CONVERSION ===================== -->
+  <section class="scene flip" id="endgames">
+    <div class="copy">
+      <h2>A piece up, <span class="em">and still drawing.</span></h2>
+      <p class="sub">rookbook marks the exact moment a game simplifies &mdash; the first time the
+        board drops to four pieces &mdash; records what you were up, and then checks what you did
+        with it. An extra piece ought to be close to a win. <b>The gap between ought and actually
+        is where the rating goes</b>, and almost nobody has measured their own.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Endgame conversion</span><span class="card-res bad">47% converted</span></div>
+      <figure>
+        <svg viewBox="0 0 470 218" role="img" aria-label="Win rate from the moment the board simplifies: 47% when clearly ahead, 25% when level, and 43% when behind.">
+          <text class="axlab" x="0" y="13">win rate from the moment the board simplifies</text>
+
+          <text class="tag" fill="#E7DFC4" x="0" y="52">clearly ahead</text>
+          <text class="axlab" x="0" y="66">+4 or more</text>
+          <rect x="140" y="41" width="175" height="15" rx="3" fill="#26282a"/>
+          <rect class="obar" x="140" y="41" width="82" height="15" rx="3" fill="#E0776C"/>
+          <text class="tag" fill="#E0776C" x="326" y="53">47%</text>
+          <text class="axlab" x="366" y="53">8 of 17</text>
+
+          <text class="tag" fill="#E7DFC4" x="0" y="110">level</text>
+          <text class="axlab" x="0" y="124">&#177;1</text>
+          <rect x="140" y="99" width="175" height="15" rx="3" fill="#26282a"/>
+          <rect class="obar o2" x="140" y="99" width="44" height="15" rx="3" fill="#9A947C"/>
+          <text class="tag" fill="#9A947C" x="326" y="111">25%</text>
+          <text class="axlab" x="366" y="111">2 of 8</text>
+
+          <text class="tag" fill="#E7DFC4" x="0" y="168">behind</text>
+          <text class="axlab" x="0" y="182">&minus;2 or worse</text>
+          <rect x="140" y="157" width="175" height="15" rx="3" fill="#26282a"/>
+          <rect class="obar o3" x="140" y="157" width="75" height="15" rx="3" fill="#9A947C"/>
+          <text class="tag" fill="#9A947C" x="326" y="169">43%</text>
+          <text class="axlab" x="366" y="169">3 of 7</text>
+
+          <line class="base" x1="315" y1="34" x2="315" y2="180"/>
+          <text class="tag reveal t2" fill="#E0776C" x="0" y="210">a piece up wins no more often than a piece down</text>
+        </svg>
+        <figcaption><b>An extra piece should be close to a win.</b> Seventeen endgames entered clearly ahead, eight converted &mdash; barely better than the ones entered a piece behind.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+<!-- ===================== EVERYTHING IT MEASURES ===================== -->
+  <section class="scene wide" id="measures">
+    <div class="copy">
+      <h2>What does your game history <span class="em">say about you?</span></h2>
+      <div class="mgrid">
+        <!-- The eight the page hasn't shown yet lead. Stacked into one column on a phone,
+             opening with the four scenes above reads as the page repeating itself. -->
+        <div class="mcell"><h3>Openings</h3><p>What actually scores for you, laid out as a repertoire tree rather than a list of names.</p></div>
+        <div class="mcell"><h3>Endgames</h3><p>How often a won ending gets converted, and what your drawn and lost ones had in common.</p></div>
+        <div class="mcell"><h3>Accuracy</h3><p>Your average in wins against losses, and rated against unrated. Chess.com only publishes accuracy for games you've run <a href="/chess-accuracy-explained.html">Game Review</a> on, so this covers those.</p></div>
+        <div class="mcell"><h3>Format face-off</h3><p>Rapid, blitz and daily side by side: win rate, accuracy, pace and how much of the clock you use.</p></div>
+        <div class="mcell"><h3>Queen-loss autopsy</h3><p>When your queen left the board, what came back for it, and the games where nothing did.</p></div>
+        <div class="mcell"><h3>Sessions</h3><p>Whether your win rate falls the longer you sit there, and where your own limit actually is.</p></div>
+        <div class="mcell"><h3>Banned opponents</h3><p>Opponents whose accounts were later closed for cheating, and how many games you lost to them &mdash; the ones Chess.com often refunds.</p></div>
+        <div class="mcell"><h3>Lookup &amp; compare</h3><p>The same read on anyone else, stat for stat, before you play them or after they beat you.</p></div>
+        <div class="mcell"><h3>Blown leads</h3><p>Every game you led on material and lost, with the size of the peak and the move it turned.</p></div>
+        <div class="mcell"><h3>Missed mates</h3><p>Positions where a forced mate was on the board and you played something else. Including games you won.</p></div>
+        <div class="mcell"><h3>The clock</h3><p>Seconds per move, your longest single think, what you had left at the end, and how it compares with your opponent.</p></div>
+        <div class="mcell"><h3>Tilt</h3><p>Your real win rate in the games straight after a loss, measured against your normal.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== THE REAL THING ===================== -->
+  <section class="scene" id="real">
+    <div class="copy">
+      <h2>Not a mockup. <span class="em">The actual app.</span></h2>
+      <p class="sub">rookbook's Blown Leads page, straight from the sample account. Every game you were
+        winning and lost, how big the lead got, what you finished with, and your clock at the peak.
+        Hover any number and the board behind it opens.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Blown Leads, as shipped</span><span class="card-res dim">sample account</span></div>
+      <figure>
+        <picture>
+          <source srcset="/shot-blown-list.webp" type="image/webp">
+          <img src="/shot-blown-list.png" alt="Rookbook's Blown Leads table: every game where a material lead was lost, with the peak lead, the final margin, and the clock at the biggest lead." width="1352" height="498" loading="lazy" decoding="async" style="width:100%;height:auto;border:1px solid var(--rule);border-radius:6px;display:block">
+        </picture>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================== HOW IT WORKS ===================== -->
+  <section class="scene wide" id="how">
+    <div class="copy">
+      <h2>What you hand over: <span class="em">a username.</span></h2>
+      <p class="sub">Every other tool wants an account first. This one is a web page that reads
+        public data and does the work on your own machine.</p>
+      <div class="steps">
+        <div class="step">
+          <span class="n">01</span>
+          <h3>Type your username</h3>
+          <p>That's the whole sign-up. No account, no password, no email address, nothing to cancel later.</p>
+        </div>
+        <div class="step">
+          <span class="n">02</span>
+          <h3>It reads your public history</h3>
+          <p>The same games anyone can already see on your Chess.com profile, pulled straight from Chess.com's public API. Everything is worked out from the moves themselves, so it covers <b>every game you've played</b> &mdash; not only the ones you've run Game Review on. Accuracy is the single exception, since Chess.com publishes that <a href="/chess-accuracy-explained.html">only for reviewed games</a>.</p>
+        </div>
+        <div class="step">
+          <span class="n">03</span>
+          <h3>The work happens on your device</h3>
+          <p>Analysis runs in your browser and the results are cached there. Your games are never uploaded to us, because there's no us to upload them to.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FINAL CTA ===================== -->
+  <section class="scene" id="cta" style="grid-template-columns:1fr;text-align:center;padding:40px 0 22px">
+    <div class="copy" style="max-width:560px;margin:0 auto">
+      <h2 style="font-size:31px">See yours.</h2>
+      <p class="sub" style="margin:0 auto 26px">Type your Chess.com username and your whole history is on screen in seconds.</p>
+      <div class="form" style="justify-content:center">
+        <input type="text" id="u2" placeholder="your chess.com username" spellcheck="false" autocomplete="off" aria-label="chess.com username">
+        <button type="button" data-go="u2">Analyze my games</button>
+      </div>
+      <div class="demo">or <a href="/app.html#demo">peek at a sample account &rarr;</a></div>
+    </div>
+  </section>
+
+</div>
+
+<div class="foot">
+  <div class="wrap">
+    <div class="read">
+      Reading:
+      <a href="/losing-winning-positions.html">why you lose winning positions</a> &middot;
+      <a href="/how-to-stop-blundering.html">how to stop blundering</a> &middot;
+      <a href="/do-you-actually-tilt.html">do you actually tilt?</a> &middot;
+      <a href="/why-do-i-lose-on-time.html">why you lose on time</a> &middot;
+      <a href="/how-to-review-your-chess-games.html">how to review your games</a> &middot;
+      <a href="/glossary.html">glossary</a>
+    </div>
+    <div class="foot-meta"><span class="wm-sm"><b>rook</b><i>book</i></span> a free Chess.com game tracker</div>
+    <div class="foot-legal">&copy; 2026 rookbook. Not affiliated with or endorsed by Chess.com.</div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var scenes = document.querySelectorAll(".scene");
+    if(reduce || !("IntersectionObserver" in window)){
+      scenes.forEach(function(s){ s.classList.add("in"); });
+      return;
+    }
+    // hero plays immediately
+    var hero = document.getElementById("hero");
+    requestAnimationFrame(function(){ hero.classList.add("in"); });
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, {threshold:0.28});
+    scenes.forEach(function(s){ if(s.id!=="hero") io.observe(s); });
+    function track(name){
+      try{
+        if(window.goatcounter && window.goatcounter.count)
+          window.goatcounter.count({ path:"event/"+name, title:name, event:true });
+      }catch(e){}
+    }
+    /* Counting an event and navigating in the same tick loses the count: the beacon is
+       still in flight when the browser tears the page down, so it gets canceled. That's
+       why landing-analyze read 1 for a whole week while fetch — which fires inside the app
+       with no navigation behind it — read 16. Give the request a beat, then go. 150ms is
+       imperceptible, and a guard makes sure a slow beacon can never strand anyone here. */
+    function trackThenGo(name, url){
+      var went=false;
+      var nav=function(){ if(went) return; went=true; location.href=url; };
+      track(name);
+      setTimeout(nav, 150);
+    }
+    function go(id){
+      var el=document.getElementById(id), v=el.value.trim();
+      if(!v){ el.focus(); return; }
+      // Articles and the glossary link here as /#tab=mates, /#tab=endgames and so on.
+      // The landing page has nothing to do with that hash, but the app does — so carry
+      // it across, or every one of those links quietly forgets where it was going.
+      var t=(location.hash.match(/(?:^#|&)tab=([a-z]+)/)||[])[1];
+      trackThenGo("landing-analyze",
+        "/player/"+encodeURIComponent(v.toLowerCase())+(t?"#tab="+t:""));
+    }
+    /* Count a link, then follow it. Modifier and middle clicks are left alone: they open a
+       new tab, this page survives, and the beacon gets sent normally.
+       NB the selector matches on "#demo" rather than the full href. Netlify's pretty-URL
+       pass rewrites /app.html#demo to /app#demo on deploy, so a[href="/app.html#demo"]
+       matched nothing in production — which is the real reason landing-demo never once
+       appeared in a week of analytics. */
+    function trackLink(selector, name){
+      document.querySelectorAll(selector).forEach(function(a){
+        a.addEventListener("click", function(ev){
+          if(ev.button!==0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey){
+            track(name); return;                       // opens elsewhere; nothing to race
+          }
+          var href=a.getAttribute("href");
+          if(!href || href.charAt(0)==="#") { track(name); return; }   // same-page anchor
+          ev.preventDefault();
+          trackThenGo(name, href);
+        });
+      });
+    }
+    trackLink('a[href*="#demo"]', "landing-demo");
+    trackLink('.foot .read a, .nav a', "landing-nav");
+    document.querySelectorAll("[data-go]").forEach(function(b){
+      b.addEventListener("click", function(){ go(b.getAttribute("data-go")); });
+    });
+    ["u1","u2"].forEach(function(id){
+      document.getElementById(id).addEventListener("keydown", function(e){
+        if(e.key==="Enter") go(id);
+      });
+    });
+    try{
+      var pr=localStorage.getItem("rookbook:prefs");
+      if(pr){ var o=JSON.parse(pr);
+        if(o && o.user){
+          var d=document.getElementById("wback");
+          if(d){ d.hidden=false; d.innerHTML='Welcome back, <b style="color:var(--ink)">'+String(o.user).replace(/[<>&"]/g,"")+'</b>. <a href="/player/'+encodeURIComponent(String(o.user).toLowerCase())+'">Open your dashboard &rarr;</a>'; }
+          // The sample exists to show newcomers what the app does. If we're confident
+          // enough to greet someone by name, offering them a demo account in the same
+          // breath contradicts it — so both sample affordances go with the same check,
+          // the button in the hero and the link under the closing call to action.
+          document.querySelectorAll('.form .ghost, #cta .demo').forEach(function(el){ el.hidden=true; });
+        }
+      }
+    }catch(e){}
+    document.querySelectorAll("a.jump").forEach(function(a){
+      a.addEventListener("click", function(ev){
+        var id = a.getAttribute("href").slice(1);
+        var el = document.getElementById(id);
+        if(!el) return;
+        ev.preventDefault();
+        el.classList.add("in");            // charts drawn even if the observer hasn't fired
+        el.scrollIntoView({behavior: reduce ? "auto" : "smooth", block: "start"});
+      });
+    });
+  })();
+</script>
+</body>
+</html>

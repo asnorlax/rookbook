@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chess.com Banned Opponents: The Cheaters You Played | Rookbook</title>
+<meta name="description" content="When a chess.com opponent is closed for cheating, your lost rating is often refunded — quietly. How to see every cheater you played and your record against them.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/chess-com-banned-opponents.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chess.com Banned Opponents: The Cheaters You Played | Rookbook">
+<meta property="og:description" content="When a chess.com opponent is closed for cheating, your lost rating is often refunded — quietly. How to see every cheater you played and your record against them.">
+<meta property="og:url" content="https://rookbook.net/chess-com-banned-opponents.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Chess.com banned opponents: the cheaters you played, and the refunds you missed", "description": "When a chess.com opponent is closed for cheating, your lost rating is often refunded — quietly. How to see every cheater you played and your record against them.", "url": "https://rookbook.net/chess-com-banned-opponents.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I know if a chess.com opponent was banned?", "acceptedAnswer": {"@type": "Answer", "text": "Open their profile. A banned account shows as closed, and if it was closed for cheating the reason is fair play violations. There is no list of all the opponents you have played who were later banned, so finding them by hand means opening old games one by one. A tool that reads each opponent's current status through Chess.com's public API can flag them all at once."}}, {"@type": "Question", "name": "Does chess.com refund rating you lost to a banned player?", "acceptedAnswer": {"@type": "Answer", "text": "Usually, for rated games. When Chess.com closes an account for fair play violations it commonly reverses the rated results against it, so the rating you lost to that player comes back. It happens automatically and often weeks after the game, with no announcement tying it to a specific opponent, so most players never notice which losses were refunded."}}, {"@type": "Question", "name": "How can I see every cheater I have played on chess.com?", "acceptedAnswer": {"@type": "Answer", "text": "Rookbook reads your Chess.com history and, when you run the opponent lookup, checks each opponent's current account status. It flags every account since closed for fair play violations, counts them, shows your record against them, and marks any that were closed since you last looked. Everything runs in your browser against Chess.com's public API."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  code{font-family:var(--mono);color:var(--ink);font-size:12.5px}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Chess.com banned opponents: the cheaters you played, and the refunds you missed</h1>
+<p class="lede">You've played cheaters. Everyone has. Chess.com catches most of them eventually, closes the account, and usually gives back the rating you lost &mdash; quietly, weeks later, with nothing tying it to a game. It never hands you the list. <a href="/">Rookbook</a> does.</p>
+
+<h2>What happens when your opponent gets banned</h2>
+<p>When Chess.com's fair-play system closes an account for cheating, its status changes to <b>closed for fair play violations</b>. Two things follow that most players never connect:</p>
+<ul>
+  <li><b>Your rated losses to that account are usually reversed.</b> The rating you lost comes back automatically. It's not your fault and it's not your rating &mdash; the system treats those games as if they hadn't counted.</li>
+  <li><b>You're rarely told which game it was.</b> The refund lands as a small rating adjustment between two of your later games, days or weeks after you played the cheater, with no message naming them. If you weren't watching your rating closely that day, you never saw it.</li>
+</ul>
+<p>So the ban <em>is</em> good news &mdash; a loss undone &mdash; but it arrives invisibly. And the more useful question, <b>how often does this happen to me</b>, has no answer inside Chess.com at all.</p>
+
+<h2>Why you can't see it yourself</h2>
+<p>Chess.com will tell you an account is closed if you go and look at that one profile. What it won't do is join the two halves: <b>your game history</b> on one side, <b>each opponent's current status</b> on the other. There's no page that says "here are the eleven opponents you played who were later banned, and here's your record against them." To build that by hand you'd open old games one at a time and check each profile &mdash; hundreds of clicks for a list nobody keeps.</p>
+<div class="box">
+  <p>The information exists &mdash; every closed account is public, and so is your game archive. It just isn't <em>joined</em>. That gap is the whole reason this is hard to see, and it's exactly the kind of thing a tool that holds both sides at once can close in a few seconds.</p>
+</div>
+
+<h2>How rookbook tracks it</h2>
+<p>Rookbook already has your game history. The one extra step is <b>Look up opponents</b> &mdash; a button that reads each opponent's current profile through Chess.com's public API: their ratings, career record, join date, and account status. When that status comes back as closed for fair play violations, the opponent is flagged everywhere they appear:</p>
+<ul>
+  <li>A <b>&#9940; mark</b> next to their name in your game log, with the loss struck through &mdash; that result probably didn't stand.</li>
+  <li>A <b>Closed opps</b> count on the log summary. Click it and the log filters to only those games &mdash; every result against a banned account in one view.</li>
+  <li>A plain-English read across your history: how many accounts you played were later closed for cheating, and how many of those games you lost.</li>
+</ul>
+<p>Because the check reads Chess.com's live status, it's as current as Chess.com's own data at the moment you run it &mdash; an account banned this morning shows up this afternoon.</p>
+
+<h2>New bans surface themselves</h2>
+<p>The point of all this is the refund you'd otherwise miss, so rookbook doesn't make you re-scan the list hunting for an unfamiliar name. The first time you look, your existing closed opponents are taken as already seen. After that, any account discovered closed <b>since your last look</b> is marked new &mdash; a small badge on the count, and a <b>NEW</b> tag on the row. A fresh ban announces itself, which usually means a refund just landed.</p>
+
+<h2>The honest limits</h2>
+<p>Three things worth stating plainly:</p>
+<ul>
+  <li><b>It needs the lookup.</b> Nothing is flagged until you run <b>Look up opponents</b> &mdash; the status isn't in your game data, it has to be fetched. It's one click, and the result is cached.</li>
+  <li><b>"Closed" isn't always cheating.</b> Only <em>closed for fair play violations</em> means caught cheating. An account can be closed for other reasons &mdash; a self-deletion, a different policy breach &mdash; and rookbook keeps those visually distinct rather than calling everyone a cheat.</li>
+  <li><b>It reports; it doesn't adjudicate.</b> Rookbook reads Chess.com's verdict, it doesn't make one. If Chess.com hasn't closed an account, rookbook won't flag it, however the game felt.</li>
+</ul>
+
+<h2>See who you've been playing</h2>
+<p>Load your Chess.com history, run <b>Look up opponents</b>, and the Closed opps count fills in &mdash; every account since banned for cheating, your record against them, and a nudge whenever a new one appears. Free, no account, and your games never leave your browser.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=log">See the banned opponents in your history on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>How do I know if a chess.com opponent was banned?</b> Their profile shows as closed &mdash; and if it was for cheating, the reason is fair play violations. There's no built-in list of all your banned opponents, so seeing them all at once needs a tool that checks each opponent's status against your game history.</p>
+<p><b>Does chess.com refund rating lost to a banned player?</b> Usually, for rated games. Closing an account for fair play violations commonly reverses the rated results against it, so your lost rating returns &mdash; automatically, and often well after the game, with nothing naming the opponent.</p>
+<p><b>How do I see every cheater I've played?</b> Run rookbook's opponent lookup. It flags every account since closed for fair play violations, counts them, shows your record against them, and marks any closed since your last look.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/why-do-i-lose-to-lower-rated-players.html">Why do I lose to lower-rated players?</a></li><li><a href="/chess-accuracy-explained.html">Why is accuracy missing on some chess.com games?</a></li><li><a href="/how-to-review-your-chess-games.html">How to review your own chess games</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>

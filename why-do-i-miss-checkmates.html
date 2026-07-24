@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why Do I Miss Checkmates in Chess? | Rookbook</title>
+<meta name="description" content="If mate was on the board, you were already winning. What missing one actually costs, and why converting mode is the reason you didn't see it.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/why-do-i-miss-checkmates.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why Do I Miss Checkmates in Chess? | Rookbook">
+<meta property="og:description" content="If mate was on the board, you were already winning. What missing one actually costs, and why converting mode is the reason you didn't see it.">
+<meta property="og:url" content="https://rookbook.net/why-do-i-miss-checkmates.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Why do I miss checkmates?", "description": "If mate was on the board, you were already winning. What missing one actually costs, and why converting mode is the reason you didn't see it.", "url": "https://rookbook.net/why-do-i-miss-checkmates.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is it really that bad to miss a checkmate in chess?", "acceptedAnswer": {"@type": "Answer", "text": "Less bad than it feels. A forced mate only exists in a position you were already winning, so missing one usually costs extra moves and clock rather than the game. It becomes serious only when those extra moves lead to time trouble or hand back enough chances for the position to flip."}}, {"@type": "Question", "name": "Why do I miss checkmates when I am winning?", "acceptedAnswer": {"@type": "Answer", "text": "Because being clearly ahead switches you into converting mode: trade pieces, stay safe, avoid complications. That is the correct mindset for converting an advantage, and it is also the mindset least likely to go looking for a forced mate."}}, {"@type": "Question", "name": "How do I get better at spotting checkmates?", "acceptedAnswer": {"@type": "Answer", "text": "Reviewing your own missed mates works better than puzzles. A puzzle tells you a mate exists; in a real game nobody does. Identify the signal you missed, such as an exposed king or a back rank with no escape square, and add one habit: whenever you are clearly winning, ask once whether a forced mate exists before playing the safe move."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:20px 0;padding:0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--rule)}
+  figcaption{font-size:12px;color:#6A675B;margin-top:7px;line-height:1.6}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Why do I miss checkmates?</h1>
+<p class="lede">Missing a forced mate feels like the worst thing you can do at the board. It usually isn't &mdash; and understanding why tells you what it actually costs you. <a href="/">Rookbook</a> finds every one you missed.</p>
+
+<h2>What a missed mate actually costs</h2>
+<p>Start with the thing nobody says: if mate was available, <em>you were already winning</em>. Forced mates don't appear in bad positions. So the question isn't whether missing one lost you the game &mdash; usually it didn't &mdash; it's what the miss cost on the way to winning anyway.</p>
+<p>Three things, in rough order of how much they matter:</p>
+<ul>
+  <li><b>Moves.</b> A mate in two that takes twelve more moves to convert is ten moves of extra opportunity for something to go wrong.</li>
+  <li><b>Clock.</b> Those extra moves come out of your time, and the ending you now have to play is the part of the game where you can least afford to be short.</li>
+  <li><b>Chances handed back.</b> Every additional move is another chance for you to blunder, and another chance for your opponent to find something. Sometimes a missed mate does lose the game &mdash; just not on the move it was missed.</li>
+</ul>
+<div class="box">
+  <p>The useful reframing: a missed mate isn't a catastrophe, it's a <em>conversion</em> problem. It belongs in the same category as being a rook up and taking forty moves to finish.</p>
+</div>
+
+<h2>Why they get missed</h2>
+<p>Almost never because the pattern is hard. It's because you're in the wrong mode.</p>
+<p>When you're winning comfortably, you switch from hunting to converting &mdash; trading pieces, avoiding complications, keeping things safe. That mindset is correct, and it's exactly the mindset that doesn't go looking for a forced mate. The move you play is safe and good; you simply never asked whether something better existed.</p>
+<p>Two more specific causes worth knowing:</p>
+<ul>
+  <li><b>You're focused on material, not the king.</b> If you're up a queen, your attention is on protecting the advantage. Mating nets don't announce themselves when you're counting pieces.</li>
+  <li><b>Your own attacking patterns look unfamiliar.</b> Most players study mate patterns as puzzles, where a voice says "mate in two." Over the board nobody says it, and the same pattern in your own game, arrived at gradually, doesn't look like the diagram you drilled.</li>
+</ul>
+
+<h2>The ones club players miss most</h2>
+<p>A short list covers most of them:</p>
+<ul>
+  <li><b>Back rank.</b> The most common by a distance, and most often missed when you're busy doing something else productive.</li>
+  <li><b>Mate available while promoting.</b> You've calculated the queening line, it wins easily, and mate was quicker.</li>
+  <li><b>Mate in one after a check.</b> You give the check, they move, and the follow-up is mate &mdash; but you'd already decided your next move before they replied.</li>
+  <li><b>Heavy-piece ladder.</b> Two rooks or queen-and-rook against an exposed king. Easy to see as a puzzle, easy to miss when you're planning a different win.</li>
+</ul>
+
+<h2>How to actually get better at spotting them</h2>
+<p>Puzzles help less than you'd expect, for the same reason they only half help with blunders: a puzzle tells you a mate exists. The skill you need is <em>noticing</em> that a position has become mateable.</p>
+<p>The drill that works is reviewing your own missed mates and asking what the signal was. Nearly always there's one &mdash; an exposed king, a back rank without an escape square, a piece that stopped defending. Learning the signal transfers; memorising the move doesn't.</p>
+<p>And one habit that costs nothing: whenever you're clearly winning, before you play the safe converting move, ask once whether there's a forced mate. That single question catches most of them, because being in converting mode is the actual cause.</p>
+
+<h2>See the ones you missed</h2>
+<p>Rookbook scans your chess.com history for every position where a forced mate was available and you played something else, and shows each one on the board with the move you played next to the move that finished it. It also tells you what each miss cost &mdash; how many extra moves the game ran, and whether it still ended in a win.</p>
+<figure>
+  <picture>
+    <source srcset="/shot-mates.webp" type="image/webp">
+    <img src="/shot-mates.png" alt="The Missed Mates page in Rookbook, listing every position where a forced checkmate was available, with the number of games scanned and mates found." width="1352" height="499" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>Every position where mate was on and something else was played. The page is deliberately blunt that having mate available means you were already winning — the cost is usually moves, not the result.</figcaption>
+</figure>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=mates">See your missed mates on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>Is missing a checkmate really that bad?</b> Less bad than it feels. Mate is only available in positions you were already winning, so the usual cost is extra moves and clock rather than the game itself.</p>
+<p><b>Why do I miss mates when I'm winning?</b> Because being clearly ahead switches you into converting mode &mdash; simplify, stay safe, avoid risk &mdash; and that mindset doesn't go hunting for forced mates.</p>
+<p><b>Will tactics puzzles fix it?</b> Partly. Puzzles tell you a mate is there; the harder real-game skill is noticing a position has become mateable. Reviewing your own misses trains that directly.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/losing-winning-positions.html">Why do I keep losing winning positions?</a></li><li><a href="/how-to-stop-blundering.html">How to stop blundering in chess</a></li><li><a href="/why-do-i-lose-on-time.html">Why do I keep losing on time in chess?</a></li><li><a href="/find-your-missed-checkmates.html">How to find every checkmate you missed</a></li><li><a href="/knight-forks-in-chess.html">Knight forks in chess</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>

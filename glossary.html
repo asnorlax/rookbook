@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chess Stats Glossary and Methodology | Rookbook</title>
+<meta name="description" content="Plain-English definitions of every number Rookbook tracks: blown leads, material swing, settled moments, drawdown, and how each one is worked out.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/glossary.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chess Stats Glossary and Methodology | Rookbook">
+<meta property="og:description" content="What blown leads, material swing, settled moments and accuracy actually mean, and how each is calculated.">
+<meta property="og:url" content="https://rookbook.net/glossary.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<style>
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:820px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:18px;margin-bottom:26px}
+  .wm{font-family:"Poppins",var(--sans);font-size:26px;font-weight:500;letter-spacing:-.01em;text-decoration:none;border-bottom:none;display:inline-flex;align-items:center}
+  .wm img{border-radius:7px;flex:0 0 auto;margin-right:10px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .tag{font-size:12px;margin-top:5px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:25px;font-weight:500;margin:0 0 10px;letter-spacing:-.01em}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+     margin:38px 0 12px;padding-top:22px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500}
+  /* the bold that STARTS a paragraph is a mini-heading for that point — give it the accent
+     so the section scans as a list of topics instead of a wall of bright text. Inline <b>
+     mid-sentence, and the bold terms inside definitions, stay ink. */
+  p>b:first-child{color:var(--green)}
+  dl{margin:0}
+  /* the term is the thing you scan for, so it gets the accent color and weight;
+     the definition sits indented beneath it with a rule to separate entries */
+  dt a{color:var(--green);text-decoration:none;border-bottom:none}
+  dt a:hover{border-bottom:1px solid var(--green)}
+  dt{color:var(--green);font-family:var(--mono);font-weight:600;font-size:14px;margin:0 0 6px;letter-spacing:.01em}
+  dd{margin:0 0 22px;padding:0 0 22px 14px;max-width:64ch;border-bottom:1px solid var(--rule)}
+  dd:last-of-type{border-bottom:none}
+  .gex{display:block;color:var(--dim);font-size:14px;margin-top:9px;padding-left:12px;
+       border-left:2px solid var(--rule)}
+  dd a{font-weight:500}
+  footer{border-top:1px solid var(--rule);margin-top:40px;padding-top:16px;font-size:12px;color:#6A675B}
+  .toc{display:flex;flex-wrap:wrap;gap:7px;font-family:var(--mono);font-size:12px;margin:0 0 22px;padding:0;list-style:none}
+  .toc li{background:var(--panel);border:1px solid var(--rule);padding:3px 9px;color:var(--dim)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="34" height="34"><b>rook</b><i>book</i></a>
+  <div class="tag">A closer look at your chess.com games. <a href="/reading.html">Reading</a> &middot; <a href="/">Analyze my games &rarr;</a></div>
+</header>
+
+<h1>Chess stats glossary and methodology</h1>
+<p>Every number Rookbook shows, in plain English — what it means, and how it's worked out.
+These are the statistics behind <a href="/">Rookbook</a>, a free chess.com game tracker that runs
+entirely in your browser.</p>
+
+<h2>How the numbers are made</h2>
+<p><b>Material uses the standard count:</b> pawn 1, knight/bishop 3, rook 5, queen 9.</p>
+
+        <p><b>Material is read only at settled moments.</b> Rookbook replays every move and samples material only when no exchange is in progress: after a capture, nothing is counted until the recapture lands, or three plies pass with no reply.</p>
+        <p>That's why a queen trade doesn't register as a &minus;9 crater followed by a +9 spike &mdash; the middle of a fair trade never gets counted. Peak, trough, swing, given back, hung pieces and blown leads are all built on this one ledger, so ordinary trades are invisible to them and only real material changes register.</p>
+        <p>Material lost to a fork is excused separately: that's a tactic you walked into, not a piece left hanging.</p>
+
+        <p><b>Some formats sit out some stats.</b> Results, openings and material count every game equally. A few analyses exclude formats that would distort them.</p>
+        <p>Bullet games sit out the time-pressure stats, because everyone is short of time in bullet &mdash; though filtering to bullet alone brings them back, since the comparison is fair again.</p>
+        <p>Daily games sit out think-time averages, where "seconds per move" is really days, and anything session-based &mdash; tilt, fatigue, sittings &mdash; because correspondence games don't happen in a sitting. Wherever an exclusion applies, the chart or panel says so.</p>
+
+        <p><b>Small samples are held back.</b> Anything that splits your games into buckets needs a minimum before it will draw a conclusion: openings need three games before they appear, and several Insights panels stay quiet until there's enough to say something.</p>
+        <p>A 100% win rate across two games isn't a strength, and Rookbook tries not to dress it up as one.</p>
+
+        <p><b>Your numbers can change after an update.</b> When the stats engine improves, Rookbook re-derives everything from your saved games automatically rather than leaving stale figures in place.</p>
+        <p>The newer numbers are the more honest ones &mdash; the changelog spells out what changed each time.</p>
+
+<h2>Definitions</h2>
+<ul class="toc"><li>Accuracy</li><li>Avg think</li><li>Blown lead / Gave away</li><li>Chances</li><li>Clock ±</li><li>Comeback / Taken</li><li>Conversion</li><li>Cost</li><li>Drawdown</li><li>Elo*</li><li>Endgame entry</li><li>Eval</li><li>Fork</li><li>Given back</li><li>Hung piece</li><li>Material (Mat ±)</li><li>Missed mate</li><li>Peak / Trough</li><li>Placement games</li><li>Rating gap</li><li>Rolling average</li><li>Session</li><li>Settled moment</li><li>Swindle</li><li>Swing</li><li>Time class</li><li>Undev</li><li>Verdict (Blown Leads)</li></ul>
+<dl>
+<dt><a href="/#tab=log">Accuracy</a></dt><dd>chess.com's Game Review score (0–100). It only exists once a game has been reviewed on chess.com — that's why some rows show "?".
+        <span class="gex">An 85 means your moves tracked the engine's preference closely. Everyone's blitz accuracy runs lower than their rapid — compare within a format, not across.</span></dd>
+      <dt><a href="/#tab=log">Avg think</a></dt><dd>Average seconds you spent per move, from the game's clock timestamps.
+        <span class="gex">A 30-move game in which you used 3 minutes of clock is an avg think of 6.0s.</span></dd>
+      <dt><a href="/#tab=blown">Blown lead / Gave away</a></dt><dd>A loss where you were up 3+ material at a settled moment. The before/after boards live on the Blown Leads page.</dd>
+      <dt><a href="/#tab=mates">Chances</a></dt><dd>On Missed Mates: how many of your moves the same mate stayed available for. More than one means you walked past it repeatedly, but it still counts as a single oversight.
+        <span class="gex">Mate appears on move 20 and you finally play it on move 23 — that's one missed mate, three chances.</span></dd>
+      <dt><a href="/#tab=log">Clock ±</a></dt><dd>Your remaining time minus theirs when the game ended.
+        <span class="gex">Ending with 1:30 on your clock against your opponent's remaining 0:30 returns a value of +1:00.</span></dd>
+      <dt><a href="/#tab=log">Comeback / Taken</a></dt><dd>A win from 3+ material down — a game you stole.
+        <span class="gex">You were down a full rook at your worst moment and won anyway: that's a comeback, and the ☆ Comebacks filter on the Game Log collects them.</span></dd>
+      <dt><a href="/#tab=endgames">Conversion</a></dt><dd>On Missed Mates: mates you played divided by mates you had.
+        <span class="gex">80% conversion means that when a forced mate sat on the board, you delivered it 8 times out of 10.</span></dd>
+      <dt><a href="/#tab=mates">Cost</a></dt><dd>On Missed Mates: Stockfish's verdict right after the move you played instead of the mate. A big plus (or #) means the miss was harmless — still winning. Near zero or negative means that one move threw the win away on the spot.</dd>
+      <dt><a href="/#tab=trends">Drawdown</a></dt><dd>The biggest fall from a high point inside a week or session — how far it dipped, even if it recovered.
+        <span class="gex">A session in which you lost 25 Elo to start, then gained 100 back, still has a drawdown of 25.</span></dd>
+      <dt>Elo*</dt><dd>A rating marked with an asterisk is the <i>post-game</i> number: chess.com's archive didn't include the pre-game rating for that game, so the log shows where you landed instead of where you started.</dd>
+      <dt><a href="/#tab=endgames">Endgame entry</a></dt><dd>Your material edge at the moment the board first drops to 4 or fewer pieces (pawns and kings not counted), measured outside of exchanges. This is what Endgame Conversion buckets on.
+        <span class="gex">Entering at +2 means you were two pawns' worth up when the board thinned out — an endgame you're supposed to win.</span></dd>
+      <dt><a href="/#tab=log">Eval</a></dt><dd>Stockfish's verdict on the final position, from your side, in pawns. Displays cap at ±20⁺ — beyond that it's simply "completely winning/lost."</dd>
+      <dt>Fork</dt><dd>The piece that captured was attacking two or more big targets from where it landed. Material lost to forks counts as a tactic you walked into, not a piece left hanging.
+        <span class="gex"><span class="matpop" data-fen="r3k3/ppN2ppp/8/8/8/8/PPP2PPP/4K3 b - - 0 1" data-flip="1" data-from="b5" data-to="c7" data-san="Nc7+" data-bfrom="c7,c7" data-bto="e8,a8" data-cap="<b>A fork — the knight lands on c7 with check</b>" data-sub="two targets at once: the king on e8 must move, so the rook on a8 is lost &middot; Black (you) at the bottom">A knight lands on c7 hitting your king and rook</span>: whatever it wins next move is fork material, and it's excluded from the Hung-piece count.</span></dd>
+      <dt><a href="/#tab=blown">Given back</a></dt><dd>Your peak material lead minus what you finished with — how much of the advantage you handed back.
+        <span class="gex">Peaked at +5, finished at +1: you gave back 4.</span></dd>
+      <dt><a href="/#tab=log">Hung piece</a></dt><dd>The worst clean material drop of a game — 3+ points captured between settled moments and never won back, forks excluded.</dd>
+      <dt><a href="/#tab=log">Material (Mat ±)</a></dt><dd>The piece-value ledger, in pawns: pawn 1, knight and bishop 3, rook 5, queen 9 — kings aren't counted. Positive means you're up, negative down, always read at settled moments.
+        <span class="gex">Mat +3 means you're up a minor piece, or three pawns. Mat −5 is a rook's worth down. Trading your queen for a rook reads as −4: nine out, five back.</span></dd>
+      <dt><a href="/#tab=mates">Missed mate</a></dt><dd>A checkmate-in-one you had and didn't play. A mate that stays available for several moves counts as one oversight, not several.
+        <span class="gex">Note that having mate available means you were already winning — so a miss usually costs moves, not the game. The Cost column on Missed Mates shows the exceptions.</span></dd>
+      <dt><a href="/#tab=blown">Peak / Trough</a></dt><dd>Your best and worst material during the game, sampled only at settled moments — mid-exchange spikes (like the middle of a queen trade) don't count.
+        <span class="gex">Peak +4, trough −2: at your best you were up a minor piece and a pawn, at your worst down two pawns.</span></dd>
+      <dt>Placement games</dt><dd>On a fresh ladder, chess.com moves your rating in outsized jumps (±40 or more per game) while it finds your level. Rookbook treats those swings as calibration, not skill — the Elo-per-game panel on Trends leaves them out, and sessions containing them are flagged.</dd>
+      <dt><a href="/#tab=log">Rating gap</a></dt><dd>Your opponent's rating minus yours, going into the game.
+        <span class="gex">+60 means you punched up; −60 means you were the favorite.</span></dd>
+      <dt><a href="/#tab=trends">Rolling average</a></dt><dd>On Trends: each point is the average of the last N games rather than one game's result, so the shape of a change shows through the noise. The window picker sets N.
+        <span class="gex">On a 50-game window one disaster moves the line by about a fiftieth — a run of them bends it. Small windows react fast and jump around; large ones are steadier but slower to admit something has changed.</span></dd>
+      <dt><a href="/#tab=trends">Session</a></dt><dd>A run of games with only short breaks between them (no 60-minute gap). Sessions get their own table on Trends, with net Elo and the streak you quit on.
+        <span class="gex">Games at 9:00, 9:20 and 9:45 are one session; a game the next morning starts a new one.</span></dd>
+      <dt>Settled moment</dt><dd>A position with no exchange in progress: after a capture, nothing samples until the recapture lands or three plies pass with no comeback.</dd>
+      <dt><a href="/#tab=log">Swindle</a></dt><dd>Winning a game you were losing on material. Rookbook counts these so you think twice before resigning.</dd>
+      <dt><a href="/#tab=blown">Swing</a></dt><dd>How far material went <em>against</em> you before the game settled: the smaller of your best and worst moments. A game you led wire to wire scores 0, because nothing ever changed hands; up 8 with a one-pawn stumble scores 1; up 5 then down 4 scores 4.
+        <span class="gex">Being crushed scores 0 as well — if you were behind from the first mistake to the last move, nothing ever changed hands either. So a 0 means one-sided, not good; check the result to know which way. The high numbers are blown leads and comebacks: up 6 and finishing 5 down is a swing of 5, and so is clawing back from 5 down to win by 6.</span></dd>
+      <dt><a href="/#tab=log">Time class</a></dt><dd>Rapid, Blitz, Bullet, or Daily. Separate ladders, separate ratings — which is why the Time filter leads everything.</dd>
+      <dt><a href="/#tab=log">Undev</a></dt><dd>How many of your minor pieces never left their starting squares. A development report card.
+        <span class="gex">Undev 2 in a 35-move game means a knight and a bishop watched the whole thing from home.</span></dd>
+      <dt><a href="/#tab=blown">Verdict (Blown Leads)</a></dt><dd>Three ways to lose a game you shouldn't have. <b>"blew a lead"</b> — you were up 3+ material at some point and lost anyway (no engine needed). <b>"was winning"</b> — the engine had you at +1.0 or better when the game <i>ended</i>, and you still lost: usually a resignation or a flag in a winning position. <b>"not lost"</b> — you resigned a position the engine didn't score as lost for you (better than −1.5, and the material ledger agrees). The game wasn't over; you just left.</dd>
+</dl>
+
+<footer>
+  <p>Free, private, no accounts. <a href="https://buymeacoffee.com/rookbookchess" target="_blank" rel="noopener">Buy me a coffee</a> if I earned one.</p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+
+</div>
+</body>
+</html>

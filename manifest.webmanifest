@@ -1,0 +1,16 @@
+{
+  "id": "/",
+  "name": "Rookbook — Chess.com Game Tracker",
+  "short_name": "Rookbook",
+  "description": "The stats chess.com doesn't show you: tilt curves, blown leads, missed mates, opponent scouting. Your games never leave your device.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0E0F10",
+  "theme_color": "#0E0F10",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

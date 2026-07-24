@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How Many Chess Games Should You Play a Day? | Rookbook</title>
+<meta name="description" content="Games per sitting matters more than games per day. How to find your own limit from your results, and the two traps that mislead people.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/how-many-chess-games-per-day.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How Many Chess Games Should You Play a Day? | Rookbook">
+<meta property="og:description" content="Games per sitting matters more than games per day. How to find your own limit from your results, and the two traps that mislead people.">
+<meta property="og:url" content="https://rookbook.net/how-many-chess-games-per-day.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "How many chess games should you play a day?", "description": "Games per sitting matters more than games per day. How to find your own limit from your results, and the two traps that mislead people.", "url": "https://rookbook.net/how-many-chess-games-per-day.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How many chess games should I play a day?", "acceptedAnswer": {"@type": "Answer", "text": "There is no universal number, and games per unbroken sitting matters more than games per day. Find your own limit by comparing win rates by position within a session, bearing in mind that small samples swing several percentage points on luck alone."}}, {"@type": "Question", "name": "How do I know if I am playing too many games in a session?", "acceptedAnswer": {"@type": "Answer", "text": "Results lag, so watch faster signals: your average time per move dropping, starting the next game immediately after a loss, and no longer checking what your opponent's last move attacked."}}, {"@type": "Question", "name": "Should I stop playing chess after two losses?", "acceptedAnswer": {"@type": "Answer", "text": "Only if your own data shows it costs you. It is widely repeated advice but it describes tilt, and when measured across a few hundred games many players show no meaningful drop after losses at all."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:20px 0;padding:0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--rule)}
+  figcaption{font-size:12px;color:#6A675B;margin-top:7px;line-height:1.6}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>How many chess games should you play a day?</h1>
+<p class="lede">There's no universal number, but there is a way to find yours: look at how you actually perform by position in a session. Most players are worse late than they think, and better early than they feel. <a href="/">Rookbook</a> works it out from your own results.</p>
+
+<h2>The real limit is a sitting, not a day</h2>
+<p>Total games per day matters less than how many you play in one unbroken run. Three games in the morning and three at night is a different thing from six in a row, even though the daily total is identical.</p>
+<p>What degrades over a session isn't chess knowledge &mdash; it's attention. And attention fails in a specific way: you keep calculating fine, but you stop <em>checking</em>. That produces exactly the kind of loss that feels stupid afterwards.</p>
+
+<h2>How to find your own number</h2>
+<p>Split your games by where they fell in a sitting &mdash; the first two, the next few, and everything from the tenth onwards &mdash; and compare win rates. If there's a real drop, the point where it happens is your limit.</p>
+<p>Two warnings about doing this, because both mislead people constantly:</p>
+<ul>
+  <li><b>You need more games than you'd expect.</b> A bucket of thirty games swings around eight percentage points on luck alone. A ten-point drop across thirty games is not evidence of fatigue.</li>
+  <li><b>Watch for a rating effect.</b> If you lose a few, your rating dips and you get easier opponents; win a few and you get harder ones. Some of what looks like fatigue is just the ladder correcting.</li>
+</ul>
+<div class="box">
+  <p>The most common honest finding is no effect at all. Plenty of players who are certain they collapse after five games have a flat curve across two hundred sittings &mdash; which is worth knowing, because it means the losses they remember weren't fatigue.</p>
+</div>
+
+<figure>
+  <picture>
+    <source srcset="/shot-session.webp" type="image/webp">
+    <img src="/shot-session.png" alt="Win rate grouped by position within a playing session, from the first two games through to the eleventh and beyond." width="1352" height="420" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>Session position, grouped into ranges rather than single games so each bucket holds enough to mean something.</figcaption>
+</figure>
+
+<h2>Signs you're past your limit</h2>
+<p>Results are a lagging indicator and need lots of games. These show up sooner:</p>
+<ul>
+  <li><b>Your time per move drops.</b> Not because positions got simpler &mdash; because you stopped checking.</li>
+  <li><b>You start the next game immediately.</b> Queueing straight after a loss is the single most reliable sign that you're playing to settle a score rather than to play.</li>
+  <li><b>You stop looking at what your opponent's move attacked.</b> The habit that prevents most blunders is the first one to go.</li>
+</ul>
+
+<h2>A reasonable default</h2>
+<p>If you don't want to measure anything: play in blocks of three or four rapid games, take a real break between blocks, and stop for the day after a loss where you knew the right move and played something else. That last one is the clearest signal there is.</p>
+<p>And treat "stop after two losses" with suspicion. It's repeated everywhere as a rule, but it's a rule about tilt, and most players' data doesn't show tilt at all. Quitting early on a rule that doesn't apply to you just means fewer games.</p>
+
+<h2>Check yours</h2>
+<p>Rookbook reads your chess.com history, groups your games by position within a sitting, and shows whether your results actually fall off &mdash; and it stays neutral rather than coloring a verdict when the difference is within normal variation. It also shows your average session length, which is usually longer than people guess.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=trends">See your session curve on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>How many chess games a day is too many?</b> There's no fixed number. What matters is games per unbroken sitting, not per day, and the point where your own results and time-per-move start dropping.</p>
+<p><b>Is playing lots of blitz bad for improvement?</b> Volume without review mostly reinforces existing habits, in any time control. The problem is rarely the format; it's playing many games and looking at none of them.</p>
+<p><b>Should I stop playing after losing?</b> Only if your own results show it costs you. It's common advice, but for many players the drop after a loss is within normal variation.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/do-you-actually-tilt.html">Do you actually tilt at chess?</a></li><li><a href="/why-am-i-stuck-at-the-same-rating.html">Why am I stuck at the same chess rating?</a></li><li><a href="/why-do-i-lose-on-time.html">Why do I keep losing on time in chess?</a></li><li><a href="/rapid-or-blitz-to-improve.html">Should I play rapid or blitz to improve?</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>

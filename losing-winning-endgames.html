@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why Do I Keep Losing Winning Endgames? | Rookbook</title>
+<meta name="description" content="A piece up should be close to a win. Why simplified positions are harder than they look, the three habits that cost them, and how to measure your own rate.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/losing-winning-endgames.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why Do I Keep Losing Winning Endgames? | Rookbook">
+<meta property="og:description" content="A piece up should be close to a win. Why simplified positions are harder than they look, the three habits that cost them, and how to measure your own rate.">
+<meta property="og:url" content="https://rookbook.net/losing-winning-endgames.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Why do I keep losing winning endgames?", "description": "A piece up should be close to a win. Why simplified positions are harder than they look, the three habits that cost them, and how to measure your own rate.", "url": "https://rookbook.net/losing-winning-endgames.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Why do I lose endgames when I am a piece up?", "acceptedAnswer": {"@type": "Answer", "text": "Because an extra piece only wins if it is used, and most players stop playing actively once they are ahead. The three usual causes are shuffling instead of pushing pawns, refusing to trade down into positions that are easier to win, and spending the clock earlier in the game so the ending has to be played quickly."}}, {"@type": "Question", "name": "What is a good endgame conversion rate?", "acceptedAnswer": {"@type": "Answer", "text": "Entering an endgame a full piece ahead should convert close to nine times in ten at club level. Anything near fifty percent means the extra material is not being used, which is a technique and habit problem rather than a knowledge problem."}}, {"@type": "Question", "name": "Which endgames should I study first?", "acceptedAnswer": {"@type": "Answer", "text": "King and pawn endings first, because every simplified position resolves into one and they are the only endings where the evaluation is exact. After that, rook endings, since they occur more often than every other piece ending combined."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:20px 0;padding:0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--rule)}
+  figcaption{font-size:12px;color:#6A675B;margin-top:7px;line-height:1.6}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Why do I keep losing winning endgames?</h1>
+<p class="lede">You traded into a simple position a piece up, and somehow didn't win it. This is the most measurable leak in club chess and almost nobody knows their own number. <a href="/">Rookbook</a> works out how often you convert.</p>
+
+<h2>Simplifying is not the same as winning</h2>
+<p>Most players treat the trade into an endgame as the moment the game is decided. It isn't. It's the moment the game becomes <em>technical</em>, which is a different skill from the one that won the material in the first place.</p>
+<p>Middlegame chess rewards seeing things: tactics, threats, the move your opponent missed. Endgame chess rewards procedure &mdash; king activity, passed pawns, opposition, knowing which trades help. Those are learnable in an afternoon and most club players never spend the afternoon, because endings feel like the boring part of a game that's already over.</p>
+<div class="box">
+  <p>An extra piece entering a simplified position should convert close to nine times in ten. If your rate is near half, the problem isn't that you lack knowledge of theoretical endings &mdash; it's that <b>the extra piece isn't being used</b>. Those are different diagnoses with different fixes.</p>
+</div>
+
+<h2>The three habits that cost them</h2>
+<ul>
+  <li><b>Shuffling instead of pushing.</b> Being ahead makes people cautious, and cautious in an endgame means moving pieces back and forth waiting for something to happen. Nothing happens. Endings are won by advancing pawns and activating the king, both of which feel risky and are not.</li>
+  <li><b>Refusing to trade.</b> The rule flips once you're ahead: with an extra piece you want fewer pieces on the board, not more. Every trade increases your relative advantage and shrinks the number of ways to go wrong. Players who fought hard for the material often guard it instead of spending it.</li>
+  <li><b>Arriving with no clock.</b> Endgames need moves, and moves need time. A long think on move twelve is paid for on move fifty-five, in a position where precision is the only thing that matters. Plenty of "lost endings" were lost in the opening, on the clock.</li>
+</ul>
+
+<h2>The king is a piece</h2>
+<p>If you take one thing: in the middlegame the king hides, and in the endgame it fights. Once the queens are off, a king walking to the center is worth roughly a minor piece of activity, and the player whose king gets there first usually wins the pawn race that follows.</p>
+<p>This single habit &mdash; noticing the moment the king should start marching &mdash; converts more endings than any amount of theoretical study. It also costs nothing to learn.</p>
+
+<h2>What to actually study, in order</h2>
+<p>Two endings carry nearly all the practical value:</p>
+<ul>
+  <li><b>King and pawn.</b> Every simplified position eventually resolves into one, and it's the only ending where the evaluation is exact rather than approximate. Opposition and the square of the pawn are an hour's work and permanent.</li>
+  <li><b>Rook endings.</b> They occur more often than every other piece ending combined. You don't need the whole theory &mdash; the Lucena and Philidor positions cover most of what actually appears.</li>
+</ul>
+<p>Everything else can wait. Studying bishop-versus-knight subtleties before you can win king and pawn is the chess equivalent of learning a language's subjunctive before its verbs.</p>
+
+<h2>Measure your own rate first</h2>
+<p>You can't tell whether this is your problem from memory, because the endings you converted are unmemorable and the ones you threw away are vivid. The number is knowable, though: take the moment the board first simplifies, record what you were up, and check what happened next.</p>
+
+<figure>
+  <picture>
+    <source srcset="/shot-endgame-conversion.webp" type="image/webp">
+    <img src="/shot-endgame-conversion.png" alt="Rookbook's endgame conversion panel: win rate split by the material you held the moment the board first simplified, from clearly ahead through level to behind." width="876" height="523" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>One account's conversion rate, measured the moment the board first drops to four pieces. Entering <b>clearly ahead</b> &mdash; four points of material or more &mdash; it converted 47%. Entering a piece <em>behind</em> it scored 43%. An extra piece was worth almost nothing, which is a technique problem, not a knowledge one.</figcaption>
+</figure>
+
+<h2>See your own conversion</h2>
+<p>Rookbook reads your Chess.com history, finds the moment each game simplified, and splits your results by what you were holding at that point &mdash; clearly ahead, level, or behind. If the top row isn't far above the others, you've found the cheapest rating available to you.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=endgames">See your endgame conversion on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>Why do I lose endgames a piece up?</b> Because an extra piece only wins if it's used. Shuffling instead of pushing pawns, refusing trades that simplify, and arriving with no clock account for most of it &mdash; none of which is a gap in endgame theory.</p>
+<p><b>What's a good conversion rate?</b> Entering an ending a full piece ahead should win close to nine times in ten at club level. Near half means the material isn't being converted into anything.</p>
+<p><b>Which endgames should I learn first?</b> King and pawn, then rook endings. The first is exact and underpins everything; the second happens more than all other piece endings combined.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/losing-winning-positions.html">Why do I keep losing winning positions?</a></li><li><a href="/why-do-i-lose-on-time.html">Why do I keep losing on time in chess?</a></li><li><a href="/how-to-review-your-chess-games.html">How to review your own chess games</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>

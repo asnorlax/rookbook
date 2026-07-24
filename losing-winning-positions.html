@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why Do I Keep Losing Winning Positions in Chess? | Rookbook</title>
+<meta name="description" content="You were a piece up and still lost. Why converting is harder than winning, the three habits behind most of it, and how to count your own.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/losing-winning-positions.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why Do I Keep Losing Winning Positions in Chess? | Rookbook">
+<meta property="og:description" content="You were a piece up and still lost. Why converting is harder than winning, the three habits behind most of it, and how to count your own.">
+<meta property="og:url" content="https://rookbook.net/losing-winning-positions.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Why do I keep losing winning positions in chess?", "description": "You were a piece up and still lost. Why converting is harder than winning, the three habits behind most of it, and how to count your own.", "url": "https://rookbook.net/losing-winning-positions.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Why do I keep losing winning positions in chess?", "acceptedAnswer": {"@type": "Answer", "text": "Usually one of three things: continuing to attack after the game is already won, relaxing and spending far less time per move, or avoiding piece trades because simplifying feels passive. When you are ahead on material, trading pieces converts the advantage; keeping the position complex gives your opponent more chances to find something."}}, {"@type": "Question", "name": "How do I convert a winning position?", "acceptedAnswer": {"@type": "Answer", "text": "Once clearly ahead, switch goals from winning to not losing. Trade pieces at every fair opportunity, prioritise king safety over activity, and keep spending the same amount of clock time per move as you did earlier in the game."}}, {"@type": "Question", "name": "How can I see how often I lose winning positions?", "acceptedAnswer": {"@type": "Answer", "text": "Rookbook reads your chess.com game history and replays each game, tracking material at settled moments. It lists every game where you were three or more material ahead and still lost, showing the position at your biggest lead and the move you played next."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:20px 0;padding:0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--rule)}
+  figcaption{font-size:12px;color:#6A675B;margin-top:7px;line-height:1.6}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Why do I keep losing winning positions in chess?</h1>
+<p class="lede">You were a piece up. Then you weren't. If this keeps happening, it isn't bad luck &mdash; it's the most common way club players lose rating, and it's measurable. <a href="/">Rookbook</a> shows you every game where it happened to you.</p>
+
+<h2>Why it happens</h2>
+<p>Winning positions are harder to play than losing ones, and almost nobody is taught this. When you're behind you have one job: complicate, create threats, survive. When you're ahead you have a dozen competing instincts &mdash; keep attacking, trade down, defend the extra material, avoid counterplay &mdash; and choosing wrong once is enough.</p>
+<p>Three patterns account for most of it:</p>
+<ul>
+  <li><b>You keep attacking after the win is already secured.</b> Being a rook up means the game is over if you simplify. Instead the attack continues, a piece hangs, and now it's a game again.</li>
+  <li><b>You relax.</b> Clock usage drops off a cliff once the position looks won. Moves that would have taken thirty seconds take four.</li>
+  <li><b>You don't trade.</b> Every piece left on the board is another chance for your opponent to find something. When you're up material, trading pieces is almost always correct, and it almost always feels too passive.</li>
+</ul>
+
+<h2>The fix is boring, and that's the point</h2>
+<p>Once you're clearly ahead, the goal stops being "win" and becomes "don't lose." Concretely: trade pieces at every fair opportunity, keep your king safe rather than active, and take the same amount of time on your moves as you did an hour earlier. A dull technical grind converts. A brilliancy does not need to happen.</p>
+<div class="box">
+  <p>A useful rule: when you're up material, prefer the move that removes pieces from the board over the move that looks strongest. You are trading complexity for certainty, and certainty is what you're short of.</p>
+</div>
+
+<figure>
+  <picture>
+    <source srcset="/shot-recovery.webp" type="image/webp">
+    <img src="/shot-recovery.png" alt="Win rate after falling behind by one, two, three, or four or more material, with the number of games in each case." width="1352" height="420" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>How often a deficit is recovered, split by how deep it got. The collapse point is usually sharper than players expect.</figcaption>
+</figure>
+
+<h2>Find out how often it actually happens to you</h2>
+<p>Most players have a feeling about this and no number. The feeling is unreliable &mdash; a single painful loss sticks in memory far longer than twenty clean conversions.</p>
+<p>Rookbook reads your chess.com history and replays every game, tracking material at each settled moment (nothing counts mid-exchange, so an even trade never registers as a swing). It then shows you every game where you were up three or more material and still lost, with the exact position at your biggest lead and what you played next.</p>
+<p>It also shows the shape of the problem: how often you convert from one pawn up versus four, and whether your losses arrive while the board is still complex or after a long grind. For most club players the collapse point is sharper than expected &mdash; recovery rates stay respectable down to a couple of points of material and then fall off a cliff.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=blown">See your blown leads on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>Is throwing away winning positions normal?</b> Yes, and it stays common well above club level. What separates players isn't whether it happens but how often, and whether they notice the pattern.</p>
+<p><b>Does this mean I'm bad at endgames?</b> Not necessarily. Losing with a full board is a different problem from losing a simplified position &mdash; the first is usually a tactical lapse, the second usually technique. Worth knowing which one you have before you pick what to study.</p>
+<p><b>How many games do I need before the numbers mean anything?</b> More than you'd think. Fifty games gives a rough shape; a couple of hundred is where it becomes trustworthy. Small samples swing wildly on luck alone.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/how-to-stop-blundering.html">How to stop blundering in chess</a></li><li><a href="/why-do-i-miss-checkmates.html">Why do I miss checkmates?</a></li><li><a href="/how-to-review-your-chess-games.html">How to review your own chess games</a></li><li><a href="/why-am-i-stuck-at-the-same-rating.html">Why am I stuck at the same chess rating?</a></li><li><a href="/chess-accuracy-explained.html">Why is accuracy missing on some chess.com games?</a></li><li><a href="/why-do-i-lose-to-lower-rated-players.html">Why do I lose to lower-rated players?</a></li><li><a href="/losing-winning-endgames.html">Why do I keep losing winning endgames?</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Knight Forks: Spot the Tactic That Wins Club Games | Rookbook</title>
+<meta name="description" content="The knight fork is the tactic that decides more club games than any other. How the pattern works, why the knight is uniquely good at it, and four to solve.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/knight-forks-in-chess.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Knight Forks: How to Spot the Tactic That Wins Club Games | Rookbook">
+<meta property="og:description" content="The knight fork is the tactic that decides more club games than any other. How the pattern works, why the knight is uniquely good at it, and four to solve.">
+<meta property="og:url" content="https://rookbook.net/knight-forks-in-chess.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Knight forks: how to spot the tactic that wins club games", "description": "The knight fork is the tactic that decides more club games than any other. How the pattern works, why the knight is uniquely good at it, and four to solve.", "url": "https://rookbook.net/knight-forks-in-chess.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "What is a knight fork in chess?", "acceptedAnswer": {"@type": "Answer", "text": "A knight fork is a single knight move that attacks two enemy pieces at once. Because a knight jumps to squares that no other piece can defend from and cannot be blocked, the opponent usually cannot save both pieces, so you win one of them. When one of the two targets is the king, the fork is forcing: the king must move out of check, and then you capture the other piece."}}, {"@type": "Question", "name": "What is a royal fork?", "acceptedAnswer": {"@type": "Answer", "text": "A royal fork is a knight fork that attacks the king and the queen at the same time. It is the most valuable version of the tactic: the check forces the king to move, and on the next move the knight takes the queen. The same idea works against the king and a rook, and it is worth watching for whenever an enemy knight lands near your king and queen."}}, {"@type": "Question", "name": "How do I spot knight forks?", "acceptedAnswer": {"@type": "Answer", "text": "Look for knight moves that give check while also attacking a bigger piece. Scan the squares a knight move away from the enemy king and ask whether any of them also touches the queen, a rook, or an undefended piece. The reverse habit matters more: before every move, check whether your opponent has a knight that could jump to a square forking your own king and queen."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  code{font-family:var(--mono);color:var(--ink);font-size:12.5px}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Knight forks: how to spot the tactic that wins club games</h1>
+<p class="lede">More club games are decided by a knight fork than by any other tactic. It's the first one worth drilling until you see it without looking &mdash; both when it's yours to play and when it's about to happen to you. Four to solve are below.</p>
+
+<h2>What a fork is, and why the knight is best at it</h2>
+<p>A fork is one move that attacks two things at once. Any piece can fork, but the knight does it better than the rest, for two reasons that are worth understanding rather than memorising.</p>
+<p>First, the knight jumps to squares <b>nothing else defends the same way</b>. A bishop's targets sit on a diagonal you can block or guard; a knight's eight targets are scattered in a ring, and a piece defending one of them rarely defends another. Second, a knight check <b>cannot be blocked</b>. Against a rook or bishop check you can interpose a piece; against a knight there's nothing to put in the way. The king simply has to move &mdash; and while it's moving, the knight helps itself to whatever else it was attacking.</p>
+
+<h2>The royal fork</h2>
+<p>The most valuable version attacks the king and the queen together. It's called a royal fork, and the mechanics are always the same:</p>
+<ul>
+  <li>The knight lands on a square that <b>checks the king</b> and <b>attacks the queen</b>.</li>
+  <li>The check is forcing &mdash; the king must move, and it can't defend the queen by stepping away.</li>
+  <li>Next move, the knight takes the queen &mdash; you give a knight, you get a queen.</li>
+</ul>
+<p>Here it is in a real middlegame, both sides fully developed. <b>White to play</b> &mdash; the knight has a square that hits the king on g8 and the queen on c8 at once. Click the knight, then the square it jumps to.</p>
+
+<div class="puzzle" data-goal="win"
+     data-ask="White to play — win the queen with a knight fork."
+     data-fen="2q2rk1/pb1n1ppp/1p6/3N4/2B5/8/PP1Q1PPP/3R2K1 w - - 0 1"
+     data-solution="d5e7" data-win="the queen"></div>
+
+<p>None of the other pieces mattered. The knight checked from a square the king couldn't answer while still attacking the queen, and the queen fell. Everything below is the same idea wearing different clothes.</p>
+
+<h2>The same fork, a different square</h2>
+<p>The pattern isn't tied to one square or one setup. Here the king has castled into the corner on h8 and the knight jumps to f7 instead &mdash; and this time the queen isn't even defended, so it's won outright. <b>White to play</b>:</p>
+
+<div class="puzzle" data-goal="win"
+     data-ask="White to play — win the queen with a knight fork."
+     data-fen="r6k/pb4pp/1pnqp3/4N3/2B5/8/PP2QPPP/5RK1 w - - 0 1"
+     data-solution="e5f7" data-win="the queen"></div>
+
+<h2>And it happens to you, too</h2>
+<p>This is the more important habit. The fork you play is satisfying; the fork you walk into loses the game. Train your eye to see it from the other side of the board &mdash; here <b>you are Black</b>, and the knight jumps into your opponent's position:</p>
+
+<div class="puzzle" data-goal="win"
+     data-ask="Black to play — win the queen with a knight fork."
+     data-fen="3r2k1/pp1q1ppp/8/2b5/3n4/1P6/PB1N1PPP/2Q2RK1 b - - 0 1"
+     data-solution="d4e2" data-win="the queen"></div>
+
+<div class="box">
+  <p>The defensive version of the rule is the one that saves rating: <b>before you move, check whether your opponent has a knight that could jump to a square forking your king and queen</b> &mdash; or your king and a rook. Most players only ever look for their own forks. The stronger habit is looking for the opponent's.</p>
+</div>
+
+<h2>The queen isn't the only prize</h2>
+<p>Pair the king with a rook and the same move wins it. Here the queens are already traded off &mdash; the fork doesn't care, it just needs two targets a knight's-move apart. <b>White to play</b>:</p>
+
+<div class="puzzle" data-goal="win"
+     data-ask="White to play — win the rook with a knight fork."
+     data-fen="2r3k1/p4ppp/1p3n1b/3N4/2B5/8/PP3PPP/3R2K1 w - - 0 1"
+     data-solution="d5e7" data-win="a rook"></div>
+
+<h2>You don't even need the king</h2>
+<p>A fork is just one move attacking two things &mdash; neither has to be royal, and neither has to sit on the back rank. The knight jumps into the middle on <b>d5</b> and attacks both black rooks at once, out on b6 and e7. Whichever one Black saves, the knight takes the other. <b>White to play</b>:</p>
+
+<div class="puzzle" data-goal="win"
+     data-ask="White to play — fork both rooks with a knight."
+     data-fen="2b3k1/3prppp/1r6/2p5/5N2/8/PP3PPP/3R1RK1 w - - 0 1"
+     data-solution="f4d5" data-win="the exchange"></div>
+
+<h2>And it survives a crowded board</h2>
+<p>Forks aren't a tidied-up-endgame trick. Here's one in the thick of a full middlegame, both sides developed: the knight lands on <b>d6</b> and hits the rook on c8 and the active rook on f5 in a single move. Same idea, more furniture on the board. <b>White to play</b>:</p>
+
+<div class="puzzle" data-goal="win"
+     data-ask="White to play — fork both rooks with a knight."
+     data-fen="2r3k1/p2n1pbp/1p6/3p1r2/4N3/8/PBP2PPP/3R1RK1 w - - 0 1"
+     data-solution="e4d6" data-win="the exchange"></div>
+
+<h2>How to actually get better at these</h2>
+<p>Two habits, in order of importance:</p>
+<ul>
+  <li><b>Offence:</b> when you have a knight near the enemy king, ask what squares are a knight's-move from that king, and whether any of them also touches the queen, a rook, or a loose piece. If one does, and you can reach it safely, you have a fork.</li>
+  <li><b>Defence:</b> run the same check on your own king every move. A knight two hops away from a forking square is the warning sign &mdash; don't let it arrive.</li>
+</ul>
+<p>Every one of the positions above was checked by an engine before it went on this page: in each, the fork is the single best move and it clearly wins. That's the point of drilling clean examples &mdash; you learn the shape, then you start seeing it in your own games, where nobody labels it for you.</p>
+
+<h2>See where your own tactics go missing</h2>
+<p>The forks you miss are the same ones you never review. <a href="/">Rookbook</a> reads your Chess.com history and finds the sharpest version of that gap &mdash; every forced <a href="/find-your-missed-checkmates.html">checkmate you missed</a>, replayable as a puzzle &mdash; so the pattern-recognition holes that hide forks and mates alike stop being invisible. Free, no account, and your games never leave your browser.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=mates">Find the tactics you missed on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>What is a knight fork?</b> One knight move that attacks two enemy pieces at once. Because a knight's targets can't be blocked and are rarely defended by the same piece, the opponent usually can't save both &mdash; and when one target is the king, the check forces it.</p>
+<p><b>What is a royal fork?</b> A knight fork that hits the king and queen together. The king must move out of check, and then the knight takes the queen.</p>
+<p><b>How do I stop walking into them?</b> Before each move, look at your own king and ask whether an enemy knight could reach a square that forks it with your queen or a rook. Checking for the opponent's fork matters more than finding your own.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/find-your-missed-checkmates.html">How to find every checkmate you missed</a></li><li><a href="/how-to-stop-blundering.html">How to stop blundering in chess</a></li><li><a href="/how-to-review-your-chess-games.html">How to review your own chess games</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="/puzzle.js" defer></script>
+</body>
+</html>

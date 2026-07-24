@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Is Chess.com Down Right Now? Live Status Checker | Rookbook</title>
+<meta name="description" content="Is Chess.com down, slow, or not loading right now? Rookbook checks the Chess.com website and public API live from your browser — current status, response time, and whether it's just you.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/is-chess-com-down.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Is Chess.com Down Right Now? Live Status Checker | Rookbook">
+<meta property="og:description" content="Is Chess.com down, slow, or not loading? A live check of the Chess.com website and public API, run from your own browser — current status, response time, and whether it's Chess.com or your connection.">
+<meta property="og:url" content="https://rookbook.net/is-chess-com-down.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-600.woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Is Chess.com Down? — Live Status Checker","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","url":"https://rookbook.net/is-chess-com-down.html","description":"A live check of the Chess.com website and public API, run from the visitor's browser.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@type":"Organization","name":"Rookbook","url":"https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is Chess.com down right now?","acceptedAnswer":{"@type":"Answer","text":"This page checks the Chess.com website and its public API live from your browser every 30 seconds. If the status is green, Chess.com is reachable and responding for you; if it is red, the site is not responding. Because the check runs from your device, it also tells you whether the problem is Chess.com or your own connection."}},{"@type":"Question","name":"Why is Chess.com not loading for me?","acceptedAnswer":{"@type":"Answer","text":"Common causes are a Chess.com outage or maintenance, a CDN or Cloudflare problem, your own network or ISP, a browser cache or extension issue, or being signed out. If this checker shows Chess.com is up but it still will not load for you, try a different network, clear your cache, or disable extensions."}},{"@type":"Question","name":"How do I know if it is Chess.com or my internet?","acceptedAnswer":{"@type":"Answer","text":"If other sites work but this checker shows Chess.com not responding, the problem is most likely Chess.com or the network path to it. If every site is failing, it is your connection. The website and API rows check two separate Chess.com systems, so a split result usually means a partial outage rather than a full one."}},{"@type":"Question","name":"Does Chess.com have an official status page?","acceptedAnswer":{"@type":"Answer","text":"Chess.com posts incidents through its support channels and the @chesscom account on X. Third-party trackers such as Downdetector aggregate user reports. This page is an independent live check and is not affiliated with Chess.com."}}]}</script>
+<style>
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--panel2:#191B1D;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;--win:#7CC287;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 16px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+
+  /* ---- live status card: the hero. State is carried by the left border + dot colour so
+         the answer reads at a glance before any text is parsed. ---- */
+  .status{background:var(--panel2);border:1px solid var(--rule);border-left-width:3px;
+    border-left-color:var(--dim);padding:20px 20px 18px;margin:0 0 10px}
+  .status.up{border-left-color:var(--green)}
+  .status.degraded{border-left-color:var(--draw)}
+  .status.down{border-left-color:var(--loss)}
+  .st-head{display:flex;align-items:center;gap:13px}
+  .st-dot{width:15px;height:15px;border-radius:50%;background:var(--dim);flex:0 0 auto}
+  .status.up .st-dot{background:var(--win)}
+  .status.degraded .st-dot{background:var(--draw)}
+  .status.down .st-dot{background:var(--loss)}
+  .status.checking .st-dot{animation:stpulse 1s ease-in-out infinite}
+  .st-title{font-family:"Poppins",var(--sans);font-size:24px;font-weight:600;color:var(--ink);line-height:1.2}
+  .st-sub{font-size:12.5px;color:var(--dim);margin-top:11px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .st-btn{font-family:var(--sans);font-size:12px;color:var(--ink);background:transparent;
+    border:1px solid var(--rule);padding:5px 12px;cursor:pointer}
+  .st-btn:hover{border-color:var(--dim)}
+  .st-btn:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+  .st-rows{margin-top:16px;border-top:1px solid var(--rule);padding-top:14px;display:flex;flex-direction:column;gap:11px}
+  .st-row{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px}
+  .st-row .lbl{color:var(--read)}
+  .st-row .lbl small{display:block;color:#6A675B;font-size:11px;margin-top:1px}
+  .pill{font-family:var(--mono);font-size:12px;padding:4px 9px;border:1px solid var(--rule);white-space:nowrap;color:var(--dim)}
+  .pill.ok{color:var(--win);border-color:rgba(124,194,135,.4)}
+  .pill.bad{color:var(--loss);border-color:rgba(224,119,108,.4)}
+  .pill.warn{color:var(--draw);border-color:rgba(211,178,90,.4)}
+  .st-fine{font-size:11.5px;color:#6A675B;margin:0 0 8px;line-height:1.55}
+  @keyframes stpulse{0%,100%{opacity:1}50%{opacity:.25}}
+  @media (prefers-reduced-motion: reduce){.status.checking .st-dot{animation:none}}
+
+  /* ---- live response-time chart: this browser's own observations, kept in localStorage ---- */
+  .chart{background:var(--panel2);border:1px solid var(--rule);padding:16px 16px 12px;margin:0 0 22px}
+  .chart-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+    font-family:"Poppins",var(--sans);font-size:14px;font-weight:500;color:var(--ink);margin-bottom:12px;flex-wrap:wrap}
+  .chart-h small{display:block;color:#6A675B;font-size:11px;font-family:var(--sans);font-weight:400;margin-top:2px}
+  .chart-sum{font-family:var(--mono);font-size:12px;color:var(--dim);white-space:nowrap}
+  .chart svg{width:100%;height:auto;display:block}
+  .chart-note{font-size:11px;color:#6A675B;line-height:1.55;margin-top:10px}
+  /* ---- shared 24h history: link out to the always-on monitor. An iframe embed breaks
+         (broken-content box) for the ~1/3 of visitors on ad-blockers / Brave, so link instead. ---- */
+  .shared{margin:0 0 22px}
+  .status-link{display:block;border:1px solid var(--rule);border-left:3px solid var(--green);
+    background:var(--panel2);padding:15px 17px;text-decoration:none}
+  .status-link:hover{border-color:var(--dim);border-left-color:var(--green);background:#1c1e20}
+  .sl-main{display:block;font-family:"Poppins",var(--sans);font-size:15px;font-weight:500;color:var(--ink)}
+  .sl-sub{display:block;font-size:12px;color:var(--dim);margin-top:6px;line-height:1.5}
+  #shSvg{width:100%;height:auto;display:none;margin:2px 0 10px}
+  .status-link[hidden]{display:none}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Is Chess.com down right now?</h1>
+
+<div class="status checking" id="status" role="status" aria-live="polite">
+  <div class="st-head">
+    <span class="st-dot" aria-hidden="true"></span>
+    <span class="st-title" id="stTitle">Checking Chess.com&hellip;</span>
+  </div>
+  <div class="st-sub">
+    <span id="stMeta">Running a live check from your browser&hellip;</span>
+    <button class="st-btn" id="stBtn" type="button">Check again</button>
+  </div>
+  <div class="st-rows">
+    <div class="st-row"><span class="lbl">Website <small>chess.com</small></span><span class="pill" id="stWeb">checking&hellip;</span></div>
+    <div class="st-row"><span class="lbl">Public API <small>api.chess.com &mdash; games &amp; profiles</small></span><span class="pill" id="stApi">checking&hellip;</span></div>
+  </div>
+</div>
+<p class="st-fine">This check runs live in your own browser and refreshes every 30 seconds, so it also reflects your connection to Chess.com. It is an independent check, not an official Chess.com status feed.</p>
+
+<div class="chart" id="rtChart" hidden>
+  <div class="chart-h"><span>Response time<small>Live from this browser &middot; newest on the right</small></span><span class="chart-sum" id="rtSummary"></span></div>
+  <svg id="rtSvg" viewBox="0 0 640 120" role="img" aria-label="Recent Chess.com response-time checks from this browser"></svg>
+  <div class="chart-note">Each bar is one 30-second check &mdash; green means Chess.com answered (taller = slower), red means it didn&rsquo;t. This history is stored on your device and grows the longer you keep the page open.</div>
+</div>
+
+<div class="shared">
+  <div class="chart-h"><span>chess.com &mdash; last 24 hours<small>Shared history &middot; recorded around the clock, the same for everyone</small></span><span class="chart-sum" id="shSummary"></span></div>
+  <svg id="shSvg" viewBox="0 0 640 120" role="img" aria-label="Chess.com uptime and response time over the last 24 hours" hidden></svg>
+  <a class="status-link" id="shCard" href="https://stats.uptimerobot.com/Sz5IWepNiO" rel="noopener" target="_blank">
+    <span class="sl-main">See chess.com&rsquo;s full uptime &amp; response-time history &rarr;</span>
+    <span class="sl-sub">Recorded every 5 minutes by an always-on monitor, so it&rsquo;s identical for every visitor &mdash; unlike the live chart above, which tracks your own device. Opens the status page in a new tab.</span>
+  </a>
+  <div class="chart-note" id="shNote" hidden>Recorded around the clock by an always-on monitor, so it&rsquo;s identical for every visitor &mdash; unlike the live chart above, which tracks your own device. <a href="https://stats.uptimerobot.com/Sz5IWepNiO" rel="noopener" target="_blank">Full status page &rarr;</a></div>
+</div>
+
+<p class="lede">If Chess.com won&rsquo;t load, or the site is suddenly running slow, the first thing worth knowing is whether it&rsquo;s actually down or just down <em>for you</em>. The check above pings the Chess.com website and its public API from your device and reports what came back &mdash; so a page stuck loading and a real outage look different at a glance.</p>
+
+<h2>What this actually checks</h2>
+<p>Two separate Chess.com systems, because they can fail independently:</p>
+<ul>
+  <li><b>The website</b> (<span style="font-family:var(--mono);font-size:13px">chess.com</span>) &mdash; the pages you log in and play on. A green &ldquo;Reachable&rdquo; means the server answered your browser.</li>
+  <li><b>The public API</b> (<span style="font-family:var(--mono);font-size:13px">api.chess.com</span>) &mdash; the data service behind profiles, games and ratings. When this is slow or erroring, the site can look up but games and history stop loading. The number next to it is the real round-trip time from you to Chess.com.</li>
+</ul>
+<p>When the website answers but the API doesn&rsquo;t, you&rsquo;ll see a <b>partial outage</b> &mdash; the kind where you can open the site but can&rsquo;t start a game or load your archive.</p>
+
+<h2>Is it Chess.com, or is it you?</h2>
+<p>Because the test runs from your browser, it doubles as a check on your own connection:</p>
+<ul>
+  <li><b>Checker says down, other sites work</b> &mdash; it&rsquo;s Chess.com, or the network path between you and it. Nothing to fix on your end; wait it out.</li>
+  <li><b>Checker says up, but it won&rsquo;t load for you</b> &mdash; the problem is local. Try a different network, clear your cache, open a private window, or disable extensions (an ad-blocker or a work/school firewall is the usual culprit).</li>
+  <li><b>Everything is failing</b> &mdash; your internet is down, not Chess.com.</li>
+</ul>
+<div class="box">
+  <p>A quick cross-check: if the status above is red but friends are playing fine, the outage is probably on your network, not Chess.com&rsquo;s. Third-party trackers like <a href="https://downdetector.com/status/chess-com/" rel="nofollow noopener" target="_blank">Downdetector</a> and the <a href="https://twitter.com/chesscom" rel="nofollow noopener" target="_blank">@chesscom</a> account on X show whether other people are reporting the same thing.</p>
+</div>
+
+<h2>Why Chess.com goes down</h2>
+<p>Most outages fall into a few buckets: scheduled maintenance (often overnight US time), a spike in traffic during a major tournament or a popular streamer&rsquo;s marathon, a content-delivery or Cloudflare hiccup that briefly cuts off a whole region, or a bug in a fresh release. Almost all of them are short. There&rsquo;s nothing you can do to speed a real outage along, so the useful move is simply to confirm it&rsquo;s them and come back in a few minutes.</p>
+
+<div class="cta">
+  <p>Waiting for Chess.com to come back? Put the downtime to use.</p>
+  <a class="go" href="/">See what your last few hundred games say about your play &mdash; free, on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>Is Chess.com down right now?</b> The live check at the top of this page answers that from your own browser and refreshes every 30 seconds. Green means Chess.com is responding for you; red means it isn&rsquo;t.</p>
+<p><b>Why is Chess.com not loading?</b> Either a Chess.com outage or something local &mdash; your network, cache, or a browser extension. If the checker shows Chess.com up while it won&rsquo;t load for you, the cause is on your side.</p>
+<p><b>How do I know if it&rsquo;s Chess.com or my internet?</b> If other sites load but this checker shows Chess.com not responding, it&rsquo;s Chess.com. If everything fails, it&rsquo;s your connection.</p>
+<p><b>Does Chess.com have an official status page?</b> Chess.com posts incidents through its support channels and <a href="https://twitter.com/chesscom" rel="nofollow noopener" target="_blank">@chesscom</a> on X. This page is an independent live check, not affiliated with Chess.com.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/">Rookbook &mdash; free chess.com game tracker</a></li><li><a href="/how-to-review-your-chess-games.html">How to review your chess games</a></li><li><a href="/chess-com-banned-opponents.html">How many of your chess.com opponents got banned?</a></li><li><a href="/find-your-missed-checkmates.html">Find the checkmates you missed</a></li><li><a href="/glossary.html">Chess stats glossary</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com. &ldquo;Chess.com&rdquo; is a trademark of its owner; used here only to describe what this page checks.</p>
+</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var API = "https://api.chess.com/pub/player/erik";      // founder account: tiny, stable, CORS-enabled
+  var WEB = "https://www.chess.com/favicon.ico";           // probed opaquely just to see if the host answers
+  var TIMEOUT = 8000, REFRESH = 30000;
+
+  var byId = function(id){ return document.getElementById(id); };
+  var statusEl = byId("status"), titleEl = byId("stTitle"), metaEl = byId("stMeta"),
+      webEl = byId("stWeb"), apiEl = byId("stApi"), btnEl = byId("stBtn");
+  var lastAt = 0, lastApiMs = null, running = false;
+
+  function probe(url, opts){
+    var ctrl = ("AbortController" in window) ? new AbortController() : null;
+    var to = ctrl ? setTimeout(function(){ ctrl.abort(); }, TIMEOUT) : null;
+    var start = (window.performance && performance.now) ? performance.now() : Date.now();
+    var o = { cache: "no-store" };
+    for (var k in (opts||{})) o[k] = opts[k];
+    if (ctrl) o.signal = ctrl.signal;
+    var now = function(){ return ((window.performance && performance.now) ? performance.now() : Date.now()); };
+    return fetch(url, o).then(function(res){
+      return { reached:true, resOk:res.ok, status:res.status, ms:Math.round(now()-start) };
+    }).catch(function(){
+      return { reached:false, resOk:false, status:0, ms:Math.round(now()-start) };
+    }).then(function(r){ if (to) clearTimeout(to); return r; });
+  }
+
+  function setPill(node, cls, text){ node.className = "pill" + (cls ? " " + cls : ""); node.textContent = text; }
+
+  // ---- response-time history (this device only) ----
+  var HKEY = "rb_ccdown_hist_v1", HCAP = 480;   // ~4h of 30s checks
+  var hist = [];
+  try { hist = JSON.parse(localStorage.getItem(HKEY)) || []; } catch (e) { hist = []; }
+  if (!Array.isArray(hist)) hist = [];
+
+  function recordPoint(up, ms){
+    hist.push({ t: Date.now(), up: up ? 1 : 0, ms: (up && ms != null) ? ms : null });
+    if (hist.length > HCAP) hist = hist.slice(hist.length - HCAP);
+    try { localStorage.setItem(HKEY, JSON.stringify(hist)); } catch (e) {}
+    drawChart();
+  }
+
+  function drawChart(){
+    var box = document.getElementById("rtChart"), svg = document.getElementById("rtSvg"), sum = document.getElementById("rtSummary");
+    if (!box || !svg) return;
+    if (!hist.length){ box.hidden = true; return; }
+    box.hidden = false;
+    var VBW = 640, VBH = 120, pad = 6, top = 8, base = VBH - 12;
+    var show = hist.slice(-90), n = show.length;
+    var lat = []; show.forEach(function(p){ if (p.up && p.ms != null) lat.push(p.ms); });
+    var maxMs = 800; if (lat.length){ maxMs = Math.max(300, Math.min(2500, Math.max.apply(null, lat) * 1.15)); }
+    var slot = (VBW - 2 * pad) / n, bw = Math.max(2, Math.min(9, slot - 2));
+    var s = "";
+    for (var i = 0; i < n; i++){
+      var p = show[i], x = pad + i * slot + (slot - bw) / 2;
+      if (p.up){
+        var frac = p.ms != null ? Math.max(0.12, Math.min(1, p.ms / maxMs)) : 0.4;
+        var hgt = Math.max(3, (base - top) * frac);
+        s += '<rect x="' + x.toFixed(1) + '" y="' + (base - hgt).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hgt.toFixed(1) + '" fill="var(--green)" opacity="0.9"/>';
+      } else {
+        s += '<rect x="' + x.toFixed(1) + '" y="' + top + '" width="' + bw.toFixed(1) + '" height="' + (base - top).toFixed(1) + '" fill="var(--loss)"/>';
+      }
+    }
+    s += '<line x1="' + pad + '" y1="' + base + '" x2="' + (VBW - pad) + '" y2="' + base + '" stroke="var(--rule)" stroke-width="1"/>';
+    svg.innerHTML = s;
+    var upCount = 0; for (var j = 0; j < hist.length; j++){ if (hist[j].up) upCount++; }
+    var upPct = Math.round(100 * upCount / hist.length);
+    var all = []; hist.forEach(function(p){ if (p.up && p.ms != null) all.push(p.ms); }); all.sort(function(a, b){ return a - b; });
+    var med = all.length ? all[Math.floor(all.length / 2)] : null;
+    var span = hist.length > 1 ? (hist[hist.length - 1].t - hist[0].t) : 0;
+    var spanTxt = span < 60000 ? "" : (" over " + (span < 3600000 ? (Math.round(span / 60000) + " min") : (Math.round(span / 360000) / 10 + " h")));
+    sum.textContent = upPct + "% up · " + (med != null ? ("~" + med + " ms median · ") : "") + hist.length + " check" + (hist.length === 1 ? "" : "s") + spanTxt;
+  }
+
+  function paint(){
+    if (!lastAt) return;
+    var s = Math.round((Date.now() - lastAt) / 1000);
+    var when = s < 2 ? "Checked just now" : s < 60 ? ("Checked " + s + "s ago") : ("Checked " + Math.floor(s/60) + "m ago");
+    var parts = [when];
+    if (lastApiMs != null) parts.push("API responded in " + lastApiMs + " ms");
+    parts.push("auto-refreshes every 30s");
+    metaEl.textContent = parts.join("  ·  ");
+  }
+
+  function setTabTitle(state){
+    var mark = state === "up" ? "🟢" : state === "degraded" ? "🟡" : state === "down" ? "🔴" : "";
+    var word = state === "up" ? "Chess.com is up" : state === "degraded" ? "Chess.com partly down" : state === "down" ? "Chess.com is down" : "Is Chess.com down";
+    document.title = (mark ? mark + " " : "") + word + " — Live Status | Rookbook";
+  }
+
+  function offline(){
+    statusEl.className = "status offline";
+    titleEl.textContent = "You appear to be offline";
+    setPill(webEl, "", "—"); setPill(apiEl, "", "—");
+    metaEl.textContent = "Your device has no internet connection, so Chess.com can’t be reached from here.";
+    setTabTitle("");
+  }
+
+  function checking(){
+    statusEl.className = "status checking";
+    titleEl.textContent = "Checking Chess.com…";
+    setPill(webEl, "", "checking…"); setPill(apiEl, "", "checking…");
+    metaEl.textContent = "Running a live check from your browser…";
+  }
+
+  function render(api, web){
+    var apiUp = api.reached && api.resOk;
+    var webUp = web.reached;
+    var state = apiUp ? "up" : webUp ? "degraded" : "down";
+
+    statusEl.className = "status " + state;
+    titleEl.textContent = state === "up" ? "Chess.com is up"
+                        : state === "degraded" ? "Chess.com is partially down"
+                        : "Chess.com appears to be down";
+
+    if (webUp) setPill(webEl, "ok", "Reachable");
+    else if (apiUp) setPill(webEl, "", "Couldn’t verify");
+    else setPill(webEl, "bad", "Not responding");
+
+    if (apiUp) setPill(apiEl, "ok", "Online · " + api.ms + " ms");
+    else if (api.reached) setPill(apiEl, "warn", "Errors (HTTP " + api.status + ")");
+    else setPill(apiEl, "bad", "Not responding");
+
+    lastApiMs = apiUp ? api.ms : null;
+    lastAt = Date.now();
+    recordPoint(apiUp, apiUp ? api.ms : null);
+    paint();
+    setTabTitle(state);
+  }
+
+  function check(){
+    if (running) return;
+    running = true;
+    checking();
+    if (navigator.onLine === false){ offline(); running = false; return; }
+    Promise.all([
+      probe(API, {}),
+      probe(WEB + "?_=" + (Date.now()), { mode: "no-cors" })
+    ]).then(function(r){
+      if (navigator.onLine === false) offline();
+      else render(r[0], r[1]);
+      running = false;
+    }).catch(function(){ running = false; });
+  }
+
+  btnEl.addEventListener("click", check);
+  window.addEventListener("online", check);
+  window.addEventListener("offline", offline);
+  setInterval(paint, 1000);
+  setInterval(check, REFRESH);
+  drawChart();
+  check();
+})();
+</script>
+
+<script>
+// Shared 24h history — progressive enhancement. If the recorder repo is configured, fetch
+// its history.json and draw an on-brand chart; otherwise the link card above stays as-is.
+(function(){
+  "use strict";
+  // Set this once the chesscom-status GitHub repo exists, e.g.
+  //   "https://raw.githubusercontent.com/<your-username>/chesscom-status/main/history.json"
+  var SHARED_HISTORY_URL = "https://raw.githubusercontent.com/asnorlax/chesscom-status/main/history.json";
+  if (!SHARED_HISTORY_URL) return;   // not configured yet — leave the link card
+
+  var svg = document.getElementById("shSvg"),
+      card = document.getElementById("shCard"),
+      note = document.getElementById("shNote"),
+      sum  = document.getElementById("shSummary");
+
+  function draw(hist){
+    var now = Date.now(), DAY = 24 * 60 * 60 * 1000;
+    hist = (hist || []).filter(function(p){ return p && typeof p.t === "number" && p.t >= now - DAY; });
+    if (!hist.length) return;                       // no recent data — keep the card
+    hist.sort(function(a, b){ return a.t - b.t; });
+
+    var VBW = 640, VBH = 120, pad = 6, top = 8, base = VBH - 12;
+    var lat = []; hist.forEach(function(p){ if (p.up && p.ms != null) lat.push(p.ms); });
+    var maxMs = 800; if (lat.length){ maxMs = Math.max(300, Math.min(2500, Math.max.apply(null, lat) * 1.15)); }
+    var n = hist.length, slot = (VBW - 2 * pad) / n, bw = Math.max(1.5, Math.min(7, slot - 1));
+    var s = "";
+    for (var i = 0; i < n; i++){
+      var p = hist[i], x = pad + i * slot + (slot - bw) / 2;
+      if (p.up){
+        var frac = p.ms != null ? Math.max(0.12, Math.min(1, p.ms / maxMs)) : 0.4;
+        var h = Math.max(3, (base - top) * frac);
+        s += '<rect x="' + x.toFixed(1) + '" y="' + (base - h).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" fill="var(--green)" opacity="0.9"/>';
+      } else {
+        s += '<rect x="' + x.toFixed(1) + '" y="' + top + '" width="' + bw.toFixed(1) + '" height="' + (base - top).toFixed(1) + '" fill="var(--loss)"/>';
+      }
+    }
+    s += '<line x1="' + pad + '" y1="' + base + '" x2="' + (VBW - pad) + '" y2="' + base + '" stroke="var(--rule)" stroke-width="1"/>';
+    svg.innerHTML = s; svg.style.display = "block";
+
+    var up = 0; hist.forEach(function(p){ if (p.up) up++; });
+    var pct = Math.round(100 * up / n);
+    var all = []; hist.forEach(function(p){ if (p.up && p.ms != null) all.push(p.ms); }); all.sort(function(a, b){ return a - b; });
+    var med = all.length ? all[Math.floor(all.length / 2)] : null;
+    sum.textContent = pct + "% up · " + (med != null ? ("~" + med + " ms median · ") : "") + "last 24h";
+
+    if (card) card.hidden = true;
+    if (note) note.hidden = false;
+  }
+
+  fetch(SHARED_HISTORY_URL + "?_=" + Date.now(), { cache: "no-store" })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){ if (Array.isArray(j)) draw(j); })
+    .catch(function(){ /* leave the link card */ });
+})();
+</script>
+</body>
+</html>

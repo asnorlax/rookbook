@@ -1,0 +1,11 @@
+# Claude Code local project data — not part of the site
+.claude/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+
+# Netlify local dev
+.netlify/

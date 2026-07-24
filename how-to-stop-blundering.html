@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to Stop Blundering in Chess | Rookbook</title>
+<meta name="description" content="Blunders happen in four predictable situations, not at random. The habit that prevents most of them, and why tactics puzzles only half help.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/how-to-stop-blundering.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to Stop Blundering in Chess | Rookbook">
+<meta property="og:description" content="Blunders happen in four predictable situations, not at random. The habit that prevents most of them, and why tactics puzzles only half help.">
+<meta property="og:url" content="https://rookbook.net/how-to-stop-blundering.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "How to stop blundering in chess", "description": "Blunders happen in four predictable situations, not at random. The habit that prevents most of them, and why tactics puzzles only half help.", "url": "https://rookbook.net/how-to-stop-blundering.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How do I stop blundering in chess?", "acceptedAnswer": {"@type": "Answer", "text": "Before every move, check what your opponent's last move now attacks, and check that the piece you are about to move is not defending something else. Most hung pieces were defended a move earlier and quietly stopped being defended."}}, {"@type": "Question", "name": "Why do I blunder more when I am winning?", "acceptedAnswer": {"@type": "Answer", "text": "Attention drops once the game feels decided, and most players speed up rather than slow down when ahead. Because it is an attention problem rather than a calculation one, tactics training does not fix it; deliberately slowing down and trading pieces when ahead does."}}, {"@type": "Question", "name": "Do tactics puzzles stop blunders?", "acceptedAnswer": {"@type": "Answer", "text": "Only partly. A puzzle tells you a tactic is present, but in a real game nobody tells you. The harder skill is noticing a position has become tactical at all, which is better trained by reviewing your own blunders and identifying the warning sign you missed."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:20px 0;padding:0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--rule)}
+  figcaption{font-size:12px;color:#6A675B;margin-top:7px;line-height:1.6}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>How to stop blundering in chess</h1>
+<p class="lede">Blunders aren't carelessness and they aren't bad luck. They happen in predictable situations, and once you know which ones are yours, they get much rarer &mdash; and <a href="/">Rookbook</a> shows you when yours happen.</p>
+
+<h2>Where blunders actually come from</h2>
+<p>A blunder is almost never a failure to calculate. It's a failure to <em>look</em>. The move you played was fine in the position you had in your head; the problem was that the position in your head was a few moves out of date.</p>
+<p>Four situations produce most of them:</p>
+<ul>
+  <li><b>Right after your opponent moves.</b> You'd already decided your reply while they were thinking, they played something slightly different, and you played your plan anyway.</li>
+  <li><b>When you're winning.</b> Attention drops the moment the game feels decided. Plenty of players have a worse blunder rate when ahead than when level.</li>
+  <li><b>In time trouble.</b> Obvious, but worth measuring rather than assuming &mdash; some players blunder early and coast, others only crack under thirty seconds.</li>
+  <li><b>After a long think.</b> You calculate a deep line, commit to it, and stop checking whether the first move is safe.</li>
+</ul>
+
+<h2>The habit that fixes most of them</h2>
+<p>Before every move, look at what your opponent's last move now attacks. Not what it threatens strategically &mdash; literally which of your pieces it touches, and whether anything of yours is now undefended.</p>
+<p>This feels absurdly basic. It also removes most hanging-piece blunders, because a hung piece is almost always something that was defended a move ago and quietly stopped being defended.</p>
+<div class="box">
+  <p>The stronger version: before you move, check that the piece you're moving isn't the one defending something else. Blunders that feel mysterious are usually this &mdash; you moved a defender and never noticed it was doing a job.</p>
+</div>
+
+<h2>Blunders when you're ahead are a different problem</h2>
+<p>If you drop pieces mainly when winning, no amount of tactics training helps, because the issue isn't board vision &mdash; it's attention. The fix is behavioral: once you're clearly ahead, deliberately slow down rather than speed up, and simplify wherever it's fair. Trading pieces reduces the number of things that can go wrong.</p>
+<p>Worth checking whether your average time per move drops in won positions. Most players' does, and most players don't believe it until they see it.</p>
+
+<h2>Tactics puzzles help less than you'd think</h2>
+<p>Puzzles are useful, but they train the wrong half of the skill. A puzzle tells you something is there. Over the board, nobody tells you &mdash; the hard part isn't finding the tactic, it's noticing that a position has become tactical at all.</p>
+<p>The better drill is reviewing your own blunders and asking one question of each: <em>what should have alerted me?</em> Usually there was a signal &mdash; an undefended piece, a loose knight, a king on an open file &mdash; and the useful lesson is the signal, not the move.</p>
+
+<h2>Spot it yourself</h2>
+<p>Here is that recognition skill in four positions from the sample account. Each has a piece hanging for free, and nothing tells you which &mdash; that is the whole difference from a puzzle app, where you already know a tactic is waiting. Find the piece that wins it, then the square it takes on.</p>
+
+<div class="puzzle" data-goal="win" data-fen="1rb3nr/pp1k1p1p/2n3p1/2b1p3/P6P/B1P5/4PPP1/RN2KBNR w KQ - 0 10" data-solution="a3c5" data-win="a bishop"></div>
+
+<p>That one all but announced itself. The next is quieter &mdash; the hanging piece takes more looking for:</p>
+
+<div class="puzzle" data-goal="win" data-fen="rnbqkb1r/2pppp2/6pp/p7/P3nP2/2NP1K2/2P1P1PP/R1BQ1BNR b kq - 2 8" data-solution="e4c3" data-win="a knight"></div>
+
+<p>Now a bigger one, and the move that wins it is the kind the eye skips over &mdash; unglamorous, easy to dismiss:</p>
+
+<div class="puzzle" data-goal="win" data-fen="r1bq1b2/1ppkppp1/p7/7r/3pP1P1/3P4/PPP1KP2/RNBQ2N1 w - - 0 10" data-solution="g4h5" data-win="a rook"></div>
+
+<p>And the one worth sitting with. In the real game it went unspotted &mdash; which is the point. The material was there for nothing; someone just had to see it.</p>
+
+<div class="puzzle" data-goal="win" data-fen="rnbqkb1r/pp1ppp2/2p3pn/8/2B3Q1/1P1PP2P/P1P2PP1/RNB1K1NR b KQq - 0 7" data-solution="h6g4" data-win="a queen"></div>
+
+<p>In every one the tell was the same: a piece with nothing defending it. Train the noticing and the taking looks after itself &mdash; which is why reviewing your own games beats grinding puzzles that have already done the noticing for you.</p>
+
+<figure>
+  <picture>
+    <source srcset="/shot-blunder-gap.webp" type="image/webp">
+    <img src="/shot-blunder-gap.png" alt="Rookbook's accuracy split: average accuracy in reviewed games, 80.2 in wins against 63.6 in losses, with the rated and unrated split beneath." width="876" height="479" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>The gap between your accuracy in wins and in losses is the blunder signature &mdash; losses aren't gradually worse games, they're games one move ended.</figcaption>
+</figure>
+
+<h2>Find your pattern</h2>
+<p>Rookbook reads your chess.com history and works out when your pieces actually go missing: how often you hang something outright, whether it happens more when you're ahead, how much you had left on the clock, and which of your losses were decided by a single moment rather than a long decline.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=insights">See when you blunder on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>How do I stop hanging pieces in chess?</b> Before every move, check what your opponent's last move now attacks, and check that the piece you're about to move isn't defending something. Most hung pieces were defended one move earlier.</p>
+<p><b>Why do I blunder when I'm winning?</b> Attention drops once a game feels decided, and most players speed up rather than slow down. It's an attention problem, not a calculation one, so tactics training doesn't fix it.</p>
+<p><b>Do tactics puzzles stop blunders?</b> Partly. Puzzles tell you a tactic exists; the harder real-game skill is noticing that a position has become tactical. Reviewing your own blunders for the missed warning sign trains that directly.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/losing-winning-positions.html">Why do I keep losing winning positions?</a></li><li><a href="/why-do-i-miss-checkmates.html">Why do I miss checkmates?</a></li><li><a href="/how-to-review-your-chess-games.html">How to review your own chess games</a></li><li><a href="/why-do-i-lose-on-time.html">Why do I keep losing on time in chess?</a></li><li><a href="/why-am-i-stuck-at-the-same-rating.html">Why am I stuck at the same chess rating?</a></li><li><a href="/why-do-i-lose-to-lower-rated-players.html">Why do I lose to lower-rated players?</a></li><li><a href="/knight-forks-in-chess.html">Knight forks in chess</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="/puzzle.js" defer></script>
+</body>
+</html>

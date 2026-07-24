@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to Find Every Checkmate You Missed | Rookbook</title>
+<meta name="description" content="A full guide to Rookbook's Missed Mates page: what it scans, how one oversight is counted, and how to read every column including Cost, Think and Chances.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/find-your-missed-checkmates.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to Find Every Checkmate You Missed | Rookbook">
+<meta property="og:description" content="A full guide to Rookbook's Missed Mates page: what it scans, how one oversight is counted, and how to read every column including Cost, Think and Chances.">
+<meta property="og:url" content="https://rookbook.net/find-your-missed-checkmates.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "How to find every checkmate you missed", "description": "A full guide to Rookbook's Missed Mates page: what it scans, how one oversight is counted, and how to read every column including Cost, Think and Chances.", "url": "https://rookbook.net/find-your-missed-checkmates.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How can I find checkmates I missed in my chess games?", "acceptedAnswer": {"@type": "Answer", "text": "Rookbook replays every game in your Chess.com history move by move and tests whether a forced mate in one was available on each of your turns. It lists every position where one was there and you played something else, along with the move you played instead and what it cost."}}, {"@type": "Question", "name": "Does it find mate in two and longer mates?", "acceptedAnswer": {"@type": "Answer", "text": "No. The scan looks for mate in one only. That is a deliberate floor rather than a limitation: a mate in one is unambiguous, needs no engine to verify, and if you are walking past those then longer mates are not the problem to work on yet."}}, {"@type": "Question", "name": "Why does the Cost column take a while to fill in?", "acceptedAnswer": {"@type": "Answer", "text": "Cost runs a short Stockfish search on the position immediately after the move you played instead, which is what separates a harmless miss from one that threw the game away. It only runs while the Missed Mates page is open, pauses if you navigate away, resumes next visit, and the results are cached so each position is evaluated once."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  h3{font-family:"Poppins",var(--sans);color:var(--ink);font-size:13.5px;font-weight:500;
+    margin:20px 0 6px}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  /* the only article that quotes cell values inline — body text is already mono, so this
+     just needs to read as a value rather than inherit the browser's default monospace */
+  code{font-family:var(--mono);font-size:12.5px;color:var(--ink);
+    background:rgba(231,223,196,.06);padding:1px 5px;border-radius:3px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:20px 0;padding:0}
+  figure img{width:100%;height:auto;display:block;border:1px solid var(--rule)}
+  figcaption{font-size:12px;color:#6A675B;margin-top:7px;line-height:1.6}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>How to find every checkmate you missed</h1>
+<p class="lede">Chess.com will show you a missed mate in a game you open. It won't tell you how many you've walked past across your whole history, or which ones actually cost you the game. This is a full guide to <a href="/">Rookbook</a>'s Missed Mates page &mdash; what it scans, how it counts, and how to read every column.</p>
+
+<h2>What it scans</h2>
+<p>Rookbook replays each game in your history one move at a time. Before every one of your moves, it tries all legal replies and checks whether any of them ends the game on the spot. If one does and you played something else, that's a miss.</p>
+<p>Two things follow from that. The check is <b>exhaustive</b> &mdash; there's no guesswork about whether the mate was really there, because it plays the move and looks at the resulting position. And it runs on <b>both sides</b>, so the page also records mates your opponents had against you and didn't play.</p>
+
+<h3>No Game Review required</h3>
+<p>This is the part worth knowing before you start. Chess.com's Game Review works one game at a time, and only on games you've asked it to look at. Finding a mate in one needs no engine and no review &mdash; just the moves, which every game carries. So the scan covers <b>your entire history</b>, including the hundreds of games nobody has ever opened again.</p>
+<p>That's the difference between "here's the mate you missed in this game" and "here is every mate you've missed across your history, and which of them actually cost you the result". The only figures anywhere in Rookbook that need a reviewed game are the accuracy ones, because <a href="/chess-accuracy-explained.html">Chess.com only publishes accuracy for games that went through review</a>. On this page that's the Acc and Acc&nbsp;&plusmn; columns, which sit blank for unreviewed games; everything else is filled in for every row.</p>
+
+<h3>Mate in one only, on purpose</h3>
+<p>The scan looks for mate in one and nothing deeper. That's a floor, not a shortcoming. A mate in one is unarguable: no engine judgement, no "well, it was winning anyway". If you're walking past forced mates in one, deeper mates aren't the thing to work on yet. It also means the scan is fast enough to run over hundreds of games in your browser without an engine.</p>
+
+<h2>Try a few</h2>
+<p>These are four real positions from the sample account, in the order the scan found them. In each one a forced mate was on the board and the player played something else. Click the piece, then the square it moves to.</p>
+
+<p>Start with the plainest one. White to play:</p>
+
+<div class="puzzle" data-fen="1rb4k/p2n4/6Q1/2p5/pP1P1P2/4P3/2K5/1R6 w - - 1 31"
+     data-note="Played d5. Won by checkmate a move later anyway — this one cost a single move."></div>
+
+<p>Now the same idea from the other side. <b>Black</b> to play, so the board is turned around:</p>
+
+<div class="puzzle" data-fen="2b2b2/1p1kp1p1/r7/p7/PP1p2q1/R2P4/2P2P1K/1N6 b - b3 0 25"
+     data-note="Played Qe6. The opponent resigned two moves later."></div>
+
+<p>This next one is the pattern worth worrying about. The same mate was available on <b>five consecutive moves</b> &mdash; five separate decisions, each one walking past it:</p>
+
+<div class="puzzle" data-fen="1q3bnr/2p1p2p/r1n1k1p1/pp5N/P3P3/1P2NPP1/2P4P/R1BQKB1R w KQ - 1 16"
+     data-note="Played Bxb5, and four more moves after that. Won on move 21 regardless."></div>
+
+<p>And the one that actually mattered. Every miss above was in a game that still ended in a win. This one wasn't:</p>
+
+<div class="puzzle" data-fen="1nb1kbr1/1p1ppppp/8/6P1/3P1n2/2Q5/2P1PP1P/4KBNR w K - 3 17"
+     data-note="Played Qc6 — and lost this game 32 moves later, having been three points up here."></div>
+
+<p>That last position is the whole argument for the page. Three of these four misses cost a move or two and nothing else. The fourth threw away a won game, and no amount of staring at the raw miss count would tell you which was which &mdash; that's what the <b>&hellip;and not won</b> figure and the <b>Cost</b> column are for.</p>
+
+<p>Note also that none of this needed an engine. Verifying a mate in one is exhaustive and instant: play every legal move, look at the resulting position. That's exactly how the scan runs across your whole history.</p>
+
+<h2>One oversight, not three</h2>
+<p>This is the part most naive counters get wrong. If a mate sits on the board for three of your moves and you play something else each time, that isn't three missed mates. It's <b>one</b> mate you didn't see, that you walked past three times.</p>
+<p>Rookbook collapses a run like that into a single miss and records the number of moves in the <b>Chances</b> column. A row showing <code>3&times;</code> is a different and worse story than three separate rows would be &mdash; the same mate stood there while you made three decisions.</p>
+<div class="box">
+  <p>The same rule applies to your opponents' misses, so "They missed" counts oversights rather than positions. Counting per position inflates both numbers, and inflates them most in exactly the games where the pattern is most obvious.</p>
+</div>
+
+<h2>The summary strip</h2>
+<p>Across the top sit the totals for whatever games your filters currently include. They're worth understanding individually, because several answer different questions:</p>
+<ul>
+  <li><b>Mates found</b> &mdash; forced mates you spotted and played, including ones you took a move or two late.</li>
+  <li><b>Mates missed</b> &mdash; distinct oversights, using the collapsing rule above.</li>
+  <li><b>Moves walked past</b> &mdash; total moves played while a mate sat on the board. Compare it with Mates missed: a big gap means you tend to walk past the same mate repeatedly rather than miss it once.</li>
+  <li><b>Conversion</b> &mdash; how often you took the mate when it was there.</li>
+  <li><b>Games affected</b>, and <b>&hellip;and not won</b> &mdash; the second is the one that stings: games where you missed a mate and still didn't win.</li>
+  <li><b>They missed</b>, and <b>&hellip;and you won</b> &mdash; mates your opponents had against you, and how many of those games you went on to win. Completed swindles.</li>
+  <li><b>Leaked 3+ after</b> &mdash; misses after which you went on to lose three or more points of material by the end.</li>
+</ul>
+
+<figure>
+  <picture>
+    <source srcset="/shot-mate-summary.webp" type="image/webp">
+    <img src="/shot-mate-summary.png" alt="Rookbook's missed mates summary strip: mates found, mates missed, moves walked past, conversion rate, games affected, games not won, opponent misses, swindles completed, and games where material leaked afterwards." width="2430" height="122" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>The summary strip for the sample account. The gap between <b>mates missed</b> and <b>moves walked past</b> is the number worth sitting with &mdash; it's the difference between missing something once and standing in front of it for several moves.</figcaption>
+</figure>
+
+<h2>Reading a row</h2>
+<p>Each row is one oversight. The columns that carry the most information:</p>
+<ul>
+  <li><b>Move</b> &mdash; where it happened, as a fraction. <code>10/12</code> means the mate first appeared on move 10 of a 12-move game.</li>
+  <li><b>Chances</b> &mdash; how many of your moves that same mate stayed available for.</li>
+  <li><b>Mate available</b> and <b>You played</b> &mdash; the move that ended it, and the one you chose.</li>
+  <li><b>Cost</b> &mdash; Stockfish's verdict on the position immediately <em>after</em> the move you played. A big plus means the miss was harmless and you were still crushing. Near zero or negative means that single move threw the win away.</li>
+  <li><b>Think</b> &mdash; seconds spent on the move where you missed it. Under three seconds means you never looked.</li>
+  <li><b>Clock</b> &mdash; time remaining when the mate first appeared. The same miss with eight minutes on the clock and with twenty seconds are different mistakes: one is blindness, the other is a scramble.</li>
+  <li><b>Mat then</b>, <b>Mat end</b>, <b>Swing</b> &mdash; your material edge when mate was available, at the end, and what happened in between.</li>
+</ul>
+<p>Think and Clock together are the diagnostic pair. A miss with a long think and a comfortable clock means you looked at the position and didn't see it &mdash; a pattern-recognition gap. A miss with two seconds and thirty on the clock isn't about pattern recognition at all.</p>
+
+<figure>
+  <picture>
+    <source srcset="/shot-mate-rows.webp" type="image/webp">
+    <img src="/shot-mate-rows.png" alt="Rows from Rookbook's missed mates table, showing the move number, chances, mate available, move played instead, cost, think time, clock and material columns." width="1352" height="303" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>Every row is one oversight. Note the fifth row: <code>5&times;</code> chances, and 1.2 seconds spent on the move played instead &mdash; the same mate stood there for five moves and was never looked at.</figcaption>
+</figure>
+
+<h2>Why Cost fills in gradually</h2>
+<p>Everything except Cost is computed instantly, because finding mate in one needs no engine. Cost does &mdash; it runs a short Stockfish search per miss to work out whether that move mattered.</p>
+<p>So it fills in progressively while the page is open, pauses the moment you navigate elsewhere, and resumes next time you visit. Results are cached, so each position is only ever evaluated once, and the column stays blank rather than guessing if the engine isn't available. If you've just loaded a large history, leave the page open for a minute and it'll populate.</p>
+
+<h2>What to actually do with it</h2>
+<p>Three passes, in this order:</p>
+<ul>
+  <li><b>Sort by Cost</b> and look at the misses near zero. Those are the ones that changed a result rather than delaying one.</li>
+  <li><b>Scan the Think column</b> for anything under three seconds. That's not a chess problem, it's an attention problem, and it's the cheapest thing on this page to fix.</li>
+  <li><b>Look at Chances above 1&times;.</b> A mate you walked past three times is a specific pattern your eye doesn't register &mdash; usually a back-rank or a smothered shape. Two or three of those in a row will tell you which one.</li>
+</ul>
+<p>Star anything worth returning to; the &#9733; filter chip shows only starred games.</p>
+
+<h2>The caveats, plainly</h2>
+<p>Mate in one only, so a mate in three you missed won't appear. Games need move data to be scanned, which almost all Chess.com games have. And having a mate available means you were already winning, so most misses cost you moves rather than the game &mdash; the summary's "and not won" figure is the honest measure of the damage, not the raw miss count.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=mates">Find your missed mates on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>How do I find checkmates I missed?</b> Rookbook replays every game in your history and tests each of your turns for an available mate in one, then lists the position, the move you played instead, and what it cost.</p>
+<p><b>Does it find longer mates?</b> No &mdash; mate in one only. It's a deliberate floor: those are unambiguous, need no engine to confirm, and if you're missing them, deeper mates aren't the priority.</p>
+<p><b>Why is the Cost column slow?</b> It runs a short engine search per miss, only while the page is open, and caches the result. Leave the page open after a big import and it fills in.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/why-do-i-miss-checkmates.html">Why do I miss checkmates?</a></li><li><a href="/how-to-review-your-chess-games.html">How to review your own chess games</a></li><li><a href="/glossary.html">Chess stats glossary and methodology</a></li><li><a href="/knight-forks-in-chess.html">Knight forks in chess</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="/puzzle.js" defer></script>
+</body>
+</html>

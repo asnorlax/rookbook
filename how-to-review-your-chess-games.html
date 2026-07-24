@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How to Review Your Own Chess Games | Rookbook</title>
+<meta name="description" content="Most players review the game they remember, which is rarely the game that cost them. How to pick the right games and find the moment that decided them.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/how-to-review-your-chess-games.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to Review Your Own Chess Games | Rookbook">
+<meta property="og:description" content="Most players review the game they remember, which is rarely the game that cost them. How to pick the right games and find the moment that decided them.">
+<meta property="og:url" content="https://rookbook.net/how-to-review-your-chess-games.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "How to review your own chess games", "description": "Most players review the game they remember, which is rarely the game that cost them. How to pick the right games and find the moment that decided them.", "url": "https://rookbook.net/how-to-review-your-chess-games.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How should I review my own chess games?", "acceptedAnswer": {"@type": "Answer", "text": "Start from your results rather than your memory. Pick the games your data flags: losses where you were ahead on material, losses decided by a single moment rather than a long decline, and games where a forced mate was available. For each one, find the move where the game turned and ask what should have alerted you at that point. The warning sign transfers to future games; the specific move does not."}}, {"@type": "Question", "name": "Should I use an engine to review my games?", "acceptedAnswer": {"@type": "Answer", "text": "Use it second, not first. An engine tells you which move was best, which is the easy half. The harder and more useful skill is noticing that a position had become critical at all. Form your own view of where the game turned, then check it against the engine and see where the two disagree."}}, {"@type": "Question", "name": "How many games should I review?", "acceptedAnswer": {"@type": "Answer", "text": "Two or three a week, properly, beats twenty skimmed in one sitting. Reviewing is slower than playing and the returns come from depth rather than volume. If you only have time for one, make it a game you were winning and lost."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  /* NB: no flex `gap` here. gap applies between EVERY flex item, and the wordmark is
+     three of them (logo, "rook", "book") — so a gap meant to sit after the logo also
+     opened a space inside the word. The spacing lives on the image instead. */
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  figure{margin:18px 0}
+  figure img{max-width:100%;height:auto;display:block}
+  figcaption{font-size:12px;color:var(--dim);margin-top:8px}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>How to review your own chess games</h1>
+
+<p class="lede">Almost nobody reviews their games, and most of the people who do review the wrong one. The game you remember is rarely the game that cost you. <a href="/">Rookbook</a> picks the ones worth your time.</p>
+
+<h2>Why most review doesn't work</h2>
+<p>Two things go wrong, and they compound.</p>
+<p>The first is selection. You review the game that stung &mdash; the one where you hung a queen, or lost to someone rated 200 below you. That game is memorable, which is exactly why it's a bad sample. Memory keeps the vivid loss and quietly discards the twenty ordinary ones, so the pattern you think you're fixing is usually the pattern you happen to remember.</p>
+<p>The second is method. Most review is: open the engine, click through, watch the evaluation bar drop, note the move it disliked. That tells you which move was best. It doesn't tell you what you should have <em>noticed</em> &mdash; and noticing is the part that transfers to the next game.</p>
+
+<figure>
+  <picture>
+    <source srcset="/shot-blown-list.webp" type="image/webp">
+    <img src="/shot-blown-list.png" alt="Rookbook's blown leads table:every game where a material lead was lost, with the peak lead, the final margin, and the clock at the biggest lead." width="1352" height="498" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>The first list worth having: every game you were ahead in and lost, with how far ahead you got and what was left on your clock at the time.</figcaption>
+</figure>
+
+<h2>Pick the games your results flag</h2>
+<p>Three lists are worth more than everything else in your history:</p>
+<ul>
+  <li><b>Losses where you were ahead on material.</b> These are the fastest points available to you, because you already outplayed the person. Nothing else you could study returns as much.</li>
+  <li><b>Losses decided by one moment.</b> If your accuracy in a loss is close to your accuracy in wins, the game wasn't a gradual defeat &mdash; something specific happened. That moment is findable.</li>
+  <li><b>Games where mate was on the board.</b> Even the ones you won. Missing a forced mate rarely costs the game, but it tells you your attention was on material rather than the king.</li>
+</ul>
+<p>Notice what isn't on that list: the games you lost badly from move one. Those are usually openings you don't know or days you shouldn't have been playing, and neither is fixed by staring at the board.</p>
+
+<figure>
+  <picture>
+    <source srcset="/shot-review.webp" type="image/webp">
+    <img src="/shot-review.png" alt="A game open in Rookbook's review page: the board at the move that decided it, with the full move list and the time spent on each move." width="1352" height="735" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>A game opened at the moment it turned rather than from move one. The clock column shows where the thinking went &mdash; and where it stopped.</figcaption>
+</figure>
+
+<h2>Find the moment, not the mistake</h2>
+<p>A review that covers the whole game teaches you nothing, because most moves in most games are fine. You're looking for the single point where the position changed character. Three signals find it faster than clicking move by move:</p>
+<ul>
+  <li><b>Material swing.</b> Where did the balance move, and was it a fair trade or a piece given away?</li>
+  <li><b>The clock.</b> A four-minute think usually marks the moment you knew something was wrong. A run of three-second moves usually marks the moment you stopped checking.</li>
+  <li><b>Accuracy split.</b> One bad move in an otherwise clean game shows up as a gap between your accuracy and your opponent's.</li>
+</ul>
+<div class="box">
+  <p>A useful test: if you can't say what should have alerted you, you haven't finished reviewing the game. Knowing the better move is not the same as knowing how you'd have found it.</p>
+</div>
+
+<h2>Ask one question of each game</h2>
+<p><em>What should have alerted me?</em></p>
+<p>Nearly always there's an answer, and it's concrete: a piece that stopped being defended, a knight that could reach a square nobody was watching, a back rank with no escape, an opponent's move you'd already decided to ignore before they played it.</p>
+<p>The move is specific to that game and you will never see it again. The signal repeats every week.</p>
+
+<h2>Don't start with the engine</h2>
+<p>Form your own view first &mdash; where the game turned, what you'd play differently &mdash; and only then check it. What you're looking for is where you and the engine disagree, because that gap is your actual blind spot. Reading the evaluation first replaces your judgement with its judgement, which feels productive and teaches nothing.</p>
+<p>The exception is tactics you simply didn't see. If the engine finds a forced win you'd have missed with an hour to think, note the pattern and move on. There's no insight to extract from a line you couldn't calculate.</p>
+
+<h2>How many, how often</h2>
+<p>Two or three games a week, properly, beats twenty skimmed in one sitting. Review is slower than playing and the returns come from depth. A single blown lead worked through carefully will change more about how you play than an evening of clicking through evaluation bars.</p>
+<p>If you only have time for one game a week, make it one you were winning and lost.</p>
+
+<figure>
+  <picture>
+    <source srcset="/shot-mates.webp" type="image/webp">
+    <img src="/shot-mates.png" alt="Rookbook's missed mates list: each position where a forced checkmate was available, the move played instead, and what it cost." width="1352" height="499" loading="lazy" decoding="async">
+  </picture>
+  <figcaption>The third pile: positions where mate was on the board. Worth reviewing even in games you won &mdash; missing one says your attention was on material rather than the king.</figcaption>
+</figure>
+
+<h2>Do it on your own games</h2>
+<p>Rookbook reads your chess.com history and builds those three lists for you: the games you were winning and lost, the ones decided by a single moment, and every position where a forced mate was on the board. Each one opens on a board at the move that mattered, with the material balance, your clock, and what you played instead.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=review">Review your own games on rookbook.net &rarr;</a>
+</div>
+
+<h2>Common questions</h2>
+<p><b>How should I review my own chess games?</b> Start from your results, not your memory. Take the losses where you were ahead on material, the ones decided by a single moment, and any game where mate was available &mdash; then find the move where it turned and ask what should have alerted you.</p>
+<p><b>Should I use an engine to review my games?</b> Second, not first. Form your own view of where the game turned, then check it. The gap between your answer and the engine's is the thing worth studying.</p>
+<p><b>How many games should I review?</b> Two or three a week, properly, beats twenty skimmed. If you only have time for one, make it a game you were winning and lost.</p>
+
+<h2>Related</h2>
+<ul class="rel"><li><a href="/losing-winning-positions.html">Why do I keep losing winning positions?</a></li><li><a href="/how-to-stop-blundering.html">How to stop blundering in chess</a></li><li><a href="/why-am-i-stuck-at-the-same-rating.html">Why am I stuck at the same chess rating?</a></li><li><a href="/losing-winning-endgames.html">Why do I keep losing winning endgames?</a></li><li><a href="/find-your-missed-checkmates.html">How to find every checkmate you missed</a></li><li><a href="/chess-com-banned-opponents.html">Chess.com banned opponents</a></li></ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Server-render /player/<username> pages so they carry unique, crawlable metadata + stats and
+# become indexable by Google. The Edge Function (netlify/edge-functions/player.js) transforms the
+# app shell; the /player/* -> /app.html rewrite in _redirects supplies that shell via context.next().
+#
+# NOTE: Edge Functions deploy reliably via Git (connect this folder to a GitHub repo) or the
+# Netlify CLI (`netlify deploy --prod`). Pure browser drag-and-drop does not run functions.
+
+# Static site served straight from the repo root — no build step.
+[build]
+  publish = "."
+  command = ""
+
+[[edge_functions]]
+  path = "/player/*"
+  function = "player"
