@@ -2033,6 +2033,13 @@
   .ssrbox th{text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule);color:var(--dim);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em}
   .ssrbox td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}
   .ssrbox a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  /* "actively being rebuilt" notice at the top of Insights — slim, dismissible (remembered) */
+  #insights .wipbar{grid-column:1/-1;display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--rule);border-left:3px solid var(--draw);border-radius:7px;padding:7px 14px;margin:0 0 14px}
+  #insights .wipbar .wiptxt{flex:1;font-size:12.5px;line-height:1.45}
+  #insights .wipbar .wiptxt b{color:var(--ink);font-weight:600}
+  #insights .wipbar .wipdim{color:var(--dim)}
+  #insights .wipbar .wipx{background:transparent;border:0;color:#6A675B;font-size:17px;line-height:1;cursor:pointer;padding:0 2px;flex:0 0 auto}
+  #insights .wipbar .wipx:hover{color:var(--ink)}
 
   @media (max-width:760px){
     .controls{padding:12px}
@@ -8009,7 +8016,8 @@ function renderInsights(list){
     +`<div class="ins-dna-sum">${dnaSummary(insDna.axes)}</div>`
     +`<div class="ins-dna-axes">${insDna.axes.map(a=>`<button class="ins-dna-ax" data-scrollto="dna-${a.key}"><span class="ins-dna-axtxt"><span class="ins-dna-axname">${a.label}</span><span class="ins-dna-axmetric">${a.metric}</span></span><span class="ins-dna-jump">&rarr;</span></button>`).join("")}</div>`
     +`</div></div>` : "";
-  box.innerHTML=`<div style="grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 0 10px"><h3 class="ptitle">Insights</h3><span class="isub" style="margin:0;font-family:var(--sans)">What your games add up to — where you're strong, where you're weak, and how you hold up.</span></div>`
+  const wipBanner=(()=>{ try{ if(localStorage.getItem("rookbook:wipInsights")==="1") return ""; }catch(e){} return `<div class="wipbar" id="wipInsights"><span class="wiptxt"><b>Insights is being actively rebuilt.</b> <span class="wipdim">Sorry for any rough edges — it's getting better every week.</span></span><button class="wipx" id="wipDismiss" aria-label="Dismiss this notice" title="Dismiss">&times;</button></div>`; })();
+  box.innerHTML=wipBanner+`<div style="grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 0 10px"><h3 class="ptitle">Insights</h3><span class="isub" style="margin:0;font-family:var(--sans)">What your games add up to — where you're strong, where you're weak, and how you hold up.</span></div>`
     + insScopeNote
     + dnaHeroHTML
     + renderCoach(list)
@@ -8035,6 +8043,7 @@ function renderInsights(list){
     });
   });
 
+  const wipX=$("wipDismiss"); if(wipX) wipX.addEventListener("click",function(){ try{ localStorage.setItem("rookbook:wipInsights","1"); }catch(e){} const b=$("wipInsights"); if(b) b.remove(); });
   const bAll=$("insTcAll"), bMain=$("insTcMain"), bApply=$("insTcApply");
   if(bAll)  bAll.addEventListener("click",()=>{ LS.set("rookbook:insTc","all");  TAB_DIRTY.add("insights"); renderTabPanels("insights"); });
   if(bMain) bMain.addEventListener("click",()=>{ LS.del("rookbook:insTc");       TAB_DIRTY.add("insights"); renderTabPanels("insights"); });
