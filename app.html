@@ -3189,6 +3189,15 @@ function api(url, {retries=3, fresh=false, signal}={}){
   return new Promise((resolve,reject)=>{
     const job = async ()=>{
       let wait=800;
+      // A backoff sleep that ends early if Stop is pressed, so a rate-limited fetch (429s,
+      // seconds of waiting) doesn't sit through the whole wait before the abort is noticed.
+      // It resolves rather than rejects on abort; the loop-top check below does the rejecting.
+      const sleep = (ms)=>new Promise(res=>{
+        const t=setTimeout(()=>{ done(); res(); }, ms);
+        const onAbort=()=>{ clearTimeout(t); done(); res(); };
+        function done(){ if(signal) signal.removeEventListener("abort", onAbort); }
+        if(signal) signal.addEventListener("abort", onAbort, {once:true});
+      });
       for(let i=0;i<=retries;i++){
         // Stop pressed before this attempt even starts — bail without another request.
         if(signal && signal.aborted) return reject(new DOMException("Aborted","AbortError"));
@@ -3200,7 +3209,7 @@ function api(url, {retries=3, fresh=false, signal}={}){
           if(signal) opt.signal=signal;             // Stop can abort the in-flight download now
           const r=await fetch(url, opt);
           if(r.status===429){                       // rate limited \u2014 back off and try again
-            await new Promise(s=>setTimeout(s,wait));
+            await sleep(wait);
             wait*=2;
             continue;
           }
@@ -3208,7 +3217,7 @@ function api(url, {retries=3, fresh=false, signal}={}){
         }catch(e){
           if((signal && signal.aborted) || (e && e.name==="AbortError")) return reject(e);  // Stop hit — don't retry
           if(i===retries) return reject(e);
-          await new Promise(s=>setTimeout(s,wait));
+          await sleep(wait);
           wait*=2;
         }
       }
@@ -4870,7 +4879,10 @@ async function fetchGames(force){
     const tc = $("tc").value;
     const canTopUp = !force && cached && Array.isArray(cached.games) && cached.games.length
                      && (cached.v===undefined || cached.v===CACHE_V)   // don't merge into an incompatible shape
-                     && cached.tc === tc;                 // a different time class needs a full pull
+                     && cached.tc === tc                  // a different time class needs a full pull
+                     && cached.range === $("months").value;  // so does a different range: a top-up only pulls
+                     // games NEWER than the cache, so widening (25 -> 100, or -> Everything) would never
+                     // backfill the older games the new range asks for. Any range change => full pull.
     let newCount=0, keptCount=0;
 
     if(canTopUp){
@@ -14510,14 +14522,18 @@ function filterNameDrop(drop, q){
 }
 function openDrop(which){
   closeAllNameDrops();                           // never two open at once — recents OR history
-  if(getRecents().length) $(which).hidden=false;
+  if(getRecents().length){
+    $(which).hidden=false;
+    filterNameDrop($(which), "");                // always open on the FULL list — a field already holding a
+                                                 // committed name must not hide the other names you've saved
+  }
 }
 for(const d of DROPS){
   $(d.caret).addEventListener("click",e=>{
     e.preventDefault();
     $(d.drop).hidden ? openDrop(d.drop) : closeDrop();
   });
-  $(d.input).addEventListener("focus",()=>{ if(!QUIET_FOCUS){ openDrop(d.drop); filterNameDrop($(d.drop), $(d.input).value); } });
+  $(d.input).addEventListener("focus",()=>{ if(!QUIET_FOCUS){ openDrop(d.drop); } });   // click shows the full list; typing filters
   $(d.input).addEventListener("input",()=>{ if(!$(d.drop).hidden) filterNameDrop($(d.drop), $(d.input).value); });
   $(d.input).addEventListener("keydown",e=>{ if(e.key==="Enter") closeDrop(); });   // committing the name means the list's job is done
   $(d.drop).addEventListener("click",e=>{
