@@ -76,41 +76,41 @@
 <p class="lede">You've played cheaters. Everyone has. Chess.com catches most of them eventually, closes the account, and usually gives back the rating you lost &mdash; quietly, weeks later, with nothing tying it to a game. It never hands you the list. <a href="/">Rookbook</a> does.</p>
 
 <h2>What happens when your opponent gets banned</h2>
-<p>When Chess.com's fair-play system closes an account for cheating, its status changes to <b>closed for fair play violations</b>. Two things follow that most players never connect:</p>
+<p>When Chess.com's fair-play system closes an account for cheating, it's marked <b>closed for fair play violations</b>. Two things follow that most players never connect:</p>
 <ul>
-  <li><b>Your rated losses to that account are usually reversed.</b> The rating you lost comes back automatically. It's not your fault and it's not your rating &mdash; the system treats those games as if they hadn't counted.</li>
-  <li><b>You're rarely told which game it was.</b> The refund lands as a small rating adjustment between two of your later games, days or weeks after you played the cheater, with no message naming them. If you weren't watching your rating closely that day, you never saw it.</li>
+  <li><b>Your rated losses to that account are usually reversed.</b> The rating comes back automatically, as if those games had never counted.</li>
+  <li><b>You're rarely told which game it was.</b> The refund lands as a small adjustment between two later games, days or weeks on, with no message naming the opponent &mdash; miss it that day and you never saw it.</li>
 </ul>
-<p>So the ban <em>is</em> good news &mdash; a loss undone &mdash; but it arrives invisibly. And the more useful question, <b>how often does this happen to me</b>, has no answer inside Chess.com at all.</p>
+<p>The ban <em>is</em> good news &mdash; a loss undone &mdash; but it arrives invisibly. The more useful question, <b>how often does this happen to me</b>, has no answer inside Chess.com.</p>
 
 <h2>Why you can't see it yourself</h2>
-<p>Chess.com will tell you an account is closed if you go and look at that one profile. What it won't do is join the two halves: <b>your game history</b> on one side, <b>each opponent's current status</b> on the other. There's no page that says "here are the eleven opponents you played who were later banned, and here's your record against them." To build that by hand you'd open old games one at a time and check each profile &mdash; hundreds of clicks for a list nobody keeps.</p>
+<p>Chess.com will tell you an account is closed if you open that one profile. What it won't do is join the two halves: <b>your game history</b> on one side, <b>each opponent's current status</b> on the other. No page says "here are the eleven opponents you played who were later banned, and your record against them." Building that by hand means opening old games one at a time &mdash; hundreds of clicks for a list nobody keeps.</p>
 <div class="box">
-  <p>The information exists &mdash; every closed account is public, and so is your game archive. It just isn't <em>joined</em>. That gap is the whole reason this is hard to see, and it's exactly the kind of thing a tool that holds both sides at once can close in a few seconds.</p>
+  <p>The information exists &mdash; every closed account is public, and so is your game archive. It just isn't <em>joined</em>. A tool that holds both sides at once closes that gap in seconds.</p>
 </div>
 
 <h2>How rookbook tracks it</h2>
-<p>Rookbook already has your game history. The one extra step is <b>Look up opponents</b> &mdash; a button that reads each opponent's current profile through Chess.com's public API: their ratings, career record, join date, and account status. When that status comes back as closed for fair play violations, the opponent is flagged everywhere they appear:</p>
+<p>Rookbook already has your game history. The one extra step is <b>Look up opponents</b> &mdash; it reads each opponent's current profile through Chess.com's public API, including their account status. When that comes back as closed for fair play violations, the opponent is flagged everywhere they appear:</p>
 <ul>
-  <li>A <b>&#9940; mark</b> next to their name in your game log, with the loss struck through &mdash; that result probably didn't stand.</li>
-  <li>A <b>Closed opps</b> count on the log summary. Click it and the log filters to only those games &mdash; every result against a banned account in one view.</li>
-  <li>A plain-English read across your history: how many accounts you played were later closed for cheating, and how many of those games you lost.</li>
+  <li>A <b>&#9940; mark</b> next to their name in your game log, with the loss struck through &mdash; it probably didn't stand.</li>
+  <li>A <b>Closed opps</b> count on the log summary &mdash; click it to filter the log to just those games.</li>
+  <li>A plain-English read: how many accounts you played were later closed for cheating, and how many of those games you lost.</li>
 </ul>
-<p>Because the check reads Chess.com's live status, it's as current as Chess.com's own data at the moment you run it &mdash; an account banned this morning shows up this afternoon.</p>
+<p>Because the check reads Chess.com's live status, an account banned this morning shows up this afternoon.</p>
 
 <h2>New bans surface themselves</h2>
-<p>The point of all this is the refund you'd otherwise miss, so rookbook doesn't make you re-scan the list hunting for an unfamiliar name. The first time you look, your existing closed opponents are taken as already seen. After that, any account discovered closed <b>since your last look</b> is marked new &mdash; a small badge on the count, and a <b>NEW</b> tag on the row. A fresh ban announces itself, which usually means a refund just landed.</p>
+<p>Rookbook doesn't make you re-scan the list for an unfamiliar name. On your first look, existing closed opponents count as already seen. After that, any account closed <b>since your last look</b> is marked new &mdash; a badge on the count, a <b>NEW</b> tag on the row. A fresh ban announces itself, which usually means a refund just landed.</p>
 
 <h2>The honest limits</h2>
 <p>Three things worth stating plainly:</p>
 <ul>
-  <li><b>It needs the lookup.</b> Nothing is flagged until you run <b>Look up opponents</b> &mdash; the status isn't in your game data, it has to be fetched. It's one click, and the result is cached.</li>
-  <li><b>"Closed" isn't always cheating.</b> Only <em>closed for fair play violations</em> means caught cheating. An account can be closed for other reasons &mdash; a self-deletion, a different policy breach &mdash; and rookbook keeps those visually distinct rather than calling everyone a cheat.</li>
-  <li><b>It reports; it doesn't adjudicate.</b> Rookbook reads Chess.com's verdict, it doesn't make one. If Chess.com hasn't closed an account, rookbook won't flag it, however the game felt.</li>
+  <li><b>It needs the lookup.</b> Nothing is flagged until you run <b>Look up opponents</b> &mdash; the status isn't in your game data, it has to be fetched. One click, and it's cached.</li>
+  <li><b>"Closed" isn't always cheating.</b> Only <em>closed for fair play violations</em> means caught cheating. An account can close for other reasons &mdash; a self-deletion, another policy breach &mdash; and rookbook keeps those distinct rather than calling everyone a cheat.</li>
+  <li><b>It reports; it doesn't adjudicate.</b> Rookbook reads Chess.com's verdict rather than making one &mdash; if Chess.com hasn't closed an account, rookbook won't flag it, however the game felt.</li>
 </ul>
 
 <h2>See who you've been playing</h2>
-<p>Load your Chess.com history, run <b>Look up opponents</b>, and the Closed opps count fills in &mdash; every account since banned for cheating, your record against them, and a nudge whenever a new one appears. Free, no account, and your games never leave your browser.</p>
+<p>Load your Chess.com history, run <b>Look up opponents</b>, and the Closed opps count fills in &mdash; every account since banned for cheating, your record against them, and a nudge whenever a new one appears.</p>
 
 <div class="cta">
   <p>Free, no account, and your games never leave your browser.</p>
