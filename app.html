@@ -41,6 +41,7 @@
   "@type": "WebApplication",
   "name": "Rookbook",
   "url": "https://rookbook.net/",
+  "image": "https://rookbook.net/og.png",
   "description": "Chess.com game tracker and analysis dashboard. Tilt curves, blown leads, missed mates, clock analysis — the stats chess.com doesn't show you. Free, no account, your games never leave your browser.",
   "applicationCategory": "GameApplication",
   "operatingSystem": "Any",
@@ -185,6 +186,7 @@
     --panel2:#191B1D;
     --ink:#E7DFC4;           /* buff text, like light squares */
     --dim:#9A947C;
+    --read:#CBC5B0;          /* body/reading text — between ink and dim (was referenced but never defined) */
     --rule:#313436;
     --green:#6FA47B;         /* board green, lifted for dark bg */
     --win:#7CC287;
@@ -645,6 +647,8 @@
   .irow a.revlink{color:var(--draw)}
   .irow .ifill.mid{background:var(--draw)}
   .irow .ifill.bad{background:var(--loss)}
+  /* neutral fill: bars that show a distribution/quantity, not a win/loss rate */
+  .irow .ifill.neutral{background:var(--dim)}
   .igroup{
     grid-column:1/-1;
     font-size:13px;letter-spacing:.16em;text-transform:uppercase;
@@ -663,19 +667,60 @@
   .dna-metric{font-family:var(--sans);font-size:13.5px;color:var(--read);line-height:1.4}
   .dna-blurb{font-size:12px;color:var(--dim);margin-top:2px}
   /* Insights DNA hero: enlarged radar + fleshed-out, jump-to-section axis breakdown */
-  #insights .ins-dna{grid-column:1/-1;display:grid;grid-template-columns:minmax(300px,440px) minmax(0,1fr);gap:22px;align-items:center;max-width:1000px;
-    border:1px solid var(--rule);border-radius:12px;background:var(--panel);padding:18px 22px;margin:8px auto 18px}
-  #insights .ins-dna-radar{min-width:0}
+  #insights .ins-dna{grid-column:1/-1;display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);gap:18px 26px;align-items:stretch;
+    border:1px solid var(--rule);background:var(--panel);padding:18px 22px;margin:8px 0 18px}
+  #insights .ins-dna-radar{min-width:0;display:flex;align-items:center}
+  #insights .ins-dna-cards-wrap{min-width:0;display:flex;flex-direction:column;gap:18px}
+  #insights .dna-overall{font-family:var(--mono);font-weight:700;color:var(--ink);margin-left:8px}
+  #insights .dna-overall small{font-size:1em;font-weight:400;color:var(--dim)}
+  #insights .dna-overall.good{color:var(--win)} #insights .dna-overall.bad{color:var(--loss)} #insights .dna-overall.mid{color:var(--draw)}
+  /* the six attribute cards fill the whole right side, one per axis, in radar order */
+  #insights .dna-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;flex:1}
+  #insights .dna-card{display:flex;flex-direction:column;justify-content:flex-start;gap:0;text-align:left;min-width:0;
+    background:var(--panel2);border:1px solid var(--rule);border-left:3px solid var(--dim);padding:12px 14px;cursor:pointer;color:inherit;font:inherit}
+  #insights .dna-card.good{border-left-color:var(--win)} #insights .dna-card.bad{border-left-color:var(--loss)} #insights .dna-card.mid{border-left-color:var(--draw)}
+  #insights .dna-card:hover{border-color:var(--dim)}
+  #insights .dna-card-top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+  #insights .dna-card-head{display:flex;align-items:baseline;gap:9px;min-width:0;white-space:nowrap}
+  #insights .dna-card-name{font-size:14px;letter-spacing:.11em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+  #insights .dna-card-jump{color:var(--dim);font-family:var(--mono);font-size:13px}
+  #insights .dna-card-score{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1;color:var(--ink)}
+  #insights .dna-card.good .dna-card-score{color:var(--win)} #insights .dna-card.bad .dna-card-score{color:var(--loss)} #insights .dna-card.mid .dna-card-score{color:var(--draw)}
+  #insights .dna-card-score small{font-size:11px;font-weight:400;color:var(--dim);margin-left:1px}
+  #insights .dna-card-metric{font-family:var(--sans);font-size:11.5px;color:var(--read);line-height:1.3;list-style:none;
+    margin:8px 0 0;padding:9px 0 0;border-top:1px solid var(--rule);display:flex;flex-direction:column;flex:1 1 auto;justify-content:center;gap:4px}
+  #insights .dna-card-metric li{position:relative;padding-left:11px;text-wrap:pretty}
+  #insights .dna-card-metric li::before{content:"";position:absolute;left:1px;top:5px;width:3px;height:3px;border-radius:50%;background:var(--dim)}
+  @media(max-width:980px){ #insights .ins-dna{grid-template-columns:minmax(0,1fr)} }
+  @media(max-width:620px){ #insights .dna-cards{grid-template-columns:repeat(2,minmax(0,1fr))} }
+  @media(max-width:430px){ #insights .dna-cards{grid-template-columns:minmax(0,1fr)} }
   #insights .ins-dna .radar{width:100%;max-width:440px;display:block;margin:0 auto}
   #insights .r-grid{fill:none;stroke:var(--rule);stroke-width:1}
   #insights .r-spoke{stroke:#2a2c2e;stroke-width:1}
   #insights .r-area{fill:rgba(111,164,123,.16);stroke:var(--green);stroke-width:1.8;stroke-linejoin:round}
   #insights .r-dot{fill:var(--win)}
   #insights .r-lbl{font-family:var(--mono);font-size:14px;fill:var(--ink)}
-  #insights .radar-big .r-lbl{font-size:12px;fill:var(--dim)}
+  #insights .radar-big .r-lbl{font-size:14px;fill:var(--ink)}   /* name-only labels, a touch larger and brighter */
   #insights .r-sc{font-family:var(--mono);font-size:18px;font-weight:700;fill:var(--ink)}
-  #insights .r-sc.good{fill:var(--win)} #insights .r-sc.bad{fill:var(--loss)}
-  #insights .ins-dna-h{font-family:var(--sans);font-size:15px;font-weight:600;color:var(--ink);letter-spacing:.02em}
+  #insights .r-sc.good{fill:var(--win)} #insights .r-sc.bad{fill:var(--loss)} #insights .r-sc.mid{fill:var(--draw)}
+  /* breathing room between the "What your data says" coach and the first attribute chapter below it */
+  #insights .coach{margin-bottom:24px}
+  #insights .ins-dna-h{font-family:var(--sans);font-size:15px;font-weight:600;color:var(--ink);letter-spacing:.02em;display:flex;align-items:center}
+  #insights .dna-info-wrap{position:relative;display:inline-block}
+  #insights .dna-info{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--rule);color:var(--dim);font-size:9.5px;font-weight:700;cursor:help;vertical-align:middle;margin-left:7px;font-family:var(--sans)}
+  #insights .dna-info:hover,#insights .dna-info:focus{color:var(--ink);border-color:var(--dim);outline:none}
+  #insights .dna-info-pop{position:absolute;top:calc(100% + 7px);left:0;z-index:30;width:300px;background:var(--panel2);border:1px solid var(--rule);border-radius:7px;padding:11px 13px;font-family:var(--sans);font-size:12px;color:var(--read);line-height:1.5;opacity:0;visibility:hidden;transform:translateY(-3px);transition:opacity .12s,transform .12s;box-shadow:0 8px 22px rgba(0,0,0,.45)}
+  #insights .dna-info-wrap:hover .dna-info-pop,#insights .dna-info:focus + .dna-info-pop{opacity:1;visibility:visible;transform:translateY(0)}
+  #insights .dna-info-pop p{margin:0 0 7px} #insights .dna-info-pop p:last-child{margin:0} #insights .dna-info-pop b{color:var(--ink);font-weight:600}
+  #insights .dna-calc-formula{font-family:var(--mono);font-size:11.5px;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:5px;padding:6px 9px;display:block}
+  #insights .dna-wts-h{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:2px 0 6px}
+  #insights .dna-wts{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+  #insights .dna-wt{display:grid;grid-template-columns:76px 1fr 26px;align-items:center;gap:9px;font-size:11px}
+  #insights .dna-wt-l{color:var(--read)}
+  #insights .dna-wt-bar{height:5px;background:#0b0c0d;border-radius:3px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--rule)}
+  #insights .dna-wt-bar i{display:block;height:100%;background:var(--green)}
+  #insights .dna-wt-v{font-family:var(--mono);color:var(--ink);text-align:right}
+  #insights .dna-calc-note{color:var(--dim);font-size:10.5px}
   #insights .ins-dna-sum{font-size:13px;line-height:1.6;color:var(--dim);margin:6px 0 12px}
   #insights .ins-dna-sum b{color:var(--read);font-weight:600}
   #insights .ins-dna-axes{display:flex;flex-direction:column}
@@ -685,9 +730,80 @@
   #insights .ins-dna-score.good{color:var(--win)} #insights .ins-dna-score.bad{color:var(--loss)}
   #insights .ins-dna-axtxt{display:flex;flex-direction:column;min-width:0;flex:1;gap:1px}
   #insights .ins-dna-axname{font-family:var(--sans);font-size:13px;color:var(--ink);font-weight:500}
-  #insights .ins-dna-axmetric{font-family:var(--mono);font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #insights .ins-dna-axmetric{font-family:var(--mono);font-size:11px;color:var(--dim);text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #insights .ins-dna-jump{color:var(--dim);font-family:var(--mono);flex:0 0 auto}
   @media(max-width:720px){ #insights .ins-dna{grid-template-columns:minmax(0,1fr);gap:14px} }
+  /* Overall + two grouped sub-scores beside the radar (Killer Instinct / Survival) */
+  #insights .dna-tiles{display:flex;flex-wrap:wrap;gap:12px 26px;margin:8px 0 12px}
+  #insights .dna-tile{display:flex;flex-direction:column;gap:2px}
+  #insights .dna-tile-v{font-family:var(--mono);font-size:24px;font-weight:700;line-height:1;color:var(--ink)}
+  #insights .dna-tile-v small{font-size:11px;font-weight:400;color:var(--dim)}
+  #insights .dna-tile-v.good{color:var(--win)} #insights .dna-tile-v.bad{color:var(--loss)} #insights .dna-tile-v.mid{color:var(--draw)}
+  #insights .dna-tile-l{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim)}
+  #insights .dna-tile.big .dna-tile-v{font-size:36px}
+  /* ===== Chess-DNA sections: one self-contained "chapter" card per axis ===== */
+  /* Keep the SAME framed content area every other page has — the shared 2px --rule border + --panel
+     background from the rule above still applies (no override here). The chapter cards live inside
+     that frame; their own borders + header bands + gaps keep the six sections individually readable. */
+  #insights .dna-sec{grid-column:1/-1;width:100%;margin:0 0 24px;background:var(--panel);border:1px solid var(--rule);scroll-margin-top:14px}
+  #insights .dna-sec-head{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:13px;row-gap:4px;
+    padding:14px 18px;background:var(--panel2);border-bottom:1px solid var(--rule);border-left:4px solid var(--dim)}
+  #insights .dna-sec.good .dna-sec-head{border-left-color:var(--win)}
+  #insights .dna-sec.bad  .dna-sec-head{border-left-color:var(--loss)}
+  #insights .dna-sec.mid  .dna-sec-head{border-left-color:var(--draw)}
+  #insights .dna-num{align-self:center;font-family:var(--mono);font-size:13px;letter-spacing:.08em;color:var(--dim)}
+  #insights .dna-eyebrow{font-size:18px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+  #insights .dna-sec-metric{flex-basis:100%;min-width:0;font-family:var(--sans);font-size:12.5px;color:var(--read);line-height:1.35}
+  #insights .dna-sec-score{font-family:var(--mono);font-size:30px;font-weight:700;line-height:1;color:var(--ink);white-space:nowrap}
+  #insights .dna-sec-score small{font-size:12px;font-weight:400;color:var(--dim)}
+  #insights .dna-sec.good .dna-sec-score{color:var(--win)}
+  #insights .dna-sec.bad  .dna-sec-score{color:var(--loss)}
+  #insights .dna-sec.mid  .dna-sec-score{color:var(--draw)}
+  #insights .dna-eyebrow .dna-inl{font-family:var(--mono);font-weight:700;font-size:20px;letter-spacing:0;color:var(--ink)}
+  #insights .dna-eyebrow .dna-inl.good{color:var(--win)} #insights .dna-eyebrow .dna-inl.bad{color:var(--loss)} #insights .dna-eyebrow .dna-inl.mid{color:var(--draw)}
+  #insights .dna-mods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:16px 18px}
+  #insights .dna-mods > .ipanel{min-width:0;margin:0;border:1px solid var(--rule);background:var(--panel2)}
+  #insights .dna-mods > .ipanel.wide{grid-column:1/-1}
+  /* merged Attack+Defense: the mates chart leads at 2/3 width (spans 2 of 3 cols); the rest fill in */
+  #insights .admerge .ad-body{padding:16px 18px}
+  #insights .admerge .ad-top{display:grid;grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr);gap:14px;margin-bottom:14px}
+  #insights .admerge .ad-rest{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  #insights .admerge .ad-body .ipanel{min-width:0;margin:0;border:1px solid var(--rule);background:var(--panel2)}
+  @media(max-width:860px){ #insights .admerge .ad-top,#insights .admerge .ad-rest{grid-template-columns:minmax(0,1fr)} }
+  #insights .dna-sec.evtarget{animation:evflash 1.4s ease-out}
+  @media(max-width:720px){
+    #insights .dna-mods{grid-template-columns:minmax(0,1fr);gap:12px;padding:12px}
+    #insights .dna-sec{margin-bottom:16px}
+  }
+  @media(max-width:380px){ #insights .dna-num{display:none} }
+  /* Thinking signature: avg seconds/move bar chart + headline tiles */
+  #insights .tsig-tiles{display:flex;flex-wrap:wrap;gap:12px 26px;margin:4px 0 12px}
+  #insights .tsig-tile{display:flex;flex-direction:column;gap:1px}
+  #insights .tsig-v{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--ink);line-height:1}
+  #insights .tsig-v.bad{color:var(--loss)}
+  #insights .tsig-l{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+  #insights .tsig-chart{width:100%;height:120px;display:block}
+  #insights .tsig-axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
+  #insights .acc-chart{width:100%;height:auto;display:block;margin-top:6px}
+  /* mates chart module: minimal chrome so the chart is the module — keeps the top A&D row compact */
+  #insights #ip-mate-arrive{padding:10px 14px 8px}
+  #insights #ip-mate-arrive h3{margin:0 0 2px}
+  #insights #ip-mate-arrive > .isub{margin:0 0 1px}
+  #insights #ip-mate-arrive .acc-chart{margin-top:2px}
+  /* autopsy compacted (keeps all info) so the top A&D row isn't tall */
+  #insights #ip-autopsy{padding:10px 14px}
+  #insights #ip-autopsy .stackbar{height:16px;margin-bottom:6px}
+  #insights #ip-autopsy .autohead{margin-bottom:3px}
+  #insights #ip-autopsy .legend{font-size:10px;gap:7px}
+  #insights .cast-list{margin:6px 0 0;padding-left:17px;font-size:12.5px;color:var(--read);line-height:1.6}
+  #insights .cast-list li{margin-bottom:6px} #insights .cast-list li:last-child{margin-bottom:0}
+  #insights .cast-list b{color:var(--ink)}
+  #insights .think-chart{display:flex;align-items:flex-end;gap:7px;height:118px;padding-top:12px}
+  #insights .think-bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  #insights .think-bar .tb-v{font-size:10px;font-family:var(--mono);color:var(--dim);margin-bottom:3px}
+  #insights .think-bar .tb-col{width:76%;max-width:38px;background:var(--green);border-radius:3px 3px 0 0;min-height:2px}
+  #insights .think-lbls{display:flex;gap:7px;margin-top:5px}
+  #insights .think-lbls span{flex:1;text-align:center;font-size:9.5px;color:var(--dim);font-family:var(--mono)}
   .irow .ival{
     width:104px;flex-shrink:0;display:flex;justify-content:flex-end;align-items:baseline;
     text-align:right;font-variant-numeric:tabular-nums;color:var(--dim);font-size:12px;
@@ -1079,7 +1195,15 @@
      finished decoding. THAT was the "empty game log" — it is the footer, identifiable by
      its two link-colored lines. Holding the sheet at viewport height keeps the footer
      below the fold from the first paint, exactly where it ends up. */
-  html.booting .sheet{min-height:100vh}
+  html.booting .sheet{min-height:100vh;position:relative}
+  /* Refresh on a cached view paints the shell, then the body waits while ~700KB of JS parses and the
+     cached games decode. That gap used to be blank; show a slim indeterminate loading bar across the
+     top of the content area during it. Tied to `booting`, which is set pre-JS and cleared at first render. */
+  html.booting .sheet::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;z-index:6;
+    background:linear-gradient(90deg,transparent,var(--green),transparent);background-size:34% 100%;
+    background-repeat:no-repeat;animation:bootsweep 1.1s ease-in-out infinite}
+  @keyframes bootsweep{0%{background-position:0% 0}100%{background-position:100% 0}}
+  @media (prefers-reduced-motion:reduce){ html.booting .sheet::after{animation:none;background-size:100% 100%;opacity:.35} }
   /* Evidence links inside insight lines: present but never competing with the finding. */
   /* One look for every evidence pointer. The <button> variant would otherwise inherit the
      global button rule (uppercase + letter-spacing) and look nothing like the <a> variant. */
@@ -1270,6 +1394,8 @@
   .wel-form input:focus{outline:none;border-color:var(--green)}
   .wel-form button{font-size:14px;padding:15px 28px}
   .wel-sub{font-size:12.5px;line-height:1.7;color:var(--dim)}
+  .lookup-count{margin-top:16px;font-size:12.5px;color:var(--dim);text-align:center;font-family:var(--sans)}
+  .lookup-count b{color:var(--read);font-weight:600;font-variant-numeric:tabular-nums}
   /* The reading list is for search engines and the occasional curious visitor, not for
      someone trying to type their username — so it stays quiet: dim, small, and only
      picking up the site green on hover. Without this rule it rendered browser-default blue. */
@@ -1507,9 +1633,9 @@
   #profileBody .ng-tag.win{color:var(--win)} #profileBody .ng-tag.loss{color:var(--loss)} #profileBody .ng-tag.draw{color:var(--draw)}
   #profileBody .ng-em{font-size:25px;line-height:1}
   #profileBody .ng-body{min-width:0}
-  #profileBody .ng-when{font-family:var(--mono);font-size:11px;color:var(--dim);white-space:nowrap}
+  #profileBody .ng-when{font-family:var(--sans);font-size:11px;color:var(--dim);white-space:nowrap}
   #profileBody .ng-desc{font-family:var(--sans);font-size:13px;color:var(--read);margin:0 0 6px;line-height:1.4}
-  #profileBody .ng-meta{font-family:var(--mono);font-size:11.5px;color:var(--dim);display:flex;align-items:baseline;gap:5px;white-space:nowrap}
+  #profileBody .ng-meta{font-family:var(--sans);font-size:11.5px;color:var(--dim);display:flex;align-items:baseline;gap:5px;white-space:nowrap}
   #profileBody .ng-meta .res{font-weight:700;flex:0 0 auto}
   #profileBody .ng-meta .res.win{color:var(--win)} #profileBody .ng-meta .res.loss{color:var(--loss)} #profileBody .ng-meta .res.draw{color:var(--draw)}
   #profileBody .ng-opp{overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -1539,13 +1665,14 @@
   .pf-tag{font-family:var(--sans);font-size:15px;color:var(--read);margin-top:10px;max-width:74ch;line-height:1.5}
   .pf-tag b{color:var(--ink);font-weight:600}
   .pf-tiles{display:flex;flex-wrap:wrap;gap:10px}
-  .pf-tile{flex:0 1 192px;background:var(--panel2);border:1px solid var(--rule);padding:12px 14px}
+  .pf-tile{flex:0 1 232px;background:var(--panel2);border:1px solid var(--rule);padding:12px 14px}
   .pf-tile-cls{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.06em;display:flex;align-items:center;text-transform:uppercase}
   .pf-tile-elo{font-family:var(--mono);font-size:25px;font-weight:700;color:var(--ink);margin:3px 0 1px;white-space:nowrap}
   .pf-tile-sub{font-family:var(--mono);font-size:11px;color:var(--dim)}
   .pf-tile-rec{font-family:var(--mono);font-size:12.5px;margin-top:7px;white-space:nowrap;color:var(--ink);display:flex;flex-direction:column;gap:5px}
   #profileBody .pf-tile-rec .pf-wr{font-size:13px;font-weight:700;color:var(--ink)}
   #profileBody .pf-tile-rec .pf-wrl{font-size:10.5px;font-weight:400;color:var(--dim)}
+  #profileBody .pf-tile-rec .pf-wsep{font-weight:400;color:var(--dim)}
   #profileBody .pf-tile-rec .wld{display:inline-flex;align-items:center;gap:5px;margin-right:11px}
   #profileBody .pf-tile-rec .wld:last-child{margin-right:0}
   #profileBody .pf-tile-rec .wdot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
@@ -1571,9 +1698,54 @@
   /* profile chart modules */
   .pf-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;align-items:start}
   .pf-chartcard{background:var(--panel2);border:1px solid var(--rule);padding:14px 16px}
+  .mm-filter{float:right;display:inline-flex;gap:4px}
+  .mm-tab{background:transparent;border:1px solid var(--rule);color:var(--dim);font:inherit;font-size:11px;padding:2px 10px;border-radius:4px;cursor:pointer}
+  .mm-tab:hover{color:var(--ink)} .mm-tab.on{color:var(--ink);border-color:var(--dim);background:var(--panel)}
+  .mm-outer{display:grid;grid-template-columns:1fr auto;gap:4px 7px;max-width:430px;margin-top:4px}
+  .mm-board{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;aspect-ratio:1}
+  .mm-sq{display:flex;align-items:center;justify-content:center;border:1px solid var(--rule);border-radius:3px;font-family:var(--mono);font-size:12px;min-width:0;line-height:1}
+  .mm-sq b{font-weight:700}
+  .mm-ranks{display:flex;flex-direction:column;justify-content:space-around;color:var(--dim);font-family:var(--mono);font-size:11px}
+  .mm-files{grid-column:1;display:grid;grid-template-columns:repeat(8,1fr);gap:3px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:11px}
   .pf-chartnote{font-family:var(--mono);font-size:10.5px;color:#6A675B;margin-top:9px}
   .pf-hm{display:grid;gap:3px}
   .pf-hcell{width:100%;aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,.04)}
+  /* Overview: archetype line + openings module */
+  #profileBody .dna-arch{font-family:var(--mono);font-size:13px;color:var(--ink);font-weight:700;margin-left:10px}
+  #profileBody .pfop-head{display:flex;justify-content:flex-start;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:8px;min-height:28px}
+  #profileBody .pfop-as{font-size:11px;color:var(--dim)}
+  #profileBody .pfop-tg{display:inline-flex;gap:3px;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:2px}
+  #profileBody .pfop-tg button{background:transparent;border:none;color:var(--dim);font:inherit;font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;white-space:nowrap}
+  #profileBody .pfop-tg button.on{background:var(--green);color:#0E0F10;font-weight:600}
+  #profileBody .pfop-tg button:hover{color:var(--ink)}
+  #profileBody .pfop-row,#profileBody .pfop-hdr{display:grid;grid-template-columns:200px minmax(0,1fr) 36px 36px 46px;gap:9px;align-items:center}
+  #profileBody .pfop-panel.pcs .pfop-row,#profileBody .pfop-panel.pcs .pfop-hdr{grid-template-columns:72px 116px 108px 54px 54px 48px}
+  #profileBody .pfop-panel.pcs .pf-lgames{color:var(--ink)}
+  #profileBody .pfop-panel.pcs .pf-dash{color:var(--dim)}
+  #profileBody .pf-lsub{font-size:10px;color:var(--dim)}
+  #profileBody .pf-lcell{display:flex;align-items:center;gap:6px;min-width:0;max-width:100%;justify-self:start;overflow:hidden}
+  #profileBody .pf-lname{font-size:13px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  #profileBody .pf-lpc{font-size:15px;line-height:1;color:var(--ink);flex:0 0 auto;width:15px;text-align:center}
+  #profileBody .pf-lgames{font-family:var(--mono);font-size:11.5px;color:var(--dim);text-align:right}
+  #profileBody .pf-lbar{position:relative;height:9px;border-radius:3px;overflow:hidden;display:flex;background:#0b0c0d;box-shadow:inset 0 0 0 1px var(--rule);min-width:0}
+  #profileBody .pf-lbar i{height:100%;min-width:0}
+  #profileBody .pf-lbar .w{background:var(--win)} #profileBody .pf-lbar .d{background:var(--draw)} #profileBody .pf-lbar .l{background:var(--loss)}
+  #profileBody .pf-tick{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--ink);opacity:.55}
+  #profileBody .pf-lwr{font-family:var(--mono);font-size:12px;text-align:right}
+  #profileBody .pf-lwr.g{color:var(--win)} #profileBody .pf-lwr.b{color:var(--loss)} #profileBody .pf-lwr.n{color:var(--read)}
+  #profileBody .pf-lelo{font-family:var(--mono);font-size:12.5px;font-weight:700;text-align:right}
+  #profileBody .pf-lelo.g{color:var(--win)} #profileBody .pf-lelo.b{color:var(--loss)} #profileBody .pf-lelo.z{color:var(--dim)}
+  #profileBody .pfop-adv{display:none}   /* vs-avg column removed; the trailing 1fr keeps names hugging their stats at any width */
+  #profileBody .pfop-row{padding:6.5px 0;border-top:1px solid var(--rule);min-height:31px}   /* fixed so the pill-bearing openings rows and the length rows stay aligned */
+  #profileBody .pfop-hdr{padding-bottom:4px;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim)}
+  #profileBody .pfop-hdr span{text-align:right} #profileBody .pfop-hdr span:first-child{text-align:left}
+  #profileBody .pfop-empty{border-top-color:transparent}
+  #profileBody .pfop-nm{font-size:13px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;justify-self:start;max-width:100%}
+  #profileBody .pfop-num{font-family:var(--mono);font-size:12.5px;text-align:right}
+  #profileBody .pfop-num.g{color:var(--win)} #profileBody .pfop-num.b{color:var(--loss)} #profileBody .pfop-num.dim{color:var(--dim)} #profileBody .pfop-num.ink{color:var(--ink)}
+  #profileBody .pf-oe{display:grid;grid-template-columns:minmax(0,600px) auto auto;justify-content:space-between;gap:16px;align-items:stretch}
+  #profileBody .pfop-panel.lns .pfop-row,#profileBody .pfop-panel.lns .pfop-hdr{grid-template-columns:62px 108px 32px 32px 42px}
+  @media(max-width:760px){ #profileBody .pf-oe{grid-template-columns:1fr} }
   .pf-hcell.pf-now{box-shadow:0 0 0 2px var(--ink),0 0 6px 1px rgba(231,223,196,.5);position:relative;z-index:2}
   .pf-daylabels{display:grid;gap:3px;font-family:var(--mono);font-size:9.5px;color:#6A675B}
   .pf-actwrap{display:grid;grid-template-columns:24px 1fr;gap:6px;align-items:center;max-width:300px}
@@ -2706,6 +2878,9 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <div class="hourly-title">Elo over time</div>
       <div id="eloChart"></div>
     </div>
+    <div class="hourly">
+      <div class="hourly-title">Move destination map<span class="mm-filter"><button class="mm-tab on" data-mm="all">All</button><button class="mm-tab" data-mm="win">Wins</button><button class="mm-tab" data-mm="loss">Losses</button></span></div>
+    </div>
     <div class="chartgrid">
       <div class="hourly c-hour">
         <div class="hourly-title">W / L by hour of day<span class="t-avg"></span></div>
@@ -3146,7 +3321,7 @@ function renderHistDrops(){
     el.innerHTML = !arr.length ? "" : arr.map(n=>`
       <div class="uitem" data-user="${n}">
         <span class="uname">${n}</span>
-        <span class="ux" data-remove="${n}" title="Remove">×</span>
+        <span class="ux" data-remove="${n}">×</span>
       </div>`).join("") + `<button class="uclear">clear all</button>`;
   }
 }
@@ -3241,6 +3416,19 @@ function track(name){
       window.goatcounter.count({ path:"event/"+name, title:name, event:true });
   }catch(e){}
 }
+// Profile-lookup counter: shows the running GoatCounter event/fetch tally on the welcome screen as
+// social proof. Read-only — the tally itself is racked up by track("fetch") on every lookup. Silent on fail.
+(function lookupCounter(){
+  const anchor=document.querySelector(".welcome .wel-sub");
+  if(!anchor) return;
+  const el=document.createElement("div"); el.className="lookup-count";
+  anchor.insertAdjacentElement("afterend", el);
+  fetch("https://rookbookchess.goatcounter.com/counter/event/fetch.json")
+    .then(r=>r.ok?r.json():null)
+    .then(d=>{ if(!d||!d.count) return; const n=parseInt(String(d.count).replace(/[^0-9]/g,""),10);
+      if(n>0) el.innerHTML=`<b>${n.toLocaleString()}</b> chess.com accounts looked up on Rookbook`; })
+    .catch(()=>{});
+})();
 // counted once per install, also anonymous
 addEventListener("appinstalled", ()=>track("pwa-install"));
 
@@ -3578,6 +3766,9 @@ function parsePgn(pgn, myColor){
   const hist = chess.history({verbose:true});
   const mine = hist.filter(m=>m.color===myColor);
   const castled = mine.some(m=>m.san.startsWith("O-O"));
+  // the move you castled on (full-move number) + side (K = short O-O, Q = long O-O-O) — for the Castling panel
+  let castleMove=null, castleSide=null;
+  for(let i=0;i<hist.length;i++){ if(hist[i].color===myColor && hist[i].san.startsWith("O-O")){ castleMove=Math.floor(i/2)+1; castleSide=hist[i].san.indexOf("O-O-O")===0?"Q":"K"; break; } }
   const homes = myColor==="w" ? ["b1","g1","c1","f1"] : ["b8","g8","c8","f8"];
   const movedFrom = new Set(mine.map(m=>m.from));
   const undev = homes.filter(sq=>!movedFrom.has(sq)).length;
@@ -3629,10 +3820,18 @@ function parsePgn(pgn, myColor){
     return m2.san.includes("+") && hist[i].from===m2.to;
   };
   const fb=new Chess();   // parallel replay just for the fens[] buffer
+  // captures by piece TYPE — took = pieces you captured, lost = yours that were captured.
+  // Powers the Overview "Pieces taken vs lost" ledger; en passant lands here as a pawn too.
+  const took={q:0,r:0,b:0,n:0,p:0}, lost={q:0,r:0,b:0,n:0,p:0};
+  // YOUR piece activity, keyed by the piece that MOVED: how many moves it made and how many
+  // of those were captures. Powers the Overview "Piece data" table (king excluded — no row).
+  const pmoves={k:0,q:0,r:0,b:0,n:0,p:0}, pcaps={k:0,q:0,r:0,b:0,n:0,p:0};
   hist.forEach((m,i)=>{
     fb.move(m.san,{sloppy:true});
     fens.push(fb.fen());
-    if(m.captured) running += (m.color===myColor ? 1 : -1) * VAL[m.captured];
+    if(m.color===myColor && pmoves[m.piece]!==undefined){ pmoves[m.piece]++; if(m.captured) pcaps[m.piece]++; }
+    if(m.captured){ (m.color===myColor?took:lost)[m.captured]++;
+                    running += (m.color===myColor ? 1 : -1) * VAL[m.captured]; }
     if(m.promotion) running += (m.color===myColor ? 1 : -1) * (VAL[m.promotion]-1);
     if(m.captured && m.captured!=="p") pieceTotal--;
     if(m.promotion) pieceTotal++;
@@ -3739,7 +3938,7 @@ function parsePgn(pgn, myColor){
   const lastMv = hist.length ? hist[hist.length-1] : null;
   return { moves: Math.ceil(hist.length/2), castled, undev, mat, peakMat, troughMat, turns,
            peakFen, peakMove, postPeakFen, postPeakMove, egMat, egPly, egFen, egMove, qloss, gift,
-           pieces:{mine:myPc,theirs:oppPc}, fen: chess.fen(),
+           pieces:{mine:myPc,theirs:oppPc}, caps:{took,lost,moves:pmoves,capm:pcaps}, castleMove, castleSide, fen: chess.fen(),
            lastMove: lastMv ? {from:lastMv.from, to:lastMv.to, san:lastMv.san, color:lastMv.color} : null,
            parsed: hist.length>0 };
 }
@@ -3759,6 +3958,9 @@ function clkStr(sec){
   return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
 }
 function fmtClkDiff(g){
+  // Daily games run on days per move, not a live ticking clock, so a finishing-clock difference in
+  // minutes:seconds is meaningless (and reads as a huge nonsense value). Show a dash + explain why.
+  if(g.tc==="daily") return '<span class="dim" title="Daily games run on days per move — no live clock to compare">—</span>';
   if(g.clock===null||g.clock===undefined) return '<span class="dim">—</span>';
   const tip=`You ${clkStr(g.clock)}${g.oppClock!=null?" \u00b7 Opp "+clkStr(g.oppClock):""}`;
   if(g.oppClock===null||g.oppClock===undefined)
@@ -4039,7 +4241,7 @@ const longClockGame=g=>(g.times && g.times.base!=null) ? g.times.base>=180 : g.t
 // reason — bullet polluting mixed averages — vanishes: a homogeneous pool judges
 // itself fairly. Returns the right per-game test for a given list.
 const clockRule=list=>(list.length && list.every(g=>g.tc==="bullet")) ? (()=>true) : longClockGame;
-const tcDotHTML=g=>{
+const tcDotHTML=(g,bare)=>{   // bare: skip the title tooltip (for aggregate tiles where it's just the redundant format name)
   if(!g.tc) return "";
   // "Rapid · 10 min" / "Blitz · 3 min + 2s/move" / "Bullet · 30 sec" / "Daily"
   let t=tcCap(g.tc);
@@ -4047,7 +4249,7 @@ const tcDotHTML=g=>{
     t += g.times.base<60 ? ` · ${g.times.base} sec` : ` · ${Math.round(g.times.base/60*10)/10} min`;
     if(g.times.inc) t+=` + ${g.times.inc}s/move`;
   }
-  return `<span title="${t}" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${TC_COLOR[g.tc]||"var(--dim)"};margin-right:6px;vertical-align:1px"></span>`;
+  return `<span ${bare?"":`title="${t}" `}style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${TC_COLOR[g.tc]||"var(--dim)"};margin-right:6px;vertical-align:1px"></span>`;
 };
 
 // Accuracy only exists once a game has been through chess.com's Game Review.
@@ -4133,7 +4335,7 @@ function cellFor(c,g){
     }
     case "eval":   return fmtEval(g);
     case "clk":    return fmtClkDiff(g);
-    case "clock":  return g.clock!=null ? clkStr(g.clock) : '<span class="dim">—</span>';
+    case "clock":  return g.tc==="daily" ? '<span class="dim" title="Daily games run on days per move — no live clock">—</span>' : (g.clock!=null ? clkStr(g.clock) : '<span class="dim">—</span>');
     case "think":  { const t=thinkStats(g); return t ? t.avg.toFixed(1)+"s" : thinkDash(g); }
     case "fast":   { const t=thinkStats(g); return t ? `<span class="${t.fast>=50?"res loss":""}">${t.fast}%</span>` : thinkDash(g); }
     case "long":   { const t=thinkStats(g); return t ? Math.round(t.max)+"s" : thinkDash(g); }
@@ -4253,8 +4455,8 @@ function cacheFetch(){
 // computed by parsePgn. When that logic improves, cached games are stale — and telling
 // people to refetch never worked, because incremental fetches don't re-parse old games.
 // The pgn is already in the cache, so: re-derive locally, no network, automatically.
-const PARSER_V=8;   // bump this whenever parsePgn's derivations change — and update the note
-const PARSER_NOTE="This revision: each game now keeps the board as it looked the moment the position simplified into an endgame, so Endgames can show you the position you actually had to convert. Your saved games were re-analyzed on this device, no refetch needed.";
+const PARSER_V=13;   // bump this whenever parsePgn's derivations change — and update the note
+const PARSER_NOTE="This revision: each game now records the move you castled on and which side, powering the new Castling panel in Insights. Your saved games were re-analyzed on this device, no refetch needed.";
 function reparseGame(g){
   if(!g.pgn) return false;
   try{
@@ -4702,6 +4904,7 @@ function mapApiGame(g, u){
     gift: p.parsed ? p.gift : undefined,
     parserV: p.parsed ? PARSER_V : undefined,
     pieces: p.parsed ? p.pieces : null,
+    caps: p.parsed ? p.caps : null,
     fen: p.parsed ? p.fen : null,
     lastMove: p.parsed ? p.lastMove : null,
     clock: clks.mine, oppClock: clks.opp,
@@ -4710,6 +4913,7 @@ function mapApiGame(g, u){
     acc: g.accuracies ? (iAmWhite ? g.accuracies.white : g.accuracies.black) : null,
     oppAcc: g.accuracies ? (iAmWhite ? g.accuracies.black : g.accuracies.white) : null,   /* EXPERIMENTAL */
     castled: p.parsed ? (p.castled?"yes":"no") : "?",
+    castleMove: p.parsed ? p.castleMove : null, castleSide: p.parsed ? p.castleSide : null,
     result: classify(me),
     how: HOW[ me.result==="win" ? (opp.result in HOW ? opp.result : "win") : me.result ] || me.result,
     eco: op.eco, opening: op.opening, family: openingFamily(op.opening),
@@ -5490,10 +5694,14 @@ function oppCardHTML(g){
   if(e.last10 && e.last10.length){
     const f=e.last10;
     const swing=f.length>1 ? f[f.length-1].elo - f[0].elo : 0;
+    // With more than one shared game, the centered "you won/lost" captions sit under adjacent pips
+    // and overlap into gibberish. Show the caption only when there's exactly one; otherwise the
+    // arrow marker + the per-pip hover tooltip still say which games were yours.
+    const labelYou = f.filter(x=>x.you).length === 1;
     const dots=f.map(x=>{
       // the strip reads from THEIR side — the label under your shared game translates
       const mine = x.r==="W" ? "you lost" : x.r==="L" ? "you won" : "you drew";
-      return `<span class="oc-dot ${x.r==="W"?"win":x.r==="L"?"loss":"draw"}${x.you?" oc-you":""}"${x.you?` data-you="${mine}" title="This one was against you \u2014 ${mine}"`:""}>${x.r}</span>`;
+      return `<span class="oc-dot ${x.r==="W"?"win":x.r==="L"?"loss":"draw"}${x.you?" oc-you":""}"${x.you?`${labelYou?` data-you="${mine}"`:""} title="This one was against you \u2014 ${mine}"`:""}>${x.r}</span>`;
     }).join("");
     formRow=`<div class="oc-sec">
       <div class="oc-sech">Their last ${f.length} games
@@ -6146,7 +6354,7 @@ const TAB_DIRTY=new Set();
 const TAB_RENDER={
   overview:  l=>{ renderProfile(l); },
   log:      l=>{},   // table + summary are rendered in render() itself
-  charts:   l=>{ renderHourly(l); renderAccHour(l); renderGamesByHour(l); renderGamesByDay(l); renderDow(l); renderGap(l); renderLen(l); renderAccLen(l); renderStreak(l); renderElo(l); },
+  charts:   l=>{ renderHourly(l); renderAccHour(l); renderGamesByHour(l); renderGamesByDay(l); renderDow(l); renderGap(l); renderLen(l); renderAccLen(l); renderStreak(l); renderElo(l); },   // renderMoveMap(l) parked — see computeMoveMap
   insights: l=>{ renderInsights(l); },
   blown:    l=>{ renderBlown(l); },
   trends:   l=>{ renderTrends(l); renderSessions(games); },  // sessions ignore filters: removing games from a sitting invents fake sessions
@@ -6278,54 +6486,217 @@ function pfAgo(sec){
 }
 function howLbl(h){ return (HOW_OPTS.find(o=>o[0]===h)||[h, (h||"other").charAt(0).toUpperCase()+(h||"other").slice(1)])[1]; }
 
-// Every axis bar gets a color on a weak→strong ramp, so none read as a flat grey.
+// Match the Insights good/bad/mid scheme EXACTLY (green ≥60 / gold 42–59 / red <42, using
+// --win/--draw/--loss) so the Overview and Insights DNA read as one consistent color scheme.
 function pfBarColor(v){
-  if(v>=68) return "#7CC287";   // green — a real strength
-  if(v>=54) return "#9fb56a";   // yellow-green
-  if(v>=44) return "#D3B25A";   // gold — middling
-  if(v>=32) return "#cf9a5a";   // amber
-  return "#d98b6f";             // clay — a weak spot
+  return v>=60 ? "#7CC287" : v<42 ? "#E0776C" : "#D3B25A";
 }
 // Chess DNA — six axes, each a real derived metric (not a personality quiz), normalized to 0-100.
 // Scalings are heuristic bands tuned for club level; the shape is what matters.
 // Average accuracy rises with rating; compare a player to what's typical at THEIR Elo, not a flat bar.
-function expectedAcc(elo){
-  const pts=[[600,56],[1000,65],[1400,75],[1800,84],[2200,89]];
+// Measured average accuracy by Elo (real blitz & rapid samples, not a guess). Rapid (10+0) runs a
+// touch higher than blitz (3+0/5+0/3+2) at the same rating; bullet has no data here so it borrows the
+// blitz curve. Linear interpolation between anchors, flat past the ends.
+const ACC_BY_ELO={
+  rapid:[[400,68.8],[1000,75.7],[1600,80.6],[1700,81.2],[1800,81.9],[1900,82.6],[2000,83.9],[2100,83.9],[2200,85.6],[2300,86.8],[2400,88.0]],
+  blitz:[[400,68.9],[1000,76.5],[1600,80.3],[1700,80.6],[1800,81.6],[1900,82.1],[2000,83.1],[2100,83.9],[2200,84.2],[2300,85.2],[2400,85.9],[2600,86.1],[2800,87.4]]
+};
+function expectedAcc(elo, tc){
+  const pts = (tc==="rapid"||tc==="daily") ? ACC_BY_ELO.rapid : ACC_BY_ELO.blitz;   // blitz/bullet/mixed -> blitz
   if(elo<=pts[0][0]) return pts[0][1];
   if(elo>=pts[pts.length-1][0]) return pts[pts.length-1][1];
   for(let i=1;i<pts.length;i++){ if(elo<=pts[i][0]){ const a=pts[i-1],b=pts[i]; return a[1]+(b[1]-a[1])*(elo-a[0])/(b[0]-a[0]); } }
-  return 80;
+  return 82;
+}
+// Approximate chess.com rating -> percentile (share of players you're rated above), by format.
+// Piecewise-linear over the public distribution shape; anchored so ~1000 rapid ≈ 84th percentile
+// (chess.com's own profile percentile). APPROXIMATE — swap in real distribution data to refine.
+const RATING_PCT={
+  rapid: [[400,8],[600,30],[800,60],[1000,84],[1200,93],[1400,97],[1600,98.5],[1800,99.3],[2200,99.9]],
+  blitz: [[400,5],[600,20],[800,45],[1000,70],[1200,86],[1400,93],[1600,97],  [1800,98.5],[2200,99.8]],
+  bullet:[[400,6],[600,24],[800,50],[1000,74],[1200,88],[1400,94],[1600,97],  [1800,98.6],[2200,99.8]],
+  daily: [[400,10],[600,32],[800,60],[1000,82],[1200,92],[1400,96],[1600,98], [1800,99],  [2200,99.9]]
+};
+function ratingPercentile(elo, tc){
+  if(typeof elo!=="number"||!isFinite(elo)) return null;
+  const T=RATING_PCT[tc]||RATING_PCT.blitz;
+  if(elo<=T[0][0]) return T[0][1];
+  if(elo>=T[T.length-1][0]) return T[T.length-1][1];
+  for(let i=1;i<T.length;i++){ if(elo<=T[i][0]){ const [x0,y0]=T[i-1],[x1,y1]=T[i]; return y0+(y1-y0)*(elo-x0)/(x1-x0); } }
+  return T[T.length-1][1];
 }
 function pfDNA(gs, myElo){
   const clamp=v=>Math.max(3,Math.min(100,Math.round(v)));
-  const wins=gs.filter(g=>g.result==="Win"), losses=gs.filter(g=>g.result==="Loss");
-  const mateWins=wins.filter(g=>g.how==="checkmate").length;
-  const attack=clamp((wins.length?mateWins/wins.length:0)*175);
-  const downBad=gs.filter(g=>typeof g.troughMat==="number"&&g.troughMat<=-3);
-  const saved=downBad.filter(g=>g.result!=="Loss").length;
-  const resilience=clamp(downBad.length?(saved/downBad.length)*260:35);
-  const winning=gs.filter(g=>typeof g.peakMat==="number"&&g.peakMat>=3);
-  const convPct=winning.length?100*winning.filter(g=>g.result==="Win").length/winning.length:60;
-  const conversion=clamp((convPct-40)/55*100);
+  // Rating fallback: some profiles (a searched player, or games without a per-game Elo) pass no rating,
+  // which silently skips the Elo lift and shows RAW peer scores — a 3400 GM then reads like a beginner
+  // (Attack 9). Derive a rating from the games: your own per-game Elo if present, else the opponents'
+  // (chess.com pairs you near your own rating, so their median ≈ yours).
+  if(myElo==null||!isFinite(myElo)){
+    const es=gs.map(g=>g.elo).filter(e=>typeof e==="number"&&isFinite(e));
+    const os=gs.map(g=>g.oppElo).filter(e=>typeof e==="number"&&isFinite(e));
+    const src=es.length?es:os;
+    if(src.length){ const s=[...src].sort((a,b)=>a-b); myElo=s[s.length>>1]; }
+  }
+  const wins=gs.filter(g=>g.result==="Win"), losses=gs.filter(g=>g.result==="Loss"), G=gs.length;
+  // PEER-RELATIVE scoring. Chess.com pairs you with players near your rating, so the opponents in your
+  // own games ARE a similar-Elo field. For each axis we compute the metric for YOU and for that field
+  // (both from these same games) and score the gap: 50 = even with your field, higher = you beat it.
+  // Needs no external data and self-calibrates as you climb; a thin sample shrinks toward 50.
+  // Map the you-vs-field gap gently: it takes a large gap (~35 points) to near the edges, so a
+  // moderate difference lands mid-range instead of slamming the floor/ceiling. 50 = even with field.
+  const rel=(you,opp,higherBetter,n)=>{ if(you==null||opp==null) return null;
+    const conf=Math.min(1,(n||0)/18); return clamp(50 + (higherBetter?1:-1)*(you-opp)*135*conf); };
+  const pct=x=>Math.round(x*100);
+  // ATTACK — do you finish sharply, more than your field? Two peer-relative signals blended:
+  //  (a) mate-finish: of your wins, how many end in checkmate (you deliver the mate);
+  //  (b) quick kills: of your wins, how many are short crushes (<25 moves), not slow grinds.
+  // The field is your opponents, measured on the games they won off you (= your losses).
+  const yWinMate=wins.length?wins.filter(g=>g.how==="checkmate").length/wins.length:null;
+  const oWinMate=losses.length?losses.filter(g=>g.how==="checkmate").length/losses.length:null;
+  const mateS=rel(yWinMate,oWinMate,true,Math.min(wins.length,losses.length));
+  // Win rate in short decisive games (<25 moves): punishing early / crushing fast. Against your equal-Elo
+  // field, 50% is even, so >50% is a real attacking edge — this is your "I win most short games" signal.
+  const shortDec=gs.filter(g=>typeof g.moves==="number"&&g.moves<25&&(g.result==="Win"||g.result==="Loss"));
+  const yShortWR=shortDec.length?shortDec.filter(g=>g.result==="Win").length/shortDec.length:null;
+  const quickS=yShortWR!=null?clamp(50+(yShortWR-0.5)*135*Math.min(1,shortDec.length/18)):null;
+  let attack=(mateS!=null&&quickS!=null)?clamp((mateS+quickS)/2):(mateS??quickS??50);
+  const scannedG=gs.filter(g=>g.mates);   // once the mate-scan has run, walking past mates dents finishing
+  if(scannedG.length>=8) attack=clamp(attack - scannedG.filter(g=>g.mates.missed>0).length/scannedG.length*40);
+  // material partitions, from your seat
+  const youAhead=gs.filter(g=>typeof g.peakMat==="number"&&g.peakMat>=3);       // you held a +3 lead
+  const youBehind=gs.filter(g=>typeof g.troughMat==="number"&&g.troughMat<=-3); // you fell 3+ behind
+  // CONVERSION — you convert a +3 lead vs your field (the field held +3 whenever YOU fell 3+ behind)
+  const yConv=youAhead.length?youAhead.filter(g=>g.result==="Win").length/youAhead.length:null;
+  const oConv=youBehind.length?youBehind.filter(g=>g.result==="Loss").length/youBehind.length:null;
+  const conversion=rel(yConv,oConv,true,Math.min(youAhead.length,youBehind.length))??50;
+  // RESILIENCE — you save a game 3+ down vs your field (the field was 3+ down whenever YOU led by +3)
+  const yResil=youBehind.length?youBehind.filter(g=>g.result!=="Loss").length/youBehind.length:null;
+  const oResil=youAhead.length?youAhead.filter(g=>g.result!=="Win").length/youAhead.length:null;
+  const resilience=rel(yResil,oResil,true,Math.min(youBehind.length,youAhead.length))??50;
   const accs=gs.map(g=>g.acc).filter(a=>typeof a==="number");
   const avgAcc=accs.length?accs.reduce((a,b)=>a+b,0)/accs.length:80;
-  const expAcc=expectedAcc(myElo||1200);
-  const sharpness=clamp(50+(avgAcc-expAcc)*5);   // 50 = right at the accuracy typical for your rating
-  const timeLosses=losses.filter(g=>g.how==="time").length;
-  const flagRate=losses.length?timeLosses/losses.length:0;
-  const clock=clamp(100-flagRate*300);
-  // Defense: how rarely you get checkmated (a short, concrete axis — replaces the vague "Steadiness")
-  const matedLosses=losses.filter(g=>g.how==="checkmate").length;
-  const defense=clamp(100-(gs.length?matedLosses/gs.length:0)*280);
+  // Pick the accuracy curve for the format these games are actually in (Insights is usually scoped
+  // to one time control), so the "typical at your Elo" bar matches how you're being measured.
+  const domTc=(()=>{ const c={}; gs.forEach(g=>{ if(g.tc) c[g.tc]=(c[g.tc]||0)+1; }); let best="blitz",n=-1; for(const k in c){ if(c[k]>n){n=c[k];best=k;} } return best; })();
+  const expAcc=expectedAcc(myElo||1200, domTc);
+  // Development discipline — always available (no engine): do you castle and get your minors out? A
+  // clean opening is part of sharp play, and it lets Sharpness render even before a game is reviewed.
+  const castG=gs.filter(g=>g.castled==="yes"||g.castled==="no");
+  const undG=gs.filter(g=>typeof g.undev==="number");
+  const castPct=castG.length?100*castG.filter(g=>g.castled==="yes").length/castG.length:null;
+  const avgUndev=undG.length?undG.reduce((a,g)=>a+g.undev,0)/undG.length:null;
+  let devScore=null;
+  if(castPct!=null || avgUndev!=null){
+    const c=castPct!=null?castPct:70, u=avgUndev!=null?Math.max(0,100-avgUndev*22):70;
+    devScore=(c+u)/2;
+  }
+  // Accuracy-vs-typical leads when we have reviewed games (a light development nudge on top); with no
+  // reviewed games, development carries it so the axis isn't a flat 80% guess. 50 = accuracy typical for Elo.
+  const accScore=50+(avgAcc-expAcc)*5;
+  const sharpness = accs.length>=8
+    ? clamp(devScore!=null ? accScore*0.82 + devScore*0.18 : accScore)
+    : clamp(devScore!=null ? devScore : accScore);
+  // CLOCK — how often YOU get into time trouble (dip under 20% of your clock, or flag) vs your FIELD.
+  // Both clocks reconstruct from the per-move times we already store (mine + theirs), no PGN re-parse.
+  const clockGames=gs.filter(g=>g.tc!=="daily" && g.times && g.times.mine && g.times.theirs && g.times.mine.length && g.times.theirs.length && g.times.base>0);
+  const lowFrac=(arr,base,inc)=>{ let c=base,lo=base; for(const s of arr){ c-=s; if(c<lo)lo=c; c+=inc; } return lo/base; };
+  let yBad=0,oBad=0;
+  clockGames.forEach(g=>{ const inc=g.times.inc||0, b=g.times.base;
+    if(lowFrac(g.times.mine,b,inc)<0.2   || (g.how==="time"&&g.result==="Loss")) yBad++;
+    if(lowFrac(g.times.theirs,b,inc)<0.2 || (g.how==="time"&&g.result==="Win"))  oBad++; });
+  const yTrouble=clockGames.length?yBad/clockGames.length:null;
+  const oTrouble=clockGames.length?oBad/clockGames.length:null;
+  const clock=rel(yTrouble,oTrouble,false,clockGames.length)??50;
+  // DEFENSE — how rarely you get mated vs your field (you won by mate ⇔ the opponent got mated)
+  const yMated=G?losses.filter(g=>g.how==="checkmate").length/G:null;
+  const oMated=G?wins.filter(g=>g.how==="checkmate").length/G:null;
+  const defense=rel(yMated,oMated,false,G)??50;
+  const fld=v=>v==null?"":` · field ${pct(v)}%`;
+  const fldB=v=>v==null?"":` (field ${pct(v)}%)`;   // parenthesised, for the card bullets
+  // secondary findings for the card bullets, all from numbers already computed above
+  const missMate=scannedG.filter(g=>g.mates.missed>0).length;
+  const savedW=youBehind.filter(g=>g.result==="Win").length, savedD=youBehind.filter(g=>g.result==="Draw").length;
+  const blownLeads=youAhead.filter(g=>g.result!=="Win").length;
+  const flagLoss=clockGames.filter(g=>g.how==="time"&&g.result==="Loss").length;
+  const flagWin=clockGames.filter(g=>g.how==="time"&&g.result==="Win").length;   // you flagged the opponent
+  const matedLoss=losses.filter(g=>g.how==="checkmate").length;
+  // superlatives (the single most-extreme game) — a severity dimension beside the rate/count bullets
+  const savedG2=youBehind.filter(g=>g.result!=="Loss"&&typeof g.troughMat==="number");
+  const deepSave=savedG2.length?Math.min(...savedG2.map(g=>g.troughMat)):null;                 // most negative = deepest hole climbed out of
+  const blownG2=youAhead.filter(g=>g.result!=="Win"&&typeof g.peakMat==="number");
+  const worstSlip=blownG2.length?Math.max(...blownG2.map(g=>g.peakMat)):null;                   // biggest lead that still got away
+  const matedFast=losses.filter(g=>g.how==="checkmate"&&typeof g.moves==="number");
+  const fastMated=matedFast.length?Math.min(...matedFast.map(g=>g.moves)):null;                 // quickest checkmate loss
+  const clockSurv=clockGames.filter(g=>!(g.how==="time"&&g.result==="Loss"));                    // clock games you didn't flag
+  const tightHold=clockSurv.length?Math.min(...clockSurv.map(g=>lowFrac(g.times.mine,g.times.base,g.times.inc||0))):null; // tightest clock you survived
   const axes=[
-    {key:"attack",label:"Attack",val:attack,metric:`${wins.length?Math.round(100*mateWins/wins.length):0}% of your wins end in checkmate`},
-    {key:"resil",label:"Resilience",val:resilience,metric:`saved ${saved} of ${downBad.length} games you were 3+ down`},
-    {key:"conv",label:"Conversion",val:conversion,metric:`win ${Math.round(convPct)}% of winning positions`},
-    {key:"sharp",label:"Sharpness",val:sharpness,metric:`${Math.round(avgAcc)}% accuracy · ~${Math.round(expAcc)}% is typical at ${myElo||"your"} Elo`},
-    {key:"clock",label:"Clock",val:clock,metric:`${timeLosses} losses on the clock`},
-    {key:"steady",label:"Defense",val:defense,metric:`mated in ${matedLosses} of your games`},
+    {key:"attack",label:"Attack",val:attack,metric:`${yWinMate!=null?pct(yWinMate):0}% of wins by mate${fld(oWinMate)}${yShortWR!=null?` · win ${pct(yShortWR)}% of short games`:""}`,
+      bullets:[
+        `${yWinMate!=null?pct(yWinMate):0}% of wins by mate${fldB(oWinMate)}`,
+        yShortWR!=null?`won ${pct(yShortWR)}% of games under 25 moves`:"",
+        (scannedG.length>=8&&missMate>0)?`missed a forced mate in ${missMate} of ${scannedG.length} reviewed`:"",
+      ].filter(Boolean)},
+    {key:"resil",label:"Resilience",val:resilience,metric:`save ${yResil!=null?pct(yResil):0}% of games 3+ down${fld(oResil)}`,
+      bullets:[
+        `saved ${yResil!=null?pct(yResil):0}% of games you fell 3+ down${fldB(oResil)}`,
+        (youBehind.length&&(savedW||savedD))?`${[savedW&&`${savedW} won outright`,savedD&&`${savedD} drawn`].filter(Boolean).join(", ")} from 3+ down`:"",
+        (deepSave!=null&&deepSave<=-4)?`deepest save: ${Math.abs(deepSave)} down`:"",
+      ].filter(Boolean)},
+    {key:"conv",label:"Conversion",val:conversion,metric:`convert ${yConv!=null?pct(yConv):0}% of winning positions${fld(oConv)}`,
+      bullets:[
+        `converted ${yConv!=null?pct(yConv):0}% of winning positions${fldB(oConv)}`,
+        youAhead.length?(blownLeads>0?`let ${blownLeads} of ${youAhead.length} winning position${youAhead.length===1?"":"s"} slip`:`won all ${youAhead.length} winning positions`):"",
+        (worstSlip!=null&&worstSlip>=4&&blownLeads>0)?`biggest lead blown: +${worstSlip}`:"",
+      ].filter(Boolean)},
+    {key:"sharp",label:"Sharpness",val:sharpness,metric:accs.length>=8?`${Math.round(avgAcc)}% accuracy · ~${Math.round(expAcc)}% typical at ${myElo||"your"} Elo`:(castPct!=null?`castle in ${Math.round(castPct)}% of games${avgUndev!=null?` · ${avgUndev.toFixed(1)} pieces left home`:""}`:`review games for an accuracy read`),
+      bullets:(accs.length>=8
+        ? [`${Math.round(avgAcc)}% average accuracy (~${Math.round(expAcc)}% typical at ${myElo||"your"} Elo)`,
+           castPct!=null?`castled in ${Math.round(castPct)}% of games`:"",
+           avgUndev!=null?`${avgUndev.toFixed(1)} pieces left undeveloped on average`:""]
+        : (castPct!=null||avgUndev!=null)
+          ? [castPct!=null?`castled in ${Math.round(castPct)}% of games`:"",
+             avgUndev!=null?`${avgUndev.toFixed(1)} pieces left undeveloped on average`:"",
+             `review games for an accuracy read`]
+          : [`review games for an accuracy read`]).filter(Boolean)},
+    {key:"clock",label:"Clock",val:clock,metric:clockGames.length?`time trouble in ${yTrouble!=null?pct(yTrouble):0}% of games${fld(oTrouble)}`:`no clock data`,
+      bullets:(clockGames.length
+        ? [`time trouble in ${yTrouble!=null?pct(yTrouble):0}% of games${fldB(oTrouble)}`,
+           flagLoss>0?`flagged in ${flagLoss} game${flagLoss===1?"":"s"}`:`never lost on the clock`,
+           (tightHold!=null&&tightHold<0.1)?`survived a scramble on ${Math.max(0,Math.round(tightHold*100))}% of your clock`
+             :(flagWin>0?`won ${flagWin} game${flagWin===1?"":"s"} on the clock`:"")]
+        : [`no clock data — review games with move times`]).filter(Boolean)},
+    {key:"steady",label:"Defense",val:defense,metric:`mated in ${yMated!=null?pct(yMated):0}% of games${fld(oMated)}`,
+      bullets:[
+        `mated in ${yMated!=null?pct(yMated):0}% of games${fldB(oMated)}`,
+        losses.length?`${matedLoss} of your ${losses.length} loss${losses.length===1?"":"es"} ended in mate`:"",
+        (fastMated!=null)?`fastest loss: ${fastMated}-move mate`:"",
+      ].filter(Boolean)},
   ];
-  return {axes, arch:pfArchetype(axes)};
+  // Radar + section order: Attack sits next to Defense (both are the checkmate story — deliver vs avoid),
+  // so their sections stack for easy side-by-side reading. Pairs: Attack/Defense, Conversion/Resilience, Sharpness/Clock.
+  const dnaOrder=["attack","steady","conv","resil","sharp","clock"];
+  axes.sort((a,b)=>dnaOrder.indexOf(a.key)-dnaOrder.indexOf(b.key));
+  // Archetype reads your PLAYING STYLE from the peer-relative scores, so compute it before the lift.
+  const arch=pfArchetype(axes);
+  // Every axis (and the Overall) is lifted 25% toward how your absolute rating ranks (percentile),
+  // so a strong rating shows across the board — not just in the headline. (user: lift all around by Elo)
+  // Each axis started at 50 = even with your field; 1000 rapid (≈84th pct) pulls the whole radar up.
+  // Per-axis weights for the Overall roll-up (skill-purity first): Sharpness & Conversion count most,
+  // Resilience least. Weights sum to 6 so equal-weight = 1.0 each. Axes are still shown/lifted on their
+  // own — the weights only change how they combine into the Overall.
+  const W_AXIS={sharp:1.4, conv:1.2, steady:1.1, attack:1.0, clock:0.75, resil:0.55};
+  const wSum=axes.reduce((s,a)=>s+(W_AXIS[a.key]||1),0)||1;
+  const peerMean=axes.length?axes.reduce((s,a)=>s+a.val*(W_AXIS[a.key]||1),0)/wSum:50;
+  const rPct=ratingPercentile(myElo, domTc);
+  const pmR=Math.round(peerMean), rpR=rPct!=null?Math.round(rPct):null;   // round first so the shown formula is exact
+  // The rating weight SCALES with how elite the rating is (rpR = percentile 0–100). A club player stays
+  // mostly peer-relative (~25%), but a GM's absolute rating dominates — a 3400 (~100th pct) gets ~90%,
+  // so Hikaru reads ~95, not ~50. The high exponent keeps mid-ratings from over-lifting.
+  const RW = rpR!=null ? Math.min(0.9, 0.2 + 0.7*Math.pow(rpR/100, 8)) : 0.25;
+  if(rpR!=null) axes.forEach(a=>{ a.val=clamp((1-RW)*a.val + RW*rpR); });
+  const overall=rpR!=null ? Math.round((1-RW)*pmR + RW*rpR) : pmR;
+  const weights=axes.map(a=>({label:a.label, w:W_AXIS[a.key]||1})).sort((x,y)=>y.w-x.w);
+  return {axes, arch, overall, peerMean:pmR, ratingPct:rpR, ratingWeight:RW, weights, myElo, domTc};
 }
 function pfArchetype(axes){
   const m={}; axes.forEach(a=>m[a.key]=a.val);
@@ -6371,35 +6742,38 @@ function pfRadarSVG(axes){
   const spokes=U.map((u,i)=>{const p=pt(i,1);return `<line class="r-spoke" x1="${cx}" y1="${cy}" x2="${p[0].toFixed(1)}" y2="${p[1].toFixed(1)}"/>`;}).join("");
   const poly=axes.map((a,i)=>pt(i,a.val/100).map(n=>n.toFixed(1)).join(",")).join(" ");
   const dots=axes.map((a,i)=>{const p=pt(i,a.val/100);return `<circle class="r-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.4"/>`;}).join("");
-  const LB=[["Attack",210,16,"middle"],["Resilience",322,88,"start"],["Conversion",322,220,"start"],["Sharpness",210,292,"middle"],["Clock",98,220,"end"],["Defense",98,88,"end"]];
+  const LB=[["Attack",210,16,"middle"],["Defense",322,88,"start"],["Conversion",322,220,"start"],["Resilience",210,292,"middle"],["Sharpness",98,220,"end"],["Clock",98,88,"end"]];
   const labels=LB.map(l=>`<text class="r-lbl" x="${l[1]}" y="${l[2]}" text-anchor="${l[3]}">${l[0]}</text>`).join("");
   return `<svg class="radar" viewBox="0 0 420 300" role="img" aria-label="Chess DNA radar">${grids}${spokes}<polygon class="r-area" points="${poly}"/>${dots}${labels}</svg>`;
 }
 // Enlarged radar for the Insights hero: each axis carries its 0-100 score at the vertex, so the
 // chart reads as a gauge with numbers rather than a bare outline floating in empty space.
 function pfRadarBig(axes){
-  const cx=220,cy=165,R=125, U=[[0,-1],[0.866,-0.5],[0.866,0.5],[0,1],[-0.866,0.5],[-0.866,-0.5]];
+  const cx=225,cy=168,R=146, U=[[0,-1],[0.866,-0.5],[0.866,0.5],[0,1],[-0.866,0.5],[-0.866,-0.5]];
   const pt=(i,s)=>[cx+R*s*U[i][0], cy+R*s*U[i][1]];
   const ring=s=>U.map((u,i)=>pt(i,s).map(n=>n.toFixed(1)).join(",")).join(" ");
   const grids=[1,.75,.5,.25].map(s=>`<polygon class="r-grid" points="${ring(s)}"/>`).join("");
   const spokes=U.map((u,i)=>{const p=pt(i,1);return `<line class="r-spoke" x1="${cx}" y1="${cy}" x2="${p[0].toFixed(1)}" y2="${p[1].toFixed(1)}"/>`;}).join("");
   const poly=axes.map((a,i)=>pt(i,a.val/100).map(n=>n.toFixed(1)).join(",")).join(" ");
   const dots=axes.map((a,i)=>{const p=pt(i,a.val/100);return `<circle class="r-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.8"/>`;}).join("");
-  const LB=[[220,10,30,"middle"],[356,101,120,"start"],[356,225,244,"start"],[220,320,338,"middle"],[84,225,244,"end"],[84,101,120,"end"]];
-  const scls=v=>v>=60?"r-sc good":v<42?"r-sc bad":"r-sc";
+  // Name and score share one row (e.g. "Attack 31") so the labels take less vertical space and the
+  // radar itself can be bigger. [x, y, anchor] per vertex.
+  // Just the axis name at each vertex now — the score lives on the card beside it, so dropping it
+  // from the radar frees the horizontal room the long labels ate and lets the radar itself be bigger.
+  const LB=[[225,14,"middle"],[356,99,"start"],[356,245,"start"],[225,332,"middle"],[94,245,"end"],[94,99,"end"]];
   const labels=axes.map((a,i)=>{const l=LB[i];
-    return `<text class="r-lbl" x="${l[0]}" y="${l[1]}" text-anchor="${l[3]}">${a.label}</text>`
-      +`<text class="${scls(a.val)}" x="${l[0]}" y="${l[2]}" text-anchor="${l[3]}">${a.val}</text>`;
+    return `<text class="r-lbl" x="${l[0]}" y="${l[1]}" text-anchor="${l[2]}">${a.label}</text>`;
   }).join("");
-  return `<svg class="radar radar-big" viewBox="31 -4 400 350" role="img" aria-label="Chess DNA radar with per-axis scores">${grids}${spokes}<polygon class="r-area" points="${poly}"/>${dots}${labels}</svg>`;
+  return `<svg class="radar radar-big" viewBox="14 -4 426 350" role="img" aria-label="Chess DNA radar">${grids}${spokes}<polygon class="r-area" points="${poly}"/>${dots}${labels}</svg>`;
 }
 // How games end — separate win/loss bars split by ending, plus a generated verdict.
-// A resignation is really a checkmate when the side that resigned was in a forced mate:
-// for EVERY legal move they had, the other side mates in reply. Same test from either seat —
-// your loss means you were being mated, your win means you were mating them. Cached; the
-// check is heavy but every() bails on the first move that escapes, so non-mates return fast.
+// A resignation OR an abandonment is really a checkmate when the side that quit was in a forced
+// mate: for EVERY legal move they had, the other side mates in reply. Same test from either seat —
+// your loss means you were being mated, your win means you were mating them. Walking away from a
+// dead-lost, being-mated position is the same result as resigning it. Cached; the check is heavy
+// but every() bails on the first move that escapes, so non-mates return fast.
 function resignForcedMate(g){
-  if(!g || g.how!=="resign") return false;
+  if(!g || (g.how!=="resign" && g.how!=="abandoned")) return false;
   if(g._resFM!==undefined) return g._resFM;
   let res=false;
   try{
@@ -6419,7 +6793,7 @@ function resignForcedMate(g){
 function pfAutopsy(gs){
   const wins=gs.filter(g=>g.result==="Win"), losses=gs.filter(g=>g.result==="Loss");
   // a resignation the loser couldn't have escaped IS a checkmate — don't count it as a plain resign / gift
-  const ehow=g=>(g.how==="resign" && resignForcedMate(g)) ? "checkmate" : (g.how||"other");
+  const ehow=g=>(resignForcedMate(g)) ? "checkmate" : (g.how||"other");
   const greens=["#7CC287","#5f9e6f","#4a8459","#3a6b47","#2f5539","#264a30"], reds=["#E0776C","#b1554d","#83403a","#5f2e2a","#4a2420"];
   const barFor=(arr,shades)=>{
     const m={}; arr.forEach(g=>{const h=ehow(g);m[h]=(m[h]||0)+1;});
@@ -6436,8 +6810,8 @@ function pfAutopsy(gs){
   const ins = mateL>=mateW+8
     ? `You get mated in <b>${mateL}% of losses</b> but mate in only <b>${mateW}% of wins</b> — you lose faster than you win${giftPct>=18?`, and <b>${giftPct}% of wins are gifts</b> (flags and walkaways)`:""}. That's a <b>defense problem</b>, not an attacking one.`
     : `<b>${giftPct}% of your wins</b> come from opponents flagging or walking away — real points, but not you finishing them off. You mate in ${mateW}% of wins.`;
-  const fmW=gs.filter(g=>g.result==="Win"  && g.how==="resign" && resignForcedMate(g)).length;
-  const fmL=gs.filter(g=>g.result==="Loss" && g.how==="resign" && resignForcedMate(g)).length;
+  const fmW=gs.filter(g=>g.result==="Win"  && resignForcedMate(g)).length;
+  const fmL=gs.filter(g=>g.result==="Loss" && resignForcedMate(g)).length;
   const fmParts=[]; if(fmW) fmParts.push(`${fmW} win${fmW===1?"":"s"}`); if(fmL) fmParts.push(`${fmL} loss${fmL===1?"":"es"}`);
   const fmTot=fmW+fmL;
   const fmNote=fmTot?` <span class="dim">${fmParts.join(" and ")} by resignation ${fmTot===1?"is":"are"} counted as ${fmTot===1?"a checkmate":"checkmates"} — mate in 1 was on the board.</span>`:"";
@@ -6449,6 +6823,142 @@ function pfOpenings(gs){
   gs.forEach(g=>{ if(!g.family) return; const x=m[g.family]||(m[g.family]={n:0,w:0,l:0,d:0,W:0,B:0}); x.n++; if(g.result==="Win")x.w++; else if(g.result==="Loss")x.l++; else x.d++; if(g.color==="W")x.W++; else if(g.color==="B")x.B++; });
   return Object.entries(m).map(([fam,x])=>({fam,n:x.n,w:x.w,l:x.l,d:x.d,wr:Math.round(100*x.w/x.n),side:x.W>=x.B?"W":"B"}))
     .filter(o=>o.n>=6).sort((a,b)=>b.wr-a.wr).slice(0,6);
+}
+// Overview openings module: per-opening record, win rate, and NET ELO, filterable by the colour you
+// played. Precomputed once and toggled client-side (data on window so the inline buttons can reach it).
+function pfOpeningsGrid(gs){
+  const wrOf=a=>a.length?Math.round(100*a.filter(g=>g.result==="Win").length/a.length):0;
+  // one representative position per family — replay ~10 plies of a real game in that line, for the hover board
+  const famFen={}, famMv={};
+  for(const g of gs){ if(!g.family||famFen[g.family]||!g.pgn) continue;
+    try{ const c=new Chess(); const body=g.pgn.replace(/\[[^\]]*\]/g," ").replace(/\{[^}]*\}/g," ").replace(/\$\d+/g," ").replace(/\d+\.(\.\.)?/g," ").replace(/(1-0|0-1|1\/2-1\/2|\*)/g," ");
+      const toks=body.trim().split(/\s+/).filter(Boolean); let plies=0;
+      for(let i=0;i<Math.min(8,toks.length);i++){ if(!c.move(toks[i],{sloppy:true})) break; plies++; }   // 8 plies = 4 moves in
+      famFen[g.family]=c.fen(); famMv[g.family]=Math.ceil(plies/2); }catch(e){} }
+  // Who defined the opening's character: Sicilian/Caro/French/Indian-etc. is Black's pick, else White's.
+  const BLACK_DEF=/\b(Sicilian|Caro|French|Pirc|Modern|Scandinavian|Alekhine|Philidor|Petro|Nimzo|King's? Indian|Queen's? Indian|Old Indian|Bogo|Gr[uü]nfeld|Grunfeld|Dutch|Slav|Benoni|Benko|Owen|Robatsch|Czech)\b/i;
+  const ownB=g=>BLACK_DEF.test(g.family||"");
+  const build=(mode,filt)=>{ const m={};
+    gs.forEach(g=>{ if(!g.family) return; if(filt && g.color!==filt) return;
+      const played=(ownB(g)?"B":"W")===g.color;                 // you chose the opening's character
+      if(mode==="played"&&!played) return; if(mode==="faced"&&played) return;
+      const x=m[g.family]||(m[g.family]={n:0,w:0,l:0,d:0,e:0}); x.n++;
+      if(g.result==="Win")x.w++; else if(g.result==="Loss")x.l++; else x.d++;
+      if(typeof g.delta==="number") x.e+=g.delta; });
+    return Object.entries(m).map(([fam,x])=>({fam,n:x.n,w:x.w,l:x.l,d:x.d,wr:Math.round(100*x.w/x.n),e:Math.round(x.e),fen:famFen[fam]||null,mv:famMv[fam]||null,own:BLACK_DEF.test(fam)}))
+      .filter(o=>o.n>=6).sort((a,b)=>b.n-a.n).slice(0,6); };
+  return { overall:wrOf(gs),
+    played:{all:build("played",null),white:build("played","W"),black:build("played","B")},
+    faced:{all:build("faced",null),white:build("faced","W"),black:build("faced","B")} };
+}
+// Tricolor ledger row: full-width W/D/L bar, win% at the tip, net Elo the one bold number, tick at your average.
+function pfLedgerRow(o,avg,nm){
+  const n=o.w+o.l+o.d, wp=n?100*o.w/n:0, dp=n?100*o.d/n:0, lp=n?100*o.l/n:0, wr=Math.round(wp);
+  const wc=wr>=avg+2?"g":wr<=avg-2?"b":"n", ec=o.e>0?"g":o.e<0?"b":"z";
+  return `<div class="pfop-row">${nm}<div class="pf-lbar"><i class="w" style="width:${wp.toFixed(1)}%"></i><i class="d" style="width:${dp.toFixed(1)}%"></i><i class="l" style="width:${lp.toFixed(1)}%"></i><span class="pf-tick" style="left:${avg}%" title="your ${avg}% overall"></span></div><span class="pf-lgames">${n}</span><span class="pf-lwr ${wc}" title="${o.w}W · ${o.d}D · ${o.l}L">${wr}%</span><span class="pf-lelo ${ec}">${o.e>0?"+":""}${o.e}</span></div>`;
+}
+function pfOpRows(mode,color){
+  const D=window.__pfOps; if(!D) return "";
+  const avg=D.overall, rows=(D[mode]&&D[mode][color])||[];
+  let html=rows.map(o=>{
+    const flip = color==="black"?1 : color==="white"?0 : (mode==="played" ? (o.own?1:0) : (o.own?0:1));  // show from the side YOU were
+    const oc=`<span class="pill ${o.own?"B":"W"}" title="${o.own?"a Black defense":"a White opening"}">${o.own?"B":"W"}</span>`;
+    const inner=o.fen?`<span class="pf-lname matpop" data-fen="${o.fen}" data-flip="${flip}" data-cap="<b>${o.fam}</b>" data-sub="a typical position${o.mv?` &mdash; ${o.mv} moves in`:""} &middot; ${o.n} games">${o.fam}</span>`:`<span class="pf-lname" title="${o.fam}">${o.fam}</span>`;
+    return pfLedgerRow(o,avg,`<span class="pf-lcell">${oc}${inner}</span>`);
+  }).join("");
+  for(let i=rows.length;i<6;i++) html+=`<div class="pfop-row pfop-empty"><span class="pf-lname">&nbsp;</span></div>`;
+  return html;
+}
+function pfOpToggle(btn){ [...btn.parentNode.children].forEach(b=>b.classList.toggle("on",b===btn)); const head=btn.closest(".pfop-head"); const mode=head.querySelector(".pfop-mode .on")?.dataset.v||"played"; const color=head.querySelector(".pfop-color .on")?.dataset.v||"all"; const el=document.getElementById("pf-oplist"); if(el) el.innerHTML=pfOpRows(mode,color); }
+// Endgames you reach, by type — read straight off the endgame FEN we already store (the position the
+// moment the board simplified). Highest piece present names the ending: queen > rook > minor > pawn.
+function pfEndgamesGrid(gs){
+  const total=gs.length||1;
+  const m={};   // reuse the Endgames page's classifier (endgameType, off final-board pieces) so they match
+  gs.forEach(g=>{ const t = endgameType(g) || "Never reached one";
+    const x=m[t]||(m[t]={n:0,w:0,e:0}); x.n++; if(g.result==="Win")x.w++; if(typeof g.delta==="number")x.e+=g.delta; });
+  const overall=Math.round(100*gs.filter(g=>g.result==="Win").length/total);
+  const ORDER=["Pawn endgame","Queen endgame","Rook endgame","Minor piece endgame","Mixed endgame","Never reached one"];
+  const rows=ORDER.filter(t=>m[t]&&m[t].n>=3)
+    .map(t=>({fam:t,reach:Math.round(100*m[t].n/total),wr:Math.round(100*m[t].w/m[t].n),e:Math.round(m[t].e)}));
+  return { overall, rows };
+}
+function pfEgRows(){
+  const D=window.__pfEg; if(!D) return "";
+  const base=D.overall, rows=D.rows||[];
+  const sgn=(v,s)=>v>0?`+${v}${s}`:v<0?`${v}${s}`:`±0${s}`;
+  let html=rows.map(o=>{ const d=o.wr-base, wc=o.wr>=base+2?"g":o.wr<=base-2?"b":"ink", dc=d>=2?"g":d<=-2?"b":"dim", ec=o.e>0?"g":o.e<0?"b":"dim";
+    return `<div class="pfop-row"><span class="pfop-nm">${o.fam}</span><span class="pfop-num dim">${o.reach}%</span><span class="pfop-num ${wc}">${o.wr}%</span><span class="pfop-num ${dc} pfop-adv">${sgn(d,"%")}</span><span class="pfop-num ${ec}">${sgn(o.e,"")}</span></div>`; }).join("");
+  for(let i=rows.length;i<6;i++) html+=`<div class="pfop-row pfop-empty"><span class="pfop-nm">&nbsp;</span></div>`;  // match the openings 5-row height
+  return html;
+}
+// By game length — the third module in the row. Short / medium / long, with win rate and net Elo.
+function pfLengthGrid(gs){
+  const played=gs.filter(g=>typeof g.moves==="number"&&g.moves>0);
+  const total=played.length||1;
+  const overall=Math.round(100*played.filter(g=>g.result==="Win").length/total);
+  const rows=[["0–20",g=>g.moves<20],["20–29",g=>g.moves>=20&&g.moves<30],["30–39",g=>g.moves>=30&&g.moves<40],["40–49",g=>g.moves>=40&&g.moves<50],["50–59",g=>g.moves>=50&&g.moves<60],["60+",g=>g.moves>=60]]
+    .map(([name,f])=>{ const a=played.filter(f); if(a.length<6) return null;
+      const w=a.filter(g=>g.result==="Win").length, l=a.filter(g=>g.result==="Loss").length;
+      return {fam:name,n:a.length,w,l,d:a.length-w-l,wr:Math.round(100*w/a.length),e:Math.round(a.reduce((s,g)=>s+(typeof g.delta==="number"?g.delta:0),0))}; }).filter(Boolean);
+  return {overall,rows};
+}
+function pfLenRows(){
+  const D=window.__pfLen; if(!D) return "";
+  const avg=D.overall, rows=D.rows||[];
+  let html=rows.map(o=>pfLedgerRow(o,avg,`<span class="pf-lcell"><span class="pf-lname">${o.fam}</span></span>`)).join("");
+  for(let i=rows.length;i<6;i++) html+=`<div class="pfop-row pfop-empty"><span class="pf-lname">&nbsp;</span></div>`;
+  return html;
+}
+// Piece data — per-piece activity (moves/avg) + the capture ledger (taken/lost/net), from g.caps.
+function pfPiecesGrid(gs){
+  const moves={k:0,q:0,r:0,b:0,n:0,p:0}, capm={k:0,q:0,r:0,b:0,n:0,p:0}, took={q:0,r:0,b:0,n:0,p:0}, lost={q:0,r:0,b:0,n:0,p:0};
+  let ng=0, any=false;
+  for(const g of gs){
+    if(!g.caps||!g.caps.moves) continue; any=true; ng++;
+    for(const k in moves){ moves[k]+=g.caps.moves[k]||0; capm[k]+=(g.caps.capm&&g.caps.capm[k])||0; }
+    for(const k in took){ took[k]+=(g.caps.took&&g.caps.took[k])||0; lost[k]+=(g.caps.lost&&g.caps.lost[k])||0; }
+  }
+  const order=[["p","Pawn","♟"],["n","Knight","♞"],["b","Bishop","♝"],["r","Rook","♜"],["q","Queen","♛"],["k","King","♚"]];
+  const rows=order.map(([k,nm,gl])=>({k,nm,gl,mv:moves[k]||0,cap:capm[k]||0,avg:ng?(moves[k]||0)/ng:0,capg:ng?(capm[k]||0)/ng:0,
+    tk:k==="k"?null:took[k], ls:k==="k"?null:lost[k]}));   // king is never captured → no trade ledger
+  return {rows,ng,any};
+}
+function pfPieceRows(){
+  const D=window.__pfPc;
+  const pad=k=>{ let h=""; for(let i=0;i<k;i++) h+=`<div class="pfop-row pfop-empty"><span class="pf-lname">&nbsp;</span></div>`; return h; };
+  if(!D||!D.any) return pad(6);
+  const num=v=>`<span class="pf-lgames">${v.toLocaleString()}</span>`;
+  const act=(v,g)=>`<span class="pf-lgames">${v.toLocaleString()} <span class="pf-lsub">(${g.toFixed(1)}/g)</span></span>`;
+  let html=D.rows.map(o=>{
+    const name=`<span class="pf-lcell"><span class="pf-lpc">${o.gl}</span><span class="pf-lname">${o.nm}</span></span>`;
+    const activity=`${act(o.mv,o.avg)}${act(o.cap,o.capg)}`;   // Moves + Captures, both "N (x/g)"
+    if(o.tk==null)   // king — moves & captures are real, but it's never captured → blank the ledger
+      return `<div class="pfop-row">${name}${activity}<span class="pf-lgames pf-dash">—</span><span class="pf-lgames pf-dash">—</span><span class="pf-lgames pf-dash">—</span></div>`;
+    const net=o.tk-o.ls, nc=net>0?"g":net<0?"b":"z";
+    return `<div class="pfop-row">${name}${activity}${num(o.tk)}${num(o.ls)}<span class="pf-lelo ${nc}">${net>0?"+":""}${net}</span></div>`;
+  }).join("");
+  return html;   // 6 rows (P/N/B/R/Q/K) → matches the 6-row openings module
+}
+// By opponent — record vs stronger / similar / weaker. Net Elo is the tell (bleeding to weaker players).
+function pfRatingGapGrid(gs){
+  const eb=g=>g.eloBefore||g.elo||0;
+  const pool=gs.filter(g=>g.oppElo&&eb(g));
+  const total=gs.length||1;
+  const overall=Math.round(100*gs.filter(g=>g.result==="Win").length/total);
+  const rows=[["Stronger · +50",g=>g.oppElo-eb(g)>=50],["Similar · ±50",g=>Math.abs(g.oppElo-eb(g))<50],["Weaker · −50",g=>g.oppElo-eb(g)<=-50]]
+    .map(([name,f])=>{ const a=pool.filter(f); if(a.length<6) return null;
+      return {fam:name,n:a.length,wr:Math.round(100*a.filter(g=>g.result==="Win").length/a.length),e:Math.round(a.reduce((s,g)=>s+(typeof g.delta==="number"?g.delta:0),0))}; }).filter(Boolean);
+  return {overall,rows};
+}
+function pfGapRows(){
+  const D=window.__pfGap; if(!D) return "";
+  const base=D.overall, rows=D.rows||[];
+  const sgn=(v,s)=>v>0?`+${v}${s}`:v<0?`${v}${s}`:`±0${s}`;
+  let html=rows.map(o=>{ const d=o.wr-base, wc=o.wr>=base+2?"g":o.wr<=base-2?"b":"ink", dc=d>=2?"g":d<=-2?"b":"dim", ec=o.e>0?"g":o.e<0?"b":"dim";
+    return `<div class="pfop-row"><span class="pfop-nm">${o.fam}</span><span class="pfop-num dim">${o.n}</span><span class="pfop-num ${wc}">${o.wr}%</span><span class="pfop-num ${dc} pfop-adv">${sgn(d,"%")}</span><span class="pfop-num ${ec}">${sgn(o.e,"")}</span></div>`; }).join("");
+  for(let i=rows.length;i<6;i++) html+=`<div class="pfop-row pfop-empty"><span class="pfop-nm">&nbsp;</span></div>`;
+  return html;
 }
 // A pool of "notable game" categories to pick from — each surfaces one real game worth reliving.
 function pfNotable(gs){
@@ -6515,7 +7025,7 @@ function pfWorldTour(gs){
     sub=` — ${nC} countr${nC===1?"y":"ies"} faced`;
     const top=[...ents].sort((a,b)=>b[1].length-a[1].length).slice(0,7);
     inner=`<div class="op">`+top.map(([c,a])=>{
-      const w=a.filter(g=>g.result==="Win").length, l=a.filter(g=>g.result==="Loss").length, d=a.length-w-l, r=wrOf(a), cl=r>=54?"good":r<45?"bad":"mid";
+      const w=a.filter(g=>g.result==="Win").length, l=a.filter(g=>g.result==="Loss").length, d=a.length-w-l, r=wrOf(a), cl=r>50?"good":r<45?"bad":"mid";
       return `<div class="wt-row"><span class="wt-name">${flagOf(c)}${nameOf(c)}</span><span class="op-track"><span class="op-fill ${cl}" style="width:${r}%"></span></span><span class="wt-right">${w}/${l}/${d} <span class="wt-pct ${cl}">${r}%</span></span></div>`;
     }).join("")+`</div>`;
     /* insight line ("Across N countries …") removed per request */
@@ -6555,7 +7065,9 @@ function renderProfile(list){
     const arr=[...byTc[tc]].sort((a,b)=>a.date-b.date);
     const w=arr.filter(g=>g.result==="Win").length,l=arr.filter(g=>g.result==="Loss").length,d=arr.filter(g=>g.result==="Draw").length;
     const cur=arr[arr.length-1].elo, peak=Math.max(...arr.map(g=>g.elo||0));
-    return {tc,cur,peak,w,l,d,n:arr.length,wr:100*w/arr.length};
+    const accs=arr.map(g=>g.acc).filter(a=>typeof a==="number");
+    const acc=accs.length?accs.reduce((s,a)=>s+a,0)/accs.length:null;
+    return {tc,cur,peak,w,l,d,n:arr.length,wr:100*w/arr.length,acc};
   }).sort((a,b)=>b.n-a.n);
   const main=tiles[0];
   const dates=gs.map(g=>+g.date);
@@ -6627,7 +7139,13 @@ function renderProfile(list){
   ];
   const statsHTML=CARDS.map(c=>`<a class="st" data-tab="${c.tab}" href="#tab=${c.tab}" title="${c.sub}"><span class="st-t">${c.t}<span class="go">→</span></span><span class="st-v ${c.cls||""}">${c.v}</span></a>`).join("");
 
-  const dna=pfDNA(gs, main?main.cur:null), au=pfAutopsy(gs), ops=pfOpenings(gs), notable=pfNotable(gs);
+  // DNA is scored per format (mixing formats muddies the peer comparison), so scope it to your main
+  // time control — the same scope the Insights page uses — so the two radars show identical numbers.
+  const dnaGs = (main && byTc[main.tc]) ? byTc[main.tc] : gs;
+  const dna=pfDNA(dnaGs, main?main.cur:null), au=pfAutopsy(gs), ops=pfOpenings(gs), notable=pfNotable(gs);
+  window.__pfOps=pfOpeningsGrid(gs);   // for the client-side openings toggle below
+  window.__pfLen=pfLengthGrid(gs);
+  window.__pfPc=pfPiecesGrid(gs);
   let opIns="";
   if(ops.length>=2){ const best=ops[0], worst=ops[ops.length-1];
     opIns=`<b>${best.fam}</b> is your rock at ${best.wr}%. ${worst.wr<45?`But <b>${worst.fam}</b> is a sinkhole — ${worst.wr}% over ${worst.n} games. Drill it or drop it.`:`Your ${worst.fam} lags at ${worst.wr}%.`}`; }
@@ -6641,9 +7159,9 @@ function renderProfile(list){
     </div>
     <div class="pf-tiles">
       ${tiles.map(s=>`<div class="pf-tile">
-        <div class="pf-tile-cls">${tcDotHTML({tc:s.tc})}${tcCap(s.tc)}<span class="pf-tn">${s.n} games</span></div>
+        <div class="pf-tile-cls">${tcDotHTML({tc:s.tc},true)}${tcCap(s.tc)}<span class="pf-tn">${s.n} games</span></div>
         <div class="pf-tile-elo"><span class="pf-elo-num" data-to="${s.cur}">${s.cur}</span> <span class="pf-peak">(peak ${s.peak})</span></div>
-        <div class="pf-tile-rec"><span class="pf-wr">${s.wr.toFixed(1)}%<span class="pf-wrl"> win rate</span></span><span class="pf-wld"><span class="wld"><i class="wdot w"></i>${s.w} W</span><span class="wld"><i class="wdot l"></i>${s.l} L</span><span class="wld"><i class="wdot d"></i>${s.d} D</span></span></div>
+        <div class="pf-tile-rec"><span class="pf-wr">${s.wr.toFixed(1)}%<span class="pf-wrl"> win rate</span>${s.acc!=null?`<span class="pf-wsep"> · </span>${s.acc.toFixed(1)}%<span class="pf-wrl"> accuracy</span>`:""}</span><span class="pf-wld"><span class="wld"><i class="wdot w"></i>${s.w} W</span><span class="wld"><i class="wdot l"></i>${s.l} L</span><span class="wld"><i class="wdot d"></i>${s.d} D</span></span></div>
       </div>`).join("")}
     </div>
 
@@ -6666,6 +7184,24 @@ function renderProfile(list){
           <div class="au-blk"><div class="au-cap"><span>Losses</span><b>${au.L.tot}</b></div><div class="au-bar">${au.L.bar}</div><div class="au-key">${au.L.key}</div></div>
           <div class="au-insight">${au.ins}</div>
         </div>
+      </div>
+    </div>
+
+    <div class="pf-oe">
+      <div class="panel pfop-panel">
+        <div class="pfop-head"><div class="panel-h" style="margin:0">Openings</div><span class="pfop-tg pfop-mode"><button class="on" data-v="played" onclick="pfOpToggle(this)">Played</button><button data-v="faced" onclick="pfOpToggle(this)">Faced</button></span><span class="pfop-as">as</span><span class="pfop-tg pfop-color"><button class="on" data-v="all" onclick="pfOpToggle(this)">All</button><button data-v="white" onclick="pfOpToggle(this)">White</button><button data-v="black" onclick="pfOpToggle(this)">Black</button></span></div>
+        <div class="pfop-row pfop-hdr"><span>Opening</span><span>W · D · L</span><span>Games</span><span>Win</span><span>Elo</span></div>
+        <div id="pf-oplist">${pfOpRows('played','all')}</div>
+      </div>
+      <div class="panel pfop-panel lns">
+        <div class="pfop-head"><div class="panel-h" style="margin:0">By game length</div></div>
+        <div class="pfop-row pfop-hdr"><span>Length</span><span>W · D · L</span><span>Games</span><span>Win</span><span>Elo</span></div>
+        <div id="pf-lenlist">${pfLenRows()}</div>
+      </div>
+      <div class="panel pfop-panel pcs">
+        <div class="pfop-head"><div class="panel-h" style="margin:0">Piece data</div></div>
+        <div class="pfop-row pfop-hdr"><span>Piece</span><span>Moves</span><span>Captures</span><span>Taken</span><span>Lost</span><span>Net</span></div>
+        <div id="pf-pclist">${pfPieceRows()}</div>
       </div>
     </div>
 
@@ -7295,7 +7831,7 @@ function renderInsights(list){
      fixed narrative order at the bottom — psychology, endings, skill, clock, records —
      regardless of the order the blocks appear (which is just build history). */
   let pRated="";
-  let pTiltCurve="", pTiltScore="", pFatigue="";
+  let pTiltCurve="", pFatigue="";
   let pAutopsy="", pResign="", pConvert="", pRecovery="", pDefense="";
   let pGap="", pAcc="", pDev="", pLen="", pSwing="", pTurns="", pMargin="", pBoard="";
   let pClockWar="";
@@ -7330,7 +7866,7 @@ function renderInsights(list){
   {
     const wins=list.filter(isW), losses=list.filter(g=>g.result==="Loss");
     // a resignation into a forced mate is really a checkmate — reclassify it here too
-    const eh=g=>(g.how==="resign" && resignForcedMate(g)) ? "checkmate" : (g.how||"other");
+    const eh=g=>(resignForcedMate(g)) ? "checkmate" : (g.how||"other");
     const tally=arr=>{
       const m={};
       arr.forEach(g=>{ const k=eh(g); m[k]=(m[k]||0)+1; });
@@ -7358,14 +7894,15 @@ function renderInsights(list){
     if(gift>=30) notes.push(`<b>${gift}% of your wins are gifts</b> — opponents flagging or walking away, not you beating them. Real points, but not evidence you're improving.`);
     if(mateL>=60 && mateW<mateL-20) notes.push(`<b>You get mated far more than you mate</b> (${mateL}% of losses vs ${mateW}% of wins). You're losing fast and winning slowly: that's a defense problem, not an attacking one.`);
     if(flagL>=20) notes.push(`<b>${flagL}% of your losses are timeouts</b> — a clock problem, not a chess problem.`);
-    const forcedRes=wins.concat(losses).filter(g=>g.how==="resign"&&resignForcedMate(g)).length;
-    if(forcedRes) notes.push(`<b>${forcedRes} "resignation${forcedRes===1?"":"s"}" ${forcedRes===1?"was":"were"} actually a forced mate</b> — Rookbook replayed the final position and counts ${forcedRes===1?"it":"them"} as checkmate, not a resignation.`);
+    const forcedRes=wins.concat(losses).filter(g=>resignForcedMate(g)).length;
     if(!notes.length && wins.length && losses.length) notes.push("Wins and losses end in similar ways — no obvious asymmetry to exploit.");
+    // methodology caveat — kept out of the main note (small/dim) so it always shows without crowding it
+    const forcedNote = forcedRes ? `<div class="isub" style="margin-top:7px;font-size:11px;color:var(--dim)"><b style="color:var(--read)">${forcedRes} resignation${forcedRes===1?"":"s"}/walkaway${forcedRes===1?" was":"s were"} actually a forced mate</b> — Rookbook replays each game's final position and checks whether a forced mate was on the board; when it finds one, ${forcedRes===1?"that game is counted":"those games are counted"} as a checkmate above, not a resignation.</div>` : "";
     const autoPanel=iPanel("Autopsy",`How your ${wins.length} wins and ${losses.length} losses actually ended.`,
       `${strip(wins,winCols,"Wins")}
-       <div style="height:14px"></div>
+       <div style="height:6px"></div>
        ${strip(losses,lossCols,"Losses")}
-       ${notes.length?`<div class="isub" style="margin-top:11px">${notes.join(" ")}</div>`:""}`);
+       ${notes.length?`<div class="isub" style="margin-top:9px">${notes[0]}</div>`:""}${forcedNote}`);
     pAutopsy+=autoPanel;
   }
 
@@ -7942,24 +8479,26 @@ function renderInsights(list){
       const quick=mated.filter(g=>g.moves<=20).length;
       const alreadyLost=mated.filter(g=>typeof g.troughMat==="number" && g.troughMat<=-3).length;
       const fromLevel=n-alreadyLost;
-      const drow=(label,x)=>`<div class="irow"><span class="ilabel" style="flex:1;white-space:normal">${label}</span><span class="ival" style="width:auto;font-size:13px">${x} <span style="color:var(--dim)">(${pc(x)}%)</span></span></div>`;
+      const drow=(label,x)=>`<div class="irow"><span class="ilabel" title="${label}">${label}</span><span class="itrack"><span class="ifill neutral" style="width:${pc(x)}%;display:block"></span></span><span class="ival">${x} <span>(${pc(x)}%)</span></span></div>`;
       const dnote=fromLevel>alreadyLost
         ? "More come from level or better positions than from lost ones — those are defensive collapses, not just losing games ending in mate."
         : "Most come when you were already losing — the mate is the symptom, not the cause.";
       pDefense+=iPanel("How you get mated",`The ${n} games where the king actually fell — most losses you resign or flag before it gets that far.`,
-        drow("Quick — mated inside 20 moves",quick)
-        +drow("Dragged out — 20 moves or more",n-quick)
-        +drow("You were already down 3+ material",alreadyLost)
-        +drow("Mated from a level or better position",fromLevel)
+        `<div class="isub" style="margin:-2px 0 8px;color:var(--dim)">By speed</div>`
+        +drow("Quick — inside 20 moves",quick)
+        +drow("Dragged out — 20+ moves",n-quick)
+        +`<div class="isub" style="margin:6px 0 8px;color:var(--dim)">By how the game stood</div>`
+        +drow("Already down 3+ material",alreadyLost)
+        +drow("From a level-or-better position",fromLevel)
         +`<div class="isub" style="margin-top:9px">${dnote}</div>`);
     }
   }
   // ---- Extra panels that flesh out the thin DNA sections (all move/material/clock based, no eval needed) ----
   const mkStack=(segs,total)=>{ let bar="",leg=""; segs.forEach(s=>{ if(!(s.n>0)) return; bar+=`<div style="width:${100*s.n/total}%;background:${s.color}" title="${s.label}: ${s.n}"></div>`; leg+=`<span><span class="sw" style="background:${s.color}"></span>${s.label} ${s.n} (${Math.round(100*s.n/total)}%)</span>`; }); return `<div class="stackbar">${bar}</div><div class="legend">${leg}</div>`; };
   const rrowI=(label,val,cls)=>`<div class="irow"><span class="ilabel" style="width:auto;flex:1;white-space:normal">${label}</span><span class="ival ${cls||""}" style="width:auto;font-size:13px">${val}</span></div>`;
-  const ehI=g=>(g.how==="resign" && resignForcedMate(g))?"checkmate":(g.how||"other");
+  const ehI=g=>(resignForcedMate(g))?"checkmate":(g.how||"other");
   const meanN=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
-  let pShortLoss="",pSeesaw="",pLeadSize="",pGiveback="",pKill="",pMateArrive="",pLossEnd="",pCastleMate="",pMateFormat="",pBehindOutcome="",pComebackEnd="";
+  let pShortLoss="",pSeesaw="",pLeadSize="",pGiveback="",pKill="",pMateArrive="",pLossEnd="",pCastleMate="",pMateFormat="",pBehindOutcome="",pComebackEnd="",pMissedMate="",pThinkSig="",pAccLen="";
   { // Sharpness — Short losses
     const dec=list.filter(g=>g.result==="Loss" && (g.how==="resign"||g.how==="checkmate") && typeof g.moves==="number" && g.moves>=MIN_REAL_MOVES);
     if(dec.length>=8){ const n=dec.length, b1=dec.filter(g=>g.moves<20).length, b2=dec.filter(g=>g.moves>=20&&g.moves<=40).length, b3=n-b1-b2;
@@ -7991,16 +8530,163 @@ function renderInsights(list){
       const note=mated/n>=0.4?`You finish the job — ${Math.round(100*mated/n)}% of your totally-winning games end in mate.`:`You rarely deliver the mate (${Math.round(100*mated/n)}%) even when completely winning — you wait for the resignation.`;
       pKill=iPanel("Do you go for the kill?","Of the games you were completely winning (up 5+ material), how often you actually delivered mate instead of waiting for the resignation.",`<div class="autohead"><span>Totally-winning games</span><span class="dim">${n}</span></div>`+mkStack([{label:"You mated them",n:mated,color:"var(--win)"},{label:"They resigned",n:resign,color:"var(--dim)"},{label:"They flagged or left",n:gift,color:"#8f6b57"}],n)+`<div class="isub" style="margin-top:9px">${note}</div>`); }
   }
-  { // Attack — how your mates arrive
-    const mates=list.filter(g=>g.result==="Win" && ehI(g)==="checkmate" && typeof g.moves==="number");
-    if(mates.length>=8){ const n=mates.length, pc=x=>Math.round(100*x/n), b1=mates.filter(g=>g.moves<=25).length, b2=mates.filter(g=>g.moves>=26&&g.moves<=45).length, b3=n-b1-b2;
-      pMateArrive=iPanel("How your mates arrive","When you do land the mate, whether it's an early attack or a ground-out endgame.",rrowI("Attacking mate — inside 25 moves",`${b1} <span class="dim">(${pc(b1)}%)</span>`)+rrowI("Middlegame — 26 to 45",`${b2} <span class="dim">(${pc(b2)}%)</span>`)+rrowI("Endgame grind — 46+",`${b3} <span class="dim">(${pc(b3)}%)</span>`)); }
+  { // Attack & Defense — mates you DELIVER vs mates you RECEIVE, by the move the mate landed.
+    // Two distributions on one axis: green = your checkmate wins, coral = your checkmate losses.
+    const deliver=list.filter(g=>g.result==="Win"  && ehI(g)==="checkmate" && typeof g.moves==="number" && g.moves>0);
+    const receive=list.filter(g=>g.result==="Loss" && ehI(g)==="checkmate" && typeof g.moves==="number" && g.moves>0);
+    if(deliver.length>=8){
+      const nD=deliver.length, nR=receive.length;
+      const mvD=deliver.map(g=>g.moves).sort((a,b)=>a-b), mvR=receive.map(g=>g.moves).sort((a,b)=>a-b);
+      const medD=mvD[Math.floor((nD-1)/2)], medR=nR?mvR[Math.floor((nR-1)/2)]:null;
+      const BW=3, allMax=Math.max(mvD[nD-1], nR?mvR[nR-1]:24);
+      const hiCap=Math.min(60,Math.max(24,Math.ceil(allMax/BW)*BW)), nBins=Math.round(hiCap/BW);
+      const binOf=m=>{ let b=Math.floor((m-1e-4)/BW); if(b<0)b=0; if(b>=nBins)b=nBins-1; return b; };
+      const cD=new Array(nBins).fill(0), cR=new Array(nBins).fill(0);
+      deliver.forEach(g=>cD[binOf(g.moves)]++); receive.forEach(g=>cR[binOf(g.moves)]++);
+      const maxC=Math.max(...cD, ...cR, 1);
+      const verdict = (medR!=null && medR<medD-2) ? `You get mated <b>faster than you mate</b> — losses end around move ${medR}, wins around move ${medD}. The king often falls before you land yours.`
+        : (medR!=null && medR>medD+2) ? `You strike <b>sooner than you're struck</b> — you mate around move ${medD}, you're mated around move ${medR}.`
+        : (medR!=null) ? `You deliver and receive mate at about the same depth (moves ${medD} vs ${medR}).`
+        : `${nD} checkmate wins, and you're rarely mated yourself — little on the receiving side to compare.`;
+      // ---- grouped histogram: two bars per bin — deliver (green) beside receive (coral) ----
+      // wide viewBox: this panel spans the full section row, so a wide aspect keeps it from
+      // rendering too tall when the SVG scales to 100% width.
+      const W=720,Hc=230,mL=26,mR=10,mT=8,mB=26, pW=W-mL-mR, pH=Hc-mT-mB, baseY=mT+pH;
+      const niceStep=v=>[1,2,5,10,20,25,50].find(x=>x>=v/4)||100;
+      const yStep=niceStep(maxC), yMax=Math.max(yStep,Math.ceil(maxC/yStep)*yStep);
+      const yA=c=>mT+pH*(1-c/yMax);
+      let grid=""; for(let t=0;t<=yMax+1e-6;t+=yStep) grid+=`<line x1="${mL}" y1="${yA(t).toFixed(1)}" x2="${W-mR}" y2="${yA(t).toFixed(1)}" stroke="var(--rule)" stroke-width="0.5"/><text x="${mL-5}" y="${(yA(t)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--dim)" font-family="var(--mono)">${t}</text>`;
+      const slot=pW/nBins, bw=Math.max(1.5,slot/2-1);
+      let bars="";
+      for(let i=0;i<nBins;i++){ const bx=mL+i*slot, lo=`moves ${i*BW+1}–${(i+1)*BW}${i===nBins-1&&hiCap===60?"+":""}`;
+        if(cD[i]){ const by=yA(cD[i]); bars+=`<rect x="${(bx+0.5).toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${(baseY-by).toFixed(1)}" fill="var(--win)" fill-opacity="0.9"><title>${lo}: ${cD[i]} delivered</title></rect>`; }
+        if(cR[i]){ const by=yA(cR[i]); bars+=`<rect x="${(bx+slot/2+0.5).toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${(baseY-by).toFixed(1)}" fill="var(--loss)" fill-opacity="0.9"><title>${lo}: ${cR[i]} received</title></rect>`; }
+      }
+      let xticks=""; for(let m=0;m<=hiCap;m+=10){ const x=mL+(m/hiCap)*pW; xticks+=`<text x="${x.toFixed(1)}" y="${(baseY+12).toFixed(1)}" text-anchor="middle" font-size="9" fill="var(--dim)" font-family="var(--mono)">${m===hiCap&&hiCap===60?"60+":m}</text>`; }
+      const yTitle=`<text x="8" y="${(mT+pH/2).toFixed(1)}" transform="rotate(-90 8 ${(mT+pH/2).toFixed(1)})" text-anchor="middle" font-size="8.5" fill="var(--dim)" font-family="var(--sans)" letter-spacing="0.6">games</text>`;
+      const xTitle=`<text x="${(mL+pW/2).toFixed(1)}" y="${(Hc-2).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="var(--dim)" font-family="var(--sans)" letter-spacing="0.6">move the mate landed on</text>`;
+      const axes=`<line x1="${mL}" y1="${mT}" x2="${mL}" y2="${baseY}" stroke="var(--rule)" stroke-width="0.8"/><line x1="${mL}" y1="${baseY}" x2="${W-mR}" y2="${baseY}" stroke="var(--rule)" stroke-width="0.8"/>`;
+      const chart=`<svg class="acc-chart" viewBox="0 0 ${W} ${Hc}" role="img" aria-label="Checkmates delivered vs received, by move">${grid}${axes}${bars}${xticks}${yTitle}${xTitle}</svg>`;
+      // consolidated: one stat line (color dot · count · median) replaces the old verdict + legend + tiles
+      const dot=c=>`<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c};vertical-align:-1px;margin-right:5px"></span>`;
+      const b=v=>`<b style="color:var(--ink);font-family:var(--mono)">${v}</b>`;
+      const statline=`<div class="isub" style="display:flex;gap:22px;flex-wrap:wrap;margin:1px 0 3px;font-size:12px"><span>${dot("var(--win)")}deliver ${b(nD)} · median move ${b(medD)}</span><span>${dot("var(--loss)")}receive ${b(nR)} · median move ${b(medR!=null?medR:"—")}</span></div>`;
+      pMateArrive=`<div class="ipanel" id="ip-mate-arrive"><h3>When mate is delivered</h3>${statline}${chart}</div>`;
+    }
   }
-  { // Defense — does castling save you
-    const cy=list.filter(g=>g.castled==="yes"), cn=list.filter(g=>g.castled==="no");
-    if(list.length>=20 && cy.length>=8 && cn.length>=8){ const mr=a=>Math.round(100*a.filter(g=>g.result==="Loss"&&g.how==="checkmate").length/a.length); const ry=mr(cy), rn=mr(cn);
-      const note=rn-ry>=3?`You get mated ${rn}% of the time when you skip castling, ${ry}% when you tuck the king away — castle earlier.`:`Your mates aren't really about castling — king trouble starts later than the opening.`;
-      pCastleMate=iPanel("Does castling save you?","Share of games that ended with your king actually checkmated, split by whether you castled.",rrowI("Castled",`${ry}% mated <span class="dim">(${cy.length} games)</span>`,ry>rn?"res loss":"")+rrowI("Never castled",`${rn}% mated <span class="dim">(${cn.length} games)</span>`,rn>=ry?"res loss":"")+`<div class="isub" style="margin-top:9px">${note}</div>`); }
+  { // Attack — mates you left on the board: the flip side of finishing, and a segue to Missed Mates.
+    // Uses the client-side mate scan (g.mates, no engine). Score stays as-is (the scan is optional,
+    // so it can't gate the always-on Attack number); this panel is where missed mates get considered.
+    const scanned=list.filter(g=>g.mates);
+    if(scanned.length){
+      const missed=scanned.reduce((a,g)=>a+(g.mates.missed||0),0);
+      const hit=scanned.filter(g=>g.mates.missed>0);
+      const notWon=hit.filter(g=>g.result!=="Win").length;
+      const landed=list.filter(g=>g.result==="Win" && ehI(g)==="checkmate").length;   // mates you DID convert
+      const body = rrowI("Checkmates you landed",`${landed}`,"res win")
+        + (missed
+          ? rrowI("Forced mates you walked past",`${missed} <span class="dim">in ${hit.length} of ${scanned.length} scanned</span>`,"res loss")
+            + (notWon?rrowI("…that cost you the full point",`${notWon} game${notWon===1?"":"s"}`,"res loss"):"")
+            + `<div class="isub" style="margin-top:9px">You finish most of them — but ${missed} forced mate${missed===1?" was":"s were"} on the board and went unplayed. <a class="evlink" href="#tab=mates">See each one →</a></div>`
+          : rrowI("Forced mates you walked past",`0 <span class="dim">in ${scanned.length} scanned</span>`,"res win")
+            + `<div class="isub" style="margin-top:9px">Ruthless — when mate was on the board, you took it. <a class="evlink" href="#tab=mates">Missed Mates keeps it honest →</a></div>`);
+      pMissedMate=iPanel("Mates: landed vs left","Checkmates you delivered, against forced mates that were on the board and went unplayed.",body);
+    } else {
+      pMissedMate=iPanel("Mates you left on the board","The other half of finishing: forced checkmates that were on the board and went unplayed.",`<div class="isub">These games haven't been scanned for missed mates yet — it runs right in your browser, no engine needed. <a class="evlink" href="#tab=mates">Scan for missed mates →</a></div>`);
+    }
+  }
+  { // Clock — Thinking signature: avg seconds spent on each move (1..N) across games with clock
+    // data. Shows where you blitz out of book and where you sink time. Straight from the per-move
+    // stamps, no engine. Full-width (.wide) since a 26-bar chart needs the room.
+    const withT=list.filter(g=>g.tc!=="daily" && g.times && g.times.mine && g.times.mine.length>=8 && typeof g.times.base==="number" && g.times.base>0);
+    if(withT.length>=8){
+      const MAXM=26, per=[];
+      for(let k=0;k<MAXM;k++){
+        const vals=withT.map(g=>g.times.mine[k]).filter(v=>typeof v==="number");
+        if(vals.length < Math.max(5, withT.length*0.25)) break;   // sample thinned — stop the axis here
+        per.push({move:k+1, avg:vals.reduce((a,b)=>a+b,0)/vals.length});
+      }
+      if(per.length>=8){
+        const peak=per.reduce((a,b)=>b.avg>a.avg?b:a, per[0]);
+        const openBase=(per[0].avg+per[1].avg+per[2].avg)/3;   // your instant book-move pace
+        const startP=per.find(p=>p.move>=3 && p.avg>=Math.max(openBase*1.8, 2.5));
+        const startMove=startP?startP.move:peak.move;
+        const openMoves=withT.flatMap(g=>g.times.mine.slice(3,12)).filter(v=>typeof v==="number");
+        const instant=openMoves.length?Math.round(100*openMoves.filter(t=>t<2).length/openMoves.length):0;
+        const troub=withT.filter(g=>{ const inc=g.times.inc||0; let c=g.times.base, lo=c; for(const s of g.times.mine){ c-=s; if(c<lo)lo=c; c+=inc; } return lo<g.times.base*0.1; }).length;
+        const troubleP=Math.round(100*troub/withT.length);
+        const H=100, n=per.length, slot=100/n, bw=slot*0.7, maxAvg=Math.max(...per.map(p=>p.avg))||1;
+        const bars=per.map((p,i)=>{ const h=Math.max(1.5, H*p.avg/maxAvg);
+          return `<rect x="${(i*slot+slot*0.15).toFixed(2)}" y="${(H-h).toFixed(2)}" width="${bw.toFixed(2)}" height="${h.toFixed(2)}" fill="${p.move<startMove?"var(--rule)":"var(--green)"}"><title>Move ${p.move} — ${p.avg.toFixed(1)}s avg</title></rect>`; }).join("");
+        const si=per.findIndex(p=>p.move>=startMove);
+        const marker=si>0?`<line x1="${(si*slot).toFixed(2)}" y1="0" x2="${(si*slot).toFixed(2)}" y2="${H}" stroke="var(--draw)" stroke-width="0.5" stroke-dasharray="2.5 2"/>`:"";
+        const chart=`<svg class="tsig-chart" viewBox="0 0 100 ${H}" preserveAspectRatio="none" role="img" aria-label="Average seconds per move">${marker}${bars}</svg>`;
+        const tile=(v,l,bad)=>`<div class="tsig-tile"><div class="tsig-v${bad?" bad":""}">${v}</div><div class="tsig-l">${l}</div></div>`;
+        const tiles=`<div class="tsig-tiles">${tile("move "+startMove,"starts thinking")}${tile("move "+peak.move,"reflection peak")}${tile(instant+"%","instant in the opening")}${tile(troubleP+"%","time trouble",troubleP>=25)}</div>`;
+        pThinkSig=`<div class="ipanel" id="ip-thinking-signature"><h3>Thinking signature</h3>`
+          +`<div class="isub">Average seconds you spend on each move across ${withT.length} games — grey while you're still in book, green once you start thinking.</div>`
+          +tiles+chart+`<div class="tsig-axis"><span>move 1</span><span>move ${per.length}${per.length>=MAXM?"+":""}</span></div></div>`;
+      }
+    }
+  }
+  { // Accuracy by game length — the companion to the thinking signature: where you play cleanest,
+    // short sharp games vs long grinds. Game-level accuracy (chess.com's, when a game was reviewed);
+    // per-move accuracy would need engine analysis of every move, which we don't do.
+    const withA=list.filter(g=>typeof g.acc==="number"&&typeof g.moves==="number");
+    if(withA.length>=20){
+      const buckets=[["<10",0,9],["10",10,19],["20",20,29],["30",30,39],["40",40,49],["50",50,59],["60",60,69],["70",70,79],["80+",80,999]];
+      const rows=buckets.map(([label,lo,hi])=>{ const b=withA.filter(g=>g.moves>=lo&&g.moves<=hi);
+        return {label,n:b.length,acc:b.length?b.reduce((a,g)=>a+g.acc,0)/b.length:null}; }).filter(r=>r.n>=3);
+      if(rows.length>=3){
+        const accs=rows.map(r=>r.acc), maxA=Math.max(...accs), minA=Math.min(...accs);
+        const best=rows.reduce((a,b)=>b.acc>a.acc?b:a);
+        // Axed bar chart: y = accuracy % (gridlines + labels), x = game-length buckets (labelled per bar).
+        // Neutral bars — accuracy is a quality read, not a win/loss rate.
+        const W=340,Hc=140,mL=32,mR=10,mT=12,mB=34, pW=W-mL-mR, pH=Hc-mT-mB;
+        const lo=Math.max(40,Math.floor((minA-4)/5)*5); let hi=Math.min(100,Math.ceil((maxA+4)/5)*5); if(hi-lo<10) hi=Math.min(100,lo+10);
+        const yA=a=>mT+pH*(1-(a-lo)/(hi-lo)), baseY=mT+pH;
+        const step=(hi-lo)<=25?5:10, ticks=[]; for(let t=lo;t<=hi+0.001;t+=step) ticks.push(t);
+        const grid=ticks.map(t=>`<line x1="${mL}" y1="${yA(t).toFixed(1)}" x2="${W-mR}" y2="${yA(t).toFixed(1)}" stroke="var(--rule)" stroke-width="0.5"/><text x="${mL-5}" y="${(yA(t)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--dim)" font-family="var(--mono)">${t}</text>`).join("");
+        const esc=s=>String(s).replace(/</g,"&lt;").replace(/>/g,"&gt;");   // "<20" would corrupt SVG text
+        const n=rows.length, slot=pW/n, bw=slot*0.56;
+        const bars=rows.map((r,i)=>{ const bx=mL+i*slot+(slot-bw)/2, by=yA(r.acc);
+          return `<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${(baseY-by).toFixed(1)}" fill="var(--dim)"><title>${esc(r.label)} moves: ${r.acc.toFixed(1)}% accuracy (${r.n} games)</title></rect><text x="${(mL+i*slot+slot/2).toFixed(1)}" y="${(baseY+12).toFixed(1)}" text-anchor="middle" font-size="9" fill="var(--dim)" font-family="var(--mono)">${esc(r.label)}</text>`; }).join("");
+        const yTitle=`<text x="9" y="${(mT+pH/2).toFixed(1)}" transform="rotate(-90 9 ${(mT+pH/2).toFixed(1)})" text-anchor="middle" font-size="8.5" fill="var(--dim)" font-family="var(--sans)" letter-spacing="0.6">accuracy %</text>`;
+        const xTitle=`<text x="${(mL+pW/2).toFixed(1)}" y="${(Hc-2).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="var(--dim)" font-family="var(--sans)" letter-spacing="0.6">game length (moves)</text>`;
+        const axes=`<line x1="${mL}" y1="${mT}" x2="${mL}" y2="${baseY}" stroke="var(--rule)" stroke-width="0.8"/><line x1="${mL}" y1="${baseY}" x2="${W-mR}" y2="${baseY}" stroke="var(--rule)" stroke-width="0.8"/>`;
+        const chart=`<svg class="acc-chart" viewBox="0 0 ${W} ${Hc}" role="img" aria-label="Accuracy by game length">${grid}${axes}${bars}${yTitle}${xTitle}</svg>`;
+        const shortBest=/^(<10|10|20)/.test(best.label);
+        const verdict = maxA-minA<2 ? "Your accuracy holds steady whatever the game length."
+          : shortBest ? "You're sharpest in short, sharp games — accuracy slips in long grinds."
+          : "You hold your accuracy deep into long games — the grind suits you.";
+        const tile=(v,l)=>`<div class="tsig-tile"><div class="tsig-v">${v}</div><div class="tsig-l">${l}</div></div>`;
+        const tiles=`<div class="tsig-tiles">${tile(best.label,"sharpest length")}${tile(Math.round(best.acc)+"%","peak accuracy")}${tile((maxA-minA).toFixed(0)+"pts","short↔long swing")}</div>`;
+        pAccLen=`<div class="ipanel" id="ip-accuracy-length"><h3>Accuracy by game length</h3>`
+          +`<div class="isub">${verdict}</div>`
+          +tiles+chart+`</div>`;
+      }
+    }
+  }
+  { // Castling — how often, how early, and which side, split by the color you played
+    const rate=gs=>{ const c=gs.filter(g=>g.castled==="yes").length; return gs.length?Math.round(100*c/gs.length):null; };
+    const mr=a=>a.length?Math.round(100*a.filter(g=>g.result==="Loss"&&g.how==="checkmate").length/a.length):null;
+    const W=list.filter(g=>g.color==="W"), B=list.filter(g=>g.color==="B");
+    const castledAll=list.filter(g=>g.castled==="yes"), neverAll=list.filter(g=>g.castled==="no");
+    const castMoves=castledAll.filter(g=>typeof g.castleMove==="number");
+    const avgMv=castMoves.length?castMoves.reduce((s,g)=>s+g.castleMove,0)/castMoves.length:null;
+    const sided=castledAll.filter(g=>g.castleSide), kPct=sided.length?Math.round(100*sided.filter(g=>g.castleSide==="K").length/sided.length):null;
+    const rW=rate(W), rB=rate(B), mC=mr(castledAll), mN=mr(neverAll);
+    if(castledAll.length>=6){
+      const b=[];
+      if(rW!=null&&rB!=null) b.push(`You castle in <b>${rW}%</b> of your games as White and <b>${rB}%</b> as Black.`);
+      else if(rW!=null||rB!=null) b.push(`You castle in <b>${rW!=null?rW:rB}%</b> of your games.`);
+      if(mC!=null&&mN!=null&&castledAll.length>=8&&neverAll.length>=8){
+        const v = mN-mC>=6 ? ` — castling clearly keeps the king safer.` : mC-mN>=6 ? ` — oddly, you're mated <i>more</i> when you castle, so the danger's coming from elsewhere.` : ` — castling barely changes your mate rate.`;
+        b.push(`In games you castle you get checkmated <b>${mC}%</b> of the time, versus <b>${mN}%</b> in games you don't${v}`);
+      }
+      if(avgMv!=null) b.push(`You usually castle around <b>move ${avgMv.toFixed(1).replace(/\.0$/,"")}</b>${kPct!=null?`, ${kPct>=85?"almost always <b>kingside</b>":kPct<=15?"almost always <b>queenside</b>":`<b>${kPct}%</b> of the time kingside`}`:""}.`);
+      pCastleMate=iPanel("Castling","How, when, and which side you tuck the king away.",`<ul class="cast-list">${b.map(x=>`<li>${x}</li>`).join("")}</ul>`);
+    }
   }
   { // Defense — which clock gets you mated (only meaningful across formats)
     const order=["bullet","blitz","rapid","daily"], byTc={}; list.forEach(g=>{ (byTc[g.tc]=byTc[g.tc]||[]).push(g); });
@@ -8032,36 +8718,62 @@ function renderInsights(list){
   // fill in beneath it as the data (and Game Review) accrue.
   const insMyElo=(()=>{ for(let i=asc.length-1;i>=0;i--){ if(typeof asc[i].elo==="number") return asc[i].elo; } return null; })();
   let insDna=null; const dnaBy={}; try{ insDna=pfDNA(list, insMyElo); insDna.axes.forEach(a=>{ dnaBy[a.key]=a; }); }catch(_){}
-  const dnaHead=(key,gloss)=>{ const a=dnaBy[key]; if(!a) return "";
-    const cls=a.val>=60?"good":a.val<42?"bad":"";
-    return `<div class="dna-head-row"><div class="dna-score ${cls}">${a.val}<span class="dna-score-max">/100</span></div>`
-      +`<div class="dna-head-txt"><div class="dna-metric">${a.metric}</div>${gloss?`<div class="dna-blurb">${gloss}</div>`:""}</div></div>`; };
-  const dnaSection=(title,key,gloss,panels)=>{
-    if(!dnaBy[key]) return "";
-    const body=panels||`<div class="isub" style="grid-column:1/-1;padding:2px 2px 12px">The games behind this fill in as you play more.</div>`;
-    return `<div class="igroup" id="dna-${key}">${title}</div>`+dnaHead(key,gloss)+body;
+  // Each axis renders as its own self-contained "chapter" card: a header band (chapter number in
+  // radar order, axis name, the one-line metric, and the big 0-100 score with a verdict-colored
+  // left rail) above that axis's modules in a 2-up grid. gloss is accepted for call compatibility
+  // but the concrete metric earns the header space instead.
+  const dnaSection=(title,key,gloss,panels,n)=>{
+    const a=dnaBy[key]; if(!a) return "";
+    const cls=a.val>=60?"good":a.val<42?"bad":"mid";
+    const body=panels||`<div class="ipanel">The games behind this fill in as you play more.</div>`;
+    return `<section class="dna-sec ${cls}" id="dna-${key}">`
+      +`<header class="dna-sec-head"><span class="dna-eyebrow">${title}</span>`
+      +`<span class="dna-sec-score">${a.val}<small>/100</small></span></header>`
+      +`<div class="dna-mods">${body}</div></section>`;
   };
   // Enlarged radar + fleshed-out axis breakdown at the top; each row jumps to its section below.
+  // Overall DNA score + two grouped sub-scores. Overall = equal-weight mean of all six axes.
+  // Killer Instinct = how you dictate (Attack, Conversion, Sharpness); Survival = how you hold up
+  // under fire (Resilience, Clock, Defense). Disjoint and exhaustive over the six; skips a group
+  // whose axes are absent so a partial DNA never divides by zero.
+  // Radar + a grid of six attribute cards (one per DNA axis, in radar order); each card jumps to its
+  // section. Overall = equal-weight mean of the six. The group sub-scores and the summary sentence
+  // were dropped in favor of giving the six cards the whole right side.
+  const dnaOverall=insDna?insDna.overall:null;
+  const scoreCls=v=>v>=60?"good":v<42?"bad":"mid";
   const dnaHeroHTML = insDna ? `<div class="ins-dna">`
     +`<div class="ins-dna-radar">${pfRadarBig(insDna.axes)}</div>`
-    +`<div class="ins-dna-side"><div class="ins-dna-h">Your Chess DNA</div>`
-    +`<div class="ins-dna-sum">${dnaSummary(insDna.axes)}</div>`
-    +`<div class="ins-dna-axes">${insDna.axes.map(a=>`<button class="ins-dna-ax" data-scrollto="dna-${a.key}"><span class="ins-dna-axtxt"><span class="ins-dna-axname">${a.label}</span><span class="ins-dna-axmetric">${a.metric}</span></span><span class="ins-dna-jump">&rarr;</span></button>`).join("")}</div>`
-    +`</div></div>` : "";
+    +`<div class="ins-dna-cards-wrap">`
+      +`<div class="ins-dna-h">Overall Rookbook Rating${dnaOverall!=null?` <span class="dna-overall ${scoreCls(dnaOverall)}">${dnaOverall}<small>/100</small></span>`:""}${insDna&&insDna.ratingPct!=null?(()=>{ const rw=Math.round(insDna.ratingWeight*100), pw=100-rw; return `<span class="dna-info-wrap"><span class="dna-info" tabindex="0" role="button" aria-label="How this is scored">?</span><span class="dna-info-pop"><p>Each attribute is <b>peer-relative</b> — scored against the opponents you faced (all near your rating), where <b>50 = even with your field</b>.</p><p>Every score is then lifted ${rw}% toward how your rating ranks: <b>${insDna.myElo||"?"}</b> ${insDna.domTc} ≈ <b>${insDna.ratingPct}th percentile</b>.</p><p class="dna-calc-formula">each = ${pw}% × field + ${rw}% × ${insDna.ratingPct}<br>Overall = ${pw}% × ${insDna.peerMean} + ${rw}% × ${insDna.ratingPct} = <b>${insDna.overall}</b></p><p class="dna-wts-h">Overall weights</p><div class="dna-wts">${insDna.weights.map(w=>{ const mx=insDna.weights[0].w||1; return `<div class="dna-wt"><span class="dna-wt-l">${w.label}</span><span class="dna-wt-bar"><i style="width:${Math.round(100*w.w/mx)}%"></i></span><span class="dna-wt-v">${w.w}</span></div>`; }).join("")}</div><p class="dna-calc-note">Percentiles are approximate.</p></span></span>`; })():""}</div>`
+      +`<div class="dna-cards">${insDna.axes.map(a=>`<button class="dna-card ${scoreCls(a.val)}" data-scrollto="dna-${a.key}"><span class="dna-card-top"><span class="dna-card-head"><span class="dna-card-name">${a.label}</span><span class="dna-card-score">${a.val}<small>/100</small></span></span><span class="dna-card-jump">&rarr;</span></span><ul class="dna-card-metric">${(a.bullets&&a.bullets.length?a.bullets:[a.metric]).map(b=>`<li>${b}</li>`).join("")}</ul></button>`).join("")}</div>`
+    +`</div>`
+    +`</div>` : "";
   const wipBanner=(()=>{ try{ if(localStorage.getItem("rookbook:wipInsights")==="1") return ""; }catch(e){} return `<div class="wipbar" id="wipInsights"><span class="wiptxt"><b>Insights is being actively rebuilt.</b> <span class="wipdim">Sorry for any rough edges — it's getting better every week.</span></span><button class="wipx" id="wipDismiss" aria-label="Dismiss this notice" title="Dismiss">&times;</button></div>`; })();
   box.innerHTML=wipBanner+`<div style="grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 0 10px"><h3 class="ptitle">Insights</h3><span class="isub" style="margin:0;font-family:var(--sans)">What your games add up to — where you're strong, where you're weak, and how you hold up.</span></div>`
     + insScopeNote
     + dnaHeroHTML
     + renderCoach(list)
     + thin
-    + '<div class="isub" style="grid-column:1/-1;padding:6px 20px 0">Bar colors: <span class="res win">green</span> = 3+ points above your overall win rate in view, <span class="res loss">red</span> = 3+ below, <span class="res draw">yellow</span> = around it. Accuracy bars use the same idea with a 1-point band.</div>'
-    + dnaSection("Sharpness",  "sharp",  "How clean your moves are for your rating.",                 pAcc+pDev+pShortLoss+pSeesaw)
-    + dnaSection("Conversion", "conv",   "Turning won positions into won games.",                     pConvert+pMargin+pLeadSize+pGiveback)
-    + dnaSection("Attack",     "attack", "Whether you finish with mate or wait for the resignation.", pAutopsy+pTurns+pKill+pMateArrive)
-    + dnaSection("Defense",    "steady", "How rarely you actually get checkmated.",                   pLossEnd+pDefense+pSwing+pResign+pCastleMate+pMateFormat)
-    + dnaSection("Resilience", "resil",  "Whether you claw back when you fall behind.",               pRecovery+pBehindOutcome+pComebackEnd)
-    + dnaSection("Clock",      "clock",  "How rarely the clock beats you, and where your time goes.", pClockWar+tempoPanels(list))
-    + section("Off the board", pTiltCurve+pTiltScore+pFatigue+pRated+pGap+pFormats+pLen);
+    // Ordered to match the radar up top, reading clockwise from the top vertex: Attack first.
+    + (()=>{ const atk=dnaBy.attack, def=dnaBy.steady; if(!atk&&!def) return "";
+        const sc=v=>v>=60?"good":v<42?"bad":"mid";
+        const scr=a=>a?`<span class="dna-inl ${sc(a.val)}">${a.val}</span>`:`<span class="dna-inl">–</span>`;
+        const title=`ATTACK ${scr(atk)} + DEFENSE ${scr(def)}`;
+        // top row: the mates chart (2/3) + the Autopsy beside it; then the rest.
+        // pLossEnd removed — the Autopsy already breaks down how losses end.
+        // top row (mates chart + autopsy, custom ratio) is separate from the rest (uniform 2-up),
+        // so the mates chart can be narrow without the lower panels going uneven.
+        const rest=pMissedMate+pKill+pDefense+pSwing+pCastleMate+pMateFormat;
+        const inner=`<div class="ad-top">${pMateArrive}${pAutopsy}</div>`+(rest?`<div class="ad-rest">${rest}</div>`:"");
+        const body=(pMateArrive||pAutopsy||rest)?inner:`<div class="ipanel">The games behind this fill in as you play more.</div>`;
+        // id="dna-attack" is the section; the empty #dna-steady anchor keeps the Defense radar card's jump working
+        return `<section class="dna-sec admerge" id="dna-attack"><span id="dna-steady" style="scroll-margin-top:14px"></span><header class="dna-sec-head"><span class="dna-eyebrow">${title}</span></header><div class="ad-body">${body}</div></section>`;
+      })()
+    + dnaSection("Conversion", "conv",   "Turning won positions into won games.",                     pConvert+pLeadSize+pGiveback, 3)
+    + dnaSection("Resilience", "resil",  "How you handle adversity — clawing back in a game, holding steady after a loss, and staying sharp deep into a session.", pRecovery+pBehindOutcome+pComebackEnd+pTiltCurve+pFatigue, 4)
+    + dnaSection("Sharpness",  "sharp",  "How clean your moves are for your rating.",                 pAcc+pDev+pShortLoss+pSeesaw+pTurns, 5)
+    + dnaSection("Clock",      "clock",  "How rarely the clock beats you, and where your time goes.", pThinkSig+pAccLen+pClockWar+tempoPanels(list), 6);
+    // "Off the board" / Format face-off section removed per request.
   /* Scroll to the panel a finding points at. Deliberately NOT an href="#id": the hash is
      the tab router, so a fragment link would be read as a tab change. */
   box.querySelectorAll("[data-scrollto]").forEach(b=>{
@@ -8118,6 +8830,65 @@ function renderDow(list){
     </div>`;
   }).join("") + (totAll?avgLine(barSpace*avg/100,"","Your overall win rate"):"");
   setChartAvg("dowBars", totAll?` · avg ${Math.round(avg)}%`:"");
+}
+
+// ---------- Move destination map: where your pieces land, across every game ----------
+// PARKED (removed from Charts 2026-07-25): the Move Destination heatmap. Kept whole to rework into a
+// CHECKMATE given/taken heatmap — same board-grid drawMoveMap() shell, but tally the mating square (or
+// the king's square at mate) for mates you deliver vs receive. To revive as-is: re-add renderMoveMap(l)
+// to the charts render and a <div id="moveMapWrap"></div> to the Charts markup.
+// Re-reads g.pgn with chess.js and tallies the destination square of every move YOU made
+// (your colour only), split All / Wins / Losses. Heavy-ish, so parsed once and cached.
+let _mmData=null, _mmKey="";
+function computeMoveMap(list){
+  const key=list.length+"|"+((list[0]&&list[0].url)||"")+"|"+((list[list.length-1]&&list[list.length-1].url)||"");
+  if(_mmData && _mmKey===key) return _mmData;
+  const all=new Array(64).fill(0), win=new Array(64).fill(0), loss=new Array(64).fill(0);
+  const idx=sq=>(+sq[1]-1)*8+(sq.charCodeAt(0)-97);   // a1=0 … h8=63
+  // Destination square straight from the SAN token — no board replay (chess.js was far too slow
+  // over hundreds of games). White = even plies, Black = odd; castling maps to the king's landing.
+  const sqOf=(san,white)=> san[0]==="O"
+    ? (san.startsWith("O-O-O") ? (white?"c1":"c8") : (white?"g1":"g8"))
+    : ((san.match(/([a-h][1-8])=?[QRBNqrbn]?[+#]?$/)||[])[1]||null);
+  let games=0;
+  for(const g of list){
+    if(!g.pgn) continue;
+    const body=g.pgn.replace(/\[[^\]]*\]/g," ").replace(/\{[^}]*\}/g," ").replace(/\$\d+/g," ").replace(/\d+\.(\.\.)?/g," ").replace(/(1-0|0-1|1\/2-1\/2|\*)/g," ");
+    const toks=body.trim().split(/\s+/).filter(Boolean);
+    const white=g.color==="W"; let any=false;
+    for(let i=(white?0:1);i<toks.length;i+=2){
+      const sq=sqOf(toks[i],white); if(!sq) continue;
+      const k=idx(sq); if(k<0||k>63) continue;
+      all[k]++; if(g.result==="Win")win[k]++; else if(g.result==="Loss")loss[k]++; any=true;
+    }
+    if(any) games++;
+  }
+  _mmData={all,win,loss,games}; _mmKey=key; return _mmData;
+}
+function drawMoveMap(filter){
+  if(!_mmData || !$("moveMapWrap")) return;
+  const grid=_mmData[filter]||_mmData.all, max=Math.max(1,...grid);
+  const files=["a","b","c","d","e","f","g","h"];
+  let cells="";
+  for(let r=7;r>=0;r--) for(let f=0;f<8;f++){
+    const c=grid[r*8+f], t=c/max, a=c?(0.08+0.92*t):0, dark=t>=0.5;
+    cells+=`<div class="mm-sq" title="${files[f]}${r+1}: ${c} move${c===1?"":"s"}" style="background:rgba(211,178,90,${a.toFixed(3)})"><b style="color:${c?(dark?"#12110c":"var(--read)"):"transparent"}">${c}</b></div>`;
+  }
+  let ranks=""; for(let r=8;r>=1;r--) ranks+=`<span>${r}</span>`;
+  const total=grid.reduce((s,x)=>s+x,0);
+  $("moveMapWrap").innerHTML=
+    `<div class="mm-outer"><div class="mm-board">${cells}</div><div class="mm-ranks">${ranks}</div><div class="mm-files">${files.map(f=>`<span>${f}</span>`).join("")}</div></div>`
+    +`<div class="isub" style="margin-top:8px">${total.toLocaleString()} destination${total===1?"":"s"} from your moves across ${_mmData.games} games${filter==="all"?"":` (${filter==="win"?"wins":"losses"} only)`}. Brighter gold = more traffic.</div>`;
+}
+function renderMoveMap(list){
+  const wrap=$("moveMapWrap"); if(!wrap) return;
+  const ranks=[8,7,6,5,4,3,2,1].map(r=>`<span>${r}</span>`).join("");
+  const files=["a","b","c","d","e","f","g","h"].map(f=>`<span>${f}</span>`).join("");
+  // Draw the empty board immediately so the card reserves its final height — no layout jump when data lands.
+  wrap.innerHTML=`<div class="mm-outer"><div class="mm-board">${'<div class="mm-sq"></div>'.repeat(64)}</div><div class="mm-ranks">${ranks}</div><div class="mm-files">${files}</div></div><div class="isub" style="margin-top:8px">Reading your moves…</div>`;
+  const tabs=[...document.querySelectorAll('#panel-charts .mm-tab')];
+  tabs.forEach(b=>b.onclick=()=>{ tabs.forEach(x=>x.classList.toggle('on',x===b)); drawMoveMap(b.dataset.mm); });
+  setTimeout(()=>{ computeMoveMap(list); const on=tabs.find(b=>b.classList.contains('on')); drawMoveMap(on?on.dataset.mm:"all"); }, 20);
 }
 
 // ---------- volume: how many games you actually play, by hour and by weekday ----------
@@ -8827,22 +9598,23 @@ function coachLines(list){
   // days — so all of these exclude daily, the same rule the day-of-week chart and
   // the sessions table already follow.
   const wallGames=list.filter(g=>g.tc!=="daily");
-  // time of day
+  // format strength — is one time control clearly your game?
   {
-    const byHour={};
-    for(const g of wallGames){
-      const h=g.date.getHours();
-      (byHour[h] ||= [0,0]);
-      byHour[h][1]++; if(isW(g)) byHour[h][0]++;
+    const NAMES={bullet:"bullet",blitz:"blitz",rapid:"rapid"};
+    const byFmt={};
+    for(const g of list){
+      if(!NAMES[g.tc]) continue;
+      (byFmt[g.tc] ||= [0,0]);
+      byFmt[g.tc][1]++; if(isW(g)) byFmt[g.tc][0]++;
     }
-    const solid=Object.entries(byHour).filter(([,v])=>v[1]>=10);
+    const cap=s=>s[0].toUpperCase()+s.slice(1);
+    const solid=Object.entries(byFmt).filter(([,v])=>v[1]>=25)
+      .map(([tc,v])=>({tc,wr:100*v[0]/v[1],w:v[0],n:v[1]}));
     if(solid.length>=2){
-      const scored=solid.map(([h,v])=>({h:+h,wr:100*v[0]/v[1],w:v[0],n:v[1]}));
-      const best=scored.reduce((a,b)=>b.wr>a.wr?b:a);
-      const worst=scored.reduce((a,b)=>b.wr<a.wr?b:a);
-      const lbl=h=>{const ap=h>=12?"PM":"AM";let x=h%12;if(x===0)x=12;return x+" "+ap;};
-      if(best.wr-worst.wr>=15){
-        out.push(["warn",`<b>Time of day matters for you.</b> ${Math.round(best.wr)}% (${best.w}/${best.n}) at ${lbl(best.h)} vs ${Math.round(worst.wr)}% (${worst.w}/${worst.n}) at ${lbl(worst.h)}.`]);
+      const best=solid.reduce((a,b)=>b.wr>a.wr?b:a);
+      const worst=solid.reduce((a,b)=>b.wr<a.wr?b:a);
+      if(best.wr-worst.wr>=8){
+        out.push(["warn",`<b>${cap(best.tc)} is your strongest format.</b> ${Math.round(best.wr)}% (${best.w}/${best.n}) at ${best.tc} vs ${Math.round(worst.wr)}% (${worst.w}/${worst.n}) at ${worst.tc}.`]);
       }
     }
   }
@@ -9346,14 +10118,14 @@ function coachLines(list){
   // "Resignations" that were really checkmates — Rookbook replays the final board, so a game
   // the log calls a resignation but was a forced mate is counted (and read) as a mate.
   {
-    const fmW=list.filter(g=>g.result==="Win"  && g.how==="resign" && resignForcedMate(g)).length;
-    const fmL=list.filter(g=>g.result==="Loss" && g.how==="resign" && resignForcedMate(g)).length;
+    const fmW=list.filter(g=>g.result==="Win"  && resignForcedMate(g)).length;
+    const fmL=list.filter(g=>g.result==="Loss" && resignForcedMate(g)).length;
     const fm=fmW+fmL;
     if(fm>=3){
       const parts=[];
       if(fmW) parts.push(`${fmW} where your opponent gave up in a mate you'd forced`);
-      if(fmL) parts.push(`${fmL} where you resigned a mate you couldn't stop`);
-      out.push(["good",`<b>${fm} of your "resignations" were really checkmates</b> — ${parts.join(", and ")}. Rookbook replays the final board, so these count as mates, not resignations.`]);
+      if(fmL) parts.push(`${fmL} where you resigned or left a mate you couldn't stop`);
+      out.push(["good",`<b>${fm} games the loser resigned or walked away from were really checkmates</b> — ${parts.join(", and ")}. Rookbook replays the final board, so these count as mates.`]);
     }
   }
 
@@ -9377,7 +10149,7 @@ function coachLines(list){
     [/^You may resign too early|^Stop resigning|resign a lot|^You never resign/, {to:"ip-resignation-audit", text:"View your resignation audit"}],
     [/in a row\.|straight wins\./,                     {to:"ip-records", text:"View your records"}],
     [/^Your losses are blunder-driven|^Your losses are close games/, {to:"ip-autopsy", text:"View your game autopsy"}],
-    [/beating weaker players|punch up well/,           {to:"ip-opponent-rating-gap", text:"View your rating-gap stats"}],
+    [/beating weaker players|punch up well/,           {tab:"charts", text:"View your rating-gap chart"}],
     [/capable of .*-accuracy/,                         {to:"ip-accuracy-split", text:"View your accuracy split"}],
     [/^Your .* is lagging/,                            {to:"ip-format-face-off", text:"View your format face-off"}],
     [/^You're a swindler|swindl/i,                     {to:"ip-conversion-swindles", text:"View your conversions & swindles"}],
@@ -9385,7 +10157,7 @@ function coachLines(list){
     // ---- lives on another tab ----
     [/^You're hot\.|^You're in a slump\./,             {tab:"log",      text:"View your game log"}],
     [/^One bad day cost you/,                          {tab:"trends",   text:"View your sessions data"}],
-    [/Time of day matters/,                            {tab:"charts",   text:"View your hourly W/L stats"}],
+    [/is your strongest format/,                       {to:"ip-format-face-off", text:"View your format face-off"}],
     [/worst day\.|Late-night/,                         {tab:"charts", text:"View your hourly W/L stats"}],
     [/re-queue too fast/,                              {tab:"charts", text:"View your gap-between-games chart"}],
     [/points a week|bouncing off|^You're improving|^You're getting worse|Elo over this stretch/, {tab:"charts", text:"View your Elo chart"}],
@@ -13202,23 +13974,16 @@ function tempoPanels(list){
   const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
   let html="";
 
-  // 1) how long you think, as a distribution
+  // 1) how long you think — vertical bar distribution (the shape reads better than rows)
   {
     const all=withT.flatMap(g=>g.times.mine);
-    const buckets=[["Under 1s",0,1],["1–3s",1,3],["3–10s",3,10],["10–30s",10,30],
-                   ["30–60s",30,60],["Over 60s",60,Infinity]];
-    const max=Math.max(...buckets.map(([,lo,hi])=>all.filter(t=>t>=lo&&t<hi).length));
-    let body="";
-    for(const [label,lo,hi] of buckets){
-      const n=all.filter(t=>t>=lo&&t<hi).length;
-      const share=pct(n,all.length);
-      body+=`<div class="irow">
-        <span class="ilabel">${label}</span>
-        <span class="itrack"><span class="ifill" style="width:${max?Math.round(100*n/max):0}%;display:block"></span></span>
-        <span class="ival">${share}% <span>(${n})</span></span>
-      </div>`;
-    }
-    html+=iPanel("How long you think",`Across ${all.length} of your moves. Median ${median(all).toFixed(1)}s.`,body);
+    const buckets=[["<1s",0,1],["1–3s",1,3],["3–10s",3,10],["10–30s",10,30],["30–60s",30,60],["60s+",60,Infinity]];
+    const counts=buckets.map(([,lo,hi])=>all.filter(t=>t>=lo&&t<hi).length);
+    const max=Math.max(1,...counts);
+    const bars=buckets.map(([label,lo,hi],i)=>{ const n=counts[i], share=pct(n,all.length), h=Math.round(100*n/max);
+      return `<div class="think-bar"><span class="tb-v">${share}%</span><span class="tb-col" style="height:${h}%"></span></div>`; }).join("");
+    const lbls=buckets.map(([l])=>`<span>${l}</span>`).join("");
+    html+=iPanel("How long you think",`Across ${all.length} of your moves. Median ${median(all).toFixed(1)}s.`,`<div class="think-chart">${bars}</div><div class="think-lbls">${lbls}</div>`);
   }
 
   // 2) THE BIG ONE: do you lose the games where you move fast?
@@ -13233,27 +13998,7 @@ function tempoPanels(list){
     html+=iPanel("Win rate vs how fast you played","Share of YOUR moves played in under 3 seconds. If the bottom bar is worse, impatience is costing you games — not ability.",body);
   }
 
-  // 3) fast moves in the games you threw away
-  {
-    const blown=withT.filter(g=>g.result==="Loss" && typeof g.peakMat==="number" && g.peakMat>=3);
-    const other=withT.filter(g=>!(g.result==="Loss" && typeof g.peakMat==="number" && g.peakMat>=3));
-    if(blown.length>=3){
-      const fastShare=a=>{const all=a.flatMap(g=>g.times.mine); return pct(all.filter(t=>t<3).length, all.length);};
-      const b=fastShare(blown), o=fastShare(other);
-      const rrow=(l,v,c)=>`<div class="irow"><span class="ilabel" style="width:auto;flex:1;white-space:normal">${l}</span><span class="ival ${c||""}" style="width:auto;font-size:13px">${v}</span></div>`;
-      let body="";
-      body+=rrow("Fast moves in games you blew a lead",b+"%",b>o?"res loss":"");
-      body+=rrow("Fast moves in every other game",o+"%","dim");
-      body+=rrow("Games in the sample",`${blown.length} vs ${other.length}`,"dim");
-      const verdict = b-o>=5
-        ? `<b>You blitz your winning positions.</b> ${b-o} points more of your moves are snap decisions in the games you threw away. Being up material makes you careless — that's the whole story.`
-        : b-o<=-5
-          ? "You actually slow down in the games you lose — those losses aren't impatience, they're difficulty."
-          : "No real difference. Your blown leads aren't caused by moving too fast.";
-      html+=iPanel("Do you blitz your won games?","The moment you're winning is the moment you stop thinking. Here's whether that's you.",
-        body+`<div class="isub" style="margin-top:9px">${verdict}</div>`);
-    }
-  }
+  // "Do you blitz your won games?" removed per request.
 
   // 4) where the clock goes: opening vs middlegame vs endgame
   {
@@ -13268,7 +14013,7 @@ function tempoPanels(list){
       const avg=counts[i]?(sums[i]/counts[i]).toFixed(1):"0";
       body+=`<div class="irow">
         <span class="ilabel">${l}</span>
-        <span class="itrack"><span class="ifill" style="width:${share}%;display:block"></span></span>
+        <span class="itrack"><span class="ifill neutral" style="width:${share}%;display:block"></span></span>
         <span class="ival">${share}% <span>(${avg}s/mv)</span></span>
       </div>`;
     });
@@ -13279,23 +14024,7 @@ function tempoPanels(list){
     html+=iPanel("Where your clock goes","Share of total thinking time by phase.",body+`<div class="isub" style="margin-top:9px">${note}</div>`);
   }
 
-  // 5) longest think — did it pay off?
-  {
-    const withMax=withT.map(g=>({g, max:Math.max(...g.times.mine)}));
-    const big=withMax.filter(x=>x.max>=30).map(x=>x.g);
-    const small=withMax.filter(x=>x.max<30).map(x=>x.g);
-    if(big.length>=8 && small.length>=8){
-      let body="";
-      body+=iBarRow("Thought 30s+ at least once",big.filter(isW).length,big.length);
-      body+=iBarRow("Never thought that long",small.filter(isW).length,small.length);
-      const a=pct(big.filter(isW).length,big.length), b=pct(small.filter(isW).length,small.length);
-      const note = a-b>=8 ? "Long thinks pay. When you stop and calculate, you win more."
-        : b-a>=8 ? "Your long thinks aren't paying off — you may be agonising over positions rather than calculating them."
-        : "Long thinks make little difference to your results either way.";
-      html+=iPanel("Does thinking help?","Games where you spent 30+ seconds on at least one move, versus games where you never did — the long think is where real calculation happens.",
-        body+`<div class="isub" style="margin-top:9px">${note}</div>`);
-    }
-  }
+  // "Does thinking help?" removed per request.
 
 
   // Think time in wins vs losses — and how it changes as the game goes on
