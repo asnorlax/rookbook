@@ -100,7 +100,14 @@
          ledger routine already exist, so the series computes lazily at hover time.
          No new analysis or storage needed. Review-tab sparkline remains a later step.
          ================================================================================ -->
-    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.0.9 <span class="cl-tag">now</span></span><span class="cl-date">25 Jul 2026</span></summary><ul>
+    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.0.10 <span class="cl-tag">now</span></span><span class="cl-date">26 Jul 2026</span></summary><ul>
+        <li>Looking up a new account now shows a loading card with live progress — no more mixed-up stats mid-fetch</li>
+        <li>Modules missing data now keep their size and say exactly what fills them in</li>
+        <li>Mate-timing chart extends past move 60</li>
+        <li>Shorter status messages and small text cleanups</li>
+      </ul></details>
+
+    <details class="cl"><summary class="cl-v"><span class="cl-t">v1.0.9</span><span class="cl-date">25 Jul 2026</span></summary><ul>
         <li>Updated the overview page with additional modules</li>
         <li>Updated the Rookbook Rating calculation</li>
         <li>Insights rework still in progress</li>
@@ -693,7 +700,7 @@
   #insights .dna-card-score{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1;color:var(--ink)}
   #insights .dna-card.good .dna-card-score{color:var(--win)} #insights .dna-card.bad .dna-card-score{color:var(--loss)} #insights .dna-card.mid .dna-card-score{color:var(--draw)}
   #insights .dna-card-score small{font-size:11px;font-weight:400;color:var(--dim);margin-left:1px}
-  #insights .dna-card-metric{font-family:var(--sans);font-size:11.5px;color:var(--read);line-height:1.3;list-style:none;
+  #insights .dna-card-metric{font-family:var(--sans);font-size:11.5px;color:var(--read);line-height:1.3;list-style:none;text-transform:none;letter-spacing:normal;
     margin:8px 0 0;padding:9px 0 0;border-top:1px solid var(--rule);display:flex;flex-direction:column;flex:1 1 auto;justify-content:center;gap:4px}
   #insights .dna-card-metric li{position:relative;padding-left:11px;text-wrap:pretty}
   #insights .dna-card-metric li::before{content:"";position:absolute;left:1px;top:5px;width:3px;height:3px;border-radius:50%;background:var(--dim)}
@@ -1275,6 +1282,12 @@
   }
   a.revlink:hover{color:var(--ink)}
   .empty{padding:34px;text-align:center;font-size:13px;color:var(--dim);font-family:var(--sans)}
+  /* A module missing its data keeps its normal footprint and says, in one standardized voice,
+     exactly what fills it in — instead of collapsing to zero height or vanishing from the grid. */
+  .need-data{min-height:140px;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;
+    text-align:center;padding:18px 22px;font-size:12.5px;color:var(--dim);font-family:var(--sans);line-height:1.55}
+  .need-data b{color:var(--read)}
+  .need-data .nd-x{font-size:11.5px;opacity:.85}
   /* a hairline stops the footer floating loose under the content; the copyright drops to
      the bottom in a dimmer tone since it's the least useful line on the page */
   footer{margin-top:16px;border-top:1px solid var(--rule);padding:14px 0 0 8px;
@@ -1396,8 +1409,8 @@
   .wel-form input:focus{outline:none;border-color:var(--green)}
   .wel-form button{font-size:14px;padding:15px 28px}
   .wel-sub{font-size:12.5px;line-height:1.7;color:var(--dim)}
-  .lookup-count{margin-top:16px;font-size:12.5px;color:var(--dim);text-align:center;font-family:var(--sans)}
-  .lookup-count b{color:var(--read);font-weight:600;font-variant-numeric:tabular-nums}
+  .lookup-count{margin-top:16px;font-size:13.5px;color:var(--read);text-align:center;font-family:var(--sans)}
+  .lookup-count b{color:var(--win);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
   /* The reading list is for search engines and the occasional curious visitor, not for
      someone trying to type their username — so it stays quiet: dim, small, and only
      picking up the site green on hover. Without this rule it rendered browser-default blue. */
@@ -2125,6 +2138,24 @@
   }
   #loadFull:hover:not(:disabled){color:var(--ink);border-bottom-color:var(--ink)}
   #loadFull:disabled{opacity:.4;cursor:default}
+  /* While fetching a DIFFERENT account, everything on screen still belongs to the previous
+     one — the overview header picks up the new name (it reads the input) while the Elo
+     tiles keep the old games until the download lands. Dim the stale panels and pin a
+     notice so nobody reads user A's ratings under user B's name. */
+  body.switching-user [id^="panel-"]{opacity:.35;filter:saturate(.5);pointer-events:none;transition:opacity .2s ease}
+  #switchNote{
+    position:fixed;left:50%;top:24vh;transform:translateX(-50%);z-index:60;
+    width:min(92vw,440px);text-align:center;
+    background:var(--panel2);border:1px solid var(--rule);border-radius:12px;
+    padding:18px 22px 15px;color:var(--read);
+    box-shadow:0 12px 40px rgba(0,0,0,.55);
+    animation:swpulse 1.6s ease-in-out infinite;
+  }
+  #switchNote b{color:var(--ink)}
+  #switchNote .sw-t{display:block;font-size:16px;font-weight:700;color:var(--ink);margin-bottom:7px}
+  #switchNote .sw-p{display:block;font-family:var(--mono);font-size:12px;color:var(--draw);min-height:15px;margin-bottom:9px}
+  #switchNote .sw-s{display:block;font-size:12px;color:var(--dim)}
+  @keyframes swpulse{0%,100%{border-color:var(--rule)}50%{border-color:var(--draw)}}
   .actions{
     padding-top:7px;margin-top:5px;
     border-top:1px solid var(--rule);
@@ -2674,7 +2705,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <span class="sub">
         <button class="ghostlink" id="aboutBtn">about</button> ·
         <button class="ghostlink" id="logBtn">changelog<span class="log-dot" id="logDot" hidden></span></button> ·
-        <span class="vtag">v1.0.9</span>
+        <span class="vtag">v1.0.10</span>
       </span>
     </div>
   </header>
@@ -4494,7 +4525,7 @@ function migrateParses(){
       setTimeout(chunk,0);
     } else {
       MIGRATING=false;
-      const reprocessed=`${stale.length} game${stale.length===1?"":"s"} reprocessed with <span class="infopop" style="border-bottom:1px dotted currentColor" data-title="What changed" data-def="${PARSER_NOTE.replace(/"/g,"&quot;")}">the latest math</span>.`;
+      const reprocessed=`${stale.length} game${stale.length===1?"":"s"} updated to <span class="infopop" style="border-bottom:1px dotted currentColor" data-title="What changed" data-def="${PARSER_NOTE.replace(/"/g,"&quot;")}">the latest math</span>.`;
       // .status is a flex row, so every top-level node becomes its own flex item and gets
       // pushed apart. Everything must go inside ONE span or the message splits across the bar.
       const body = prior
@@ -5058,6 +5089,42 @@ let SHOWN_USER=null;       // the account currently loaded — used to send a NE
 
 let FETCH_CANCEL=false;
 let FETCH_ABORT=null;         // AbortController for the in-flight fetch, so Stop cuts it immediately
+
+// Fetching a DIFFERENT account than the one on screen: the overview header updates to the
+// new name almost immediately (it reads the input, and the profile card lands fast), but the
+// Elo tiles and every stat keep the OLD account's games until the download finishes — which
+// reads as wrong numbers under the new name. Dim the stale panels and pin a notice until
+// render() paints the new data. Built with textContent, not innerHTML: usernames are user input.
+let SW_OBS=null;   // mirrors the status line's progress into the card while it's up
+function markSwitching(newU){
+  const prev = (typeof DEMO!=="undefined" && DEMO) ? "the sample account" : SHOWN_USER;
+  if(!prev || prev===newU) return;
+  document.body.classList.add("switching-user");
+  let n=$("switchNote");
+  if(!n){ n=document.createElement("div"); n.id="switchNote"; document.body.appendChild(n); }
+  n.textContent="";
+  const t=document.createElement("span"); t.className="sw-t";
+  const b=document.createElement("b"); b.textContent=newU;
+  t.append("Fetching ", b, "…");
+  const p=document.createElement("span"); p.className="sw-p";
+  const s=document.createElement("span"); s.className="sw-s";
+  s.textContent=`The dimmed stats behind this are still ${prev}'s until the download finishes.`;
+  n.append(t, p, s);
+  // the fetch loops already narrate progress into #status ("Fetching month 3 of 12…");
+  // echo that here so the card shows live progress without touching the fetch code
+  const st=$("status");
+  if(st && typeof MutationObserver!=="undefined"){
+    const copy=()=>{ p.textContent=st.textContent; };
+    copy();
+    SW_OBS=new MutationObserver(copy);
+    SW_OBS.observe(st,{childList:true,characterData:true,subtree:true});
+  }
+}
+function clearSwitching(){
+  document.body.classList.remove("switching-user");
+  if(SW_OBS){ try{ SW_OBS.disconnect(); }catch(e){} SW_OBS=null; }
+  const n=$("switchNote"); if(n) n.remove();
+}
 let DEEP_RANGE_DEFAULT=false; // a /player/<user> deep-link forced last-100; don't persist that as a pref
 async function fetchGames(force){
   // Clicking Fetch while a fetch runs means "stop" — 130 months is a long commitment
@@ -5073,6 +5140,7 @@ async function fetchGames(force){
   if(!u){ $("status").textContent="Type a username first."; return; }
   FETCHING=true; FETCH_CANCEL=false; BG_TOKEN++;   // the user asked — background work stands down
   FETCH_ABORT = (typeof AbortController!=="undefined") ? new AbortController() : null;
+  markSwitching(u);             // looking up someone new? dim the previous account's stats
   const btn=$("load");
   btn.style.minWidth=Math.ceil(btn.getBoundingClientRect().width)+"px";
   btn.textContent="Stop";
@@ -5116,11 +5184,11 @@ async function fetchGames(force){
     const note = compareToSnapshot(u, games);
     const stopped = FETCH_CANCEL ? "Stopped at your request — keeping what was already downloaded. " : "";
     const trimmed = canTopUp && games.length < newCount+keptCount
-      ? ` Showing the most recent ${games.length}, per your range.` : "";
+      ? ` Showing newest ${games.length}.` : "";
     const how = stopped + (canTopUp
       ? (newCount
-          ? `Added ${newCount} new game${newCount===1?"":"s"} to ${keptCount} already saved — engine work on the old ones kept.`+trimmed
-          : `No new games since your last save. Loaded ${keptCount} from cache.`+trimmed)
+          ? `Added ${newCount} new game${newCount===1?"":"s"} to ${keptCount} saved — engine work kept.`+trimmed
+          : `No new games — loaded ${keptCount} from your save.`+trimmed)
       : `${games.length} game${games.length===1?"":"s"} loaded for ${u}.`);
     // Landed here from a shared /player/<user> link: say plainly that this is the last 100,
     // and where to widen it — otherwise the capped view looks like their whole history. Only
@@ -5145,13 +5213,10 @@ async function fetchGames(force){
     // One clause, not three. These were separate sentences that between them ran to seven
     // lines on a phone; they all say the same thing — work you'd already paid for was kept.
     {
-      const kept=[prefilled?`${prefilled} opponent lookup${prefilled===1?"":"s"}`:null,
+      const kept=[prefilled?`${prefilled} lookup${prefilled===1?"":"s"}`:null,
                   reused.evals?`${reused.evals} eval${reused.evals===1?"":"s"}`:null,
                   reused.mates?`${reused.mates} mate scan${reused.mates===1?"":"s"}`:null].filter(Boolean);
-      if(kept.length){
-        const list = kept.length>1 ? kept.slice(0,-1).join(", ")+" and "+kept[kept.length-1] : kept[0];
-        $("status").textContent += `  Reused ${list}.`;
-      }
+      if(kept.length) $("status").textContent += `  Reused ${kept.join(", ")}.`;
       if(!saved) $("status").textContent += "  Couldn't save to this browser.";
     }
     updateCacheBtn();
@@ -5162,6 +5227,7 @@ async function fetchGames(force){
   }catch(e){
     $("status").textContent = "Couldn't fetch: " + e.message;
   }finally{
+    clearSwitching();           // whatever's on screen now is the freshest we have
     FETCHING=false; FETCH_CANCEL=false; FETCH_ABORT=null;
     btn.textContent="Fetch games";
     btn.title="";
@@ -7032,7 +7098,7 @@ function pfWorldTour(gs){
     }).join("")+`</div>`;
     /* insight line ("Across N countries …") removed per request */
   }else{
-    inner=`<div class="isub">Run <b>Look up opponents</b> from the Game Log and your world tour fills in — the country rides along with that same lookup.</div>`;
+    inner=needData("opps","Each opponent's country rides along with the lookup and builds your world tour.");
   }
   return `<div class="panel"><div class="panel-h">World tour${sub}</div>${inner}</div>`;
 }
@@ -7172,7 +7238,7 @@ function renderProfile(list){
     <div class="pf-duo pf-duo-a">
       <div class="panel dnaband">
         <div class="dna-head">
-          <div class="dna-title"><span class="lbl">Playing style</span></div>
+          <div class="dna-title"><span class="lbl">Rookbook Rating</span></div>
         </div>
         <div class="dna-body">
           ${pfRadarSVG(dna.axes)}
@@ -7555,6 +7621,22 @@ function iPanel(title, sub, body){
   // Stable slug from the title so a finding above can scroll straight to its evidence.
   const id="ip-"+String(title).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
   return `<div class="ipanel" id="${id}"><h3>${title}</h3><div class="isub">${sub}</div>${body}</div>`;
+}
+
+// ---- standardized "this module needs data" body ----
+// One voice for every data-starved module: name the button (or the shortfall) that fills it
+// in, keep the module's footprint so the page doesn't reflow around a hole. `extra` is an
+// optional second line for module-specific color.
+const NEED_TXT={
+  opps:   "Run <b>Look up opponents</b> (top of the page) and this fills in.",
+  evals:  "Run <b>Evaluate positions</b> (top of the page) and this fills in.",
+  acc:    "Needs accuracy data — run <b>Game Review</b> on chess.com, then re-fetch here.",
+  refetch:"Your saved games predate this analysis — hit <b>Fetch games</b> and this fills in.",
+  games:  "Not enough games here yet — this fills in as you play more."
+};
+function needData(kind, extra){
+  return `<div class="need-data"><span>${NEED_TXT[kind]||NEED_TXT.games}</span>`
+       + (extra?`<span class="nd-x">${extra}</span>`:"") + `</div>`;
 }
 
 
@@ -8541,7 +8623,7 @@ function renderInsights(list){
       const mvD=deliver.map(g=>g.moves).sort((a,b)=>a-b), mvR=receive.map(g=>g.moves).sort((a,b)=>a-b);
       const medD=mvD[Math.floor((nD-1)/2)], medR=nR?mvR[Math.floor((nR-1)/2)]:null;
       const BW=3, allMax=Math.max(mvD[nD-1], nR?mvR[nR-1]:24);
-      const hiCap=Math.min(60,Math.max(24,Math.ceil(allMax/BW)*BW)), nBins=Math.round(hiCap/BW);
+      const hiCap=Math.min(72,Math.max(24,Math.ceil(allMax/BW)*BW)), nBins=Math.round(hiCap/BW);
       const binOf=m=>{ let b=Math.floor((m-1e-4)/BW); if(b<0)b=0; if(b>=nBins)b=nBins-1; return b; };
       const cD=new Array(nBins).fill(0), cR=new Array(nBins).fill(0);
       deliver.forEach(g=>cD[binOf(g.moves)]++); receive.forEach(g=>cR[binOf(g.moves)]++);
@@ -8560,7 +8642,7 @@ function renderInsights(list){
       let grid=""; for(let t=0;t<=yMax+1e-6;t+=yStep) grid+=`<line x1="${mL}" y1="${yA(t).toFixed(1)}" x2="${W-mR}" y2="${yA(t).toFixed(1)}" stroke="var(--rule)" stroke-width="0.5"/><text x="${mL-5}" y="${(yA(t)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--dim)" font-family="var(--mono)">${t}</text>`;
       const slot=pW/nBins, bw=Math.max(1.5,slot/2-1);
       let bars="";
-      for(let i=0;i<nBins;i++){ const bx=mL+i*slot, lo=`moves ${i*BW+1}–${(i+1)*BW}${i===nBins-1&&hiCap===60?"+":""}`;
+      for(let i=0;i<nBins;i++){ const bx=mL+i*slot, lo=`moves ${i*BW+1}–${(i+1)*BW}${i===nBins-1&&hiCap===72?"+":""}`;
         if(cD[i]){ const by=yA(cD[i]); bars+=`<rect x="${(bx+0.5).toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${(baseY-by).toFixed(1)}" fill="var(--win)" fill-opacity="0.9"><title>${lo}: ${cD[i]} delivered</title></rect>`; }
         if(cR[i]){ const by=yA(cR[i]); bars+=`<rect x="${(bx+slot/2+0.5).toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${(baseY-by).toFixed(1)}" fill="var(--loss)" fill-opacity="0.9"><title>${lo}: ${cR[i]} received</title></rect>`; }
       }
@@ -8727,7 +8809,7 @@ function renderInsights(list){
   const dnaSection=(title,key,gloss,panels,n)=>{
     const a=dnaBy[key]; if(!a) return "";
     const cls=a.val>=60?"good":a.val<42?"bad":"mid";
-    const body=panels||`<div class="ipanel">The games behind this fill in as you play more.</div>`;
+    const body=panels||`<div class="ipanel">${needData("games")}</div>`;
     return `<section class="dna-sec ${cls}" id="dna-${key}">`
       +`<header class="dna-sec-head"><span class="dna-eyebrow">${title}</span>`
       +`<span class="dna-sec-score">${a.val}<small>/100</small></span></header>`
@@ -8765,7 +8847,7 @@ function renderInsights(list){
         // pLossEnd removed — the Autopsy already breaks down how losses end.
         // standard 2-up grid (same as every other section) — mates + autopsy fill the top row.
         const panels=pMateArrive+pAutopsy+pMissedMate+pKill+pDefense+pSwing+pCastleMate+pMateFormat;
-        const body=panels||`<div class="ipanel">The games behind this fill in as you play more.</div>`;
+        const body=panels||`<div class="ipanel">${needData("games")}</div>`;
         // id="dna-attack" is the section; the empty #dna-steady anchor keeps the Defense radar card's jump working
         return `<section class="dna-sec admerge" id="dna-attack"><span id="dna-steady" style="scroll-margin-top:14px"></span><header class="dna-sec-head"><span class="dna-eyebrow">${title}</span></header><div class="dna-mods">${body}</div></section>`;
       })()
@@ -11341,7 +11423,7 @@ function briefing(list){
     .filter(o=>o.n>=4 && OPENING_INFO[o.name])
     .sort((a,b)=>b.n-a.n)
     .slice(0,6);
-  if(!top.length) return "";
+  if(!top.length) return needData("games","The briefing covers openings you've played at least 4 times.");
   const cards=top.map(o=>{
     const info=OPENING_INFO[o.name];
     const wr=Math.round(100*o.w/o.n);
@@ -13968,7 +14050,9 @@ function wireMateRun(){
 // Tempo panels now live inside Insights. Returns HTML, or "" when there's no clock data.
 function tempoPanels(list){
   const withT=list.filter(g=>g.times && g.times.mine && g.times.mine.length>=6);
-  if(withT.length<5) return "";
+  // keep the module's spot: old saves have no clock data (refetch fixes it); tiny accounts just
+  // haven't played enough live games yet
+  if(withT.length<5) return `<div class="ipanel"><h3>Tempo</h3>${needData(list.length>=20?"refetch":"games")}</div>`;
   const isW=g=>g.result==="Win";
   const pct=(a,b)=>b?Math.round(100*a/b):0;
   const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
