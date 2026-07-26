@@ -1787,7 +1787,14 @@
     #profileBody .pf-oe{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
     #profileBody .pf-oe .pcs{grid-column:1 / -1}
   }
-  @media(max-width:820px){ #profileBody .pf-oe{grid-template-columns:1fr} }
+  /* Below ~1080px the 2-up openings column is too narrow for its 200px-name row grid — the
+     W/D/L bar collapses to zero and the headers overlap. And the World-tour / heatmap / recent-
+     form trio squeezes each panel under ~260px. Drop both to a single full-width column here;
+     3-up openings still applies above 1500. */
+  @media(max-width:1080px){
+    #profileBody .pf-oe{grid-template-columns:1fr}
+    #profileBody .pf-duo-b{grid-template-columns:1fr}
+  }
   .pf-hcell.pf-now{box-shadow:0 0 0 2px var(--ink),0 0 6px 1px rgba(231,223,196,.5);position:relative;z-index:2}
   .pf-daylabels{display:grid;gap:3px;font-family:var(--mono);font-size:9.5px;color:#6A675B}
   .pf-actwrap{display:grid;grid-template-columns:24px 1fr;gap:6px;align-items:center;max-width:300px}
