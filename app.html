@@ -1780,7 +1780,15 @@
   #profileBody .pfop-num.g{color:var(--win)} #profileBody .pfop-num.b{color:var(--loss)} #profileBody .pfop-num.dim{color:var(--dim)} #profileBody .pfop-num.ink{color:var(--ink)}
   #profileBody .pf-oe{display:grid;grid-template-columns:minmax(0,600px) auto auto;justify-content:space-between;gap:16px;align-items:stretch}
   #profileBody .pfop-panel.lns .pfop-row,#profileBody .pfop-panel.lns .pfop-hdr{grid-template-columns:62px 108px 32px 32px 42px}
-  @media(max-width:760px){ #profileBody .pf-oe{grid-template-columns:1fr} }
+  /* Three wide tables only fit side-by-side on a wide screen. Openings is the flexible column,
+     so when space runs low it gets starved toward zero (names truncate, the toggle header wraps)
+     while the two auto columns keep full width. Step down: 2-up with Piece data on its own full
+     row below ~1500px, then a single column on phones. */
+  @media(max-width:1500px){
+    #profileBody .pf-oe{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+    #profileBody .pf-oe .pcs{grid-column:1 / -1}
+  }
+  @media(max-width:820px){ #profileBody .pf-oe{grid-template-columns:1fr} }
   .pf-hcell.pf-now{box-shadow:0 0 0 2px var(--ink),0 0 6px 1px rgba(231,223,196,.5);position:relative;z-index:2}
   .pf-daylabels{display:grid;gap:3px;font-family:var(--mono);font-size:9.5px;color:#6A675B}
   .pf-actwrap{display:grid;grid-template-columns:24px 1fr;gap:6px;align-items:center;max-width:300px}
