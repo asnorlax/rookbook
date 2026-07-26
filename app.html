@@ -100,13 +100,7 @@
          ledger routine already exist, so the series computes lazily at hover time.
          No new analysis or storage needed. Review-tab sparkline remains a later step.
          ================================================================================ -->
-    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.0.11 <span class="cl-tag">now</span></span><span class="cl-date">26 Jul 2026</span></summary><ul>
-        <li>"How you get mated" now charts the material you had when the king fell — spot defensive collapses vs. already-lost games</li>
-        <li>Insights no longer hides empty modules — each shows what unlocks it (more games, Game Review, or move-time data)</li>
-        <li>Overview modules (openings, game length, pieces) show a clear note when there's too little data</li>
-      </ul></details>
-
-    <details class="cl"><summary class="cl-v"><span class="cl-t">v1.0.10</span><span class="cl-date">26 Jul 2026</span></summary><ul>
+    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.0.10 <span class="cl-tag">now</span></span><span class="cl-date">26 Jul 2026</span></summary><ul>
         <li>Looking up a new account now shows a loading card with live progress — no more mixed-up stats mid-fetch</li>
         <li>Modules missing data now keep their size and say exactly what fills them in</li>
         <li>Mate-timing chart extends past move 60</li>
@@ -1524,6 +1518,9 @@
     background:var(--panel);padding:12px 20px 20px;
   }
   .pf{display:flex;flex-direction:column;gap:18px}
+  /* Size the responsive rows below off the panel's own width, not the viewport — the sidebar
+     can be expanded or collapsed, so viewport breakpoints kept mis-firing. */
+  #profileBody{container-type:inline-size}
 
   /* ===== ported overview modules (scoped to #profileBody to avoid any collisions) ===== */
   #profileBody .w,#profileBody .win{color:var(--win)}
@@ -1581,11 +1578,15 @@
   #profileBody .pf-duo-a{grid-template-columns:1.32fr 1fr;align-items:stretch}   /* playing-style gets extra room for the bigger radar; both cards match height */
   #profileBody .pf-duo-a > .panel{display:flex;flex-direction:column}
   #profileBody .pf-duo-a .au-body{flex:1;display:flex;flex-direction:column;justify-content:space-between}   /* spread win/loss/insight to fill the shared height (title stays pinned at top); collapses to natural spacing when the card stacks on mobile */
-  #profileBody .pf-duo-b{grid-template-columns:1fr 1.5fr 1fr;align-items:stretch}   /* World tour | heatmap | recent form, equal height */
+  /* Best time to play | Recent form | World tour. Wide enough → all three on one line. When the
+     row can't hold three, the heatmap (the richest) takes a full-width top row and the two compact
+     panels pair beneath it; on a phone they all stack. (Tier overrides are container queries below.) */
+  #profileBody .pf-duo-b{grid-template-columns:1.5fr 1fr 1fr;align-items:stretch}
   #profileBody .pf-duo-b > *{display:flex;flex-direction:column}
   #profileBody .pf-duo-b .op{flex:1;justify-content:space-between}
   #profileBody .pf-duo-b .rfstats{margin-top:auto}
-  #profileBody .pf-duo-b .pf-btwrap, #profileBody .pf-duo-b .pf-hourlabels{max-width:none}   /* heatmap fills the column */
+  #profileBody .pf-duo-b .pf-btwrap{max-width:720px}                /* keep the heatmap from stretching absurdly wide */
+  #profileBody .pf-duo-b .pf-hourlabels{max-width:682px}
   #profileBody .wt-row{display:grid;grid-template-columns:104px minmax(0,1fr) 82px;align-items:center;gap:11px}   /* fixed name | flexible bar fills the row (equal across rows, longest possible) | record + % */
   #profileBody .wt-name{font-family:var(--sans);font-size:13px;color:var(--read);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #profileBody .wt-right{font-family:var(--mono);font-size:11.5px;color:var(--dim);white-space:nowrap;text-align:right}
@@ -1753,7 +1754,7 @@
   #profileBody .pfop-tg button.on{background:var(--green);color:#0E0F10;font-weight:600}
   #profileBody .pfop-tg button:hover{color:var(--ink)}
   #profileBody .pfop-row,#profileBody .pfop-hdr{display:grid;grid-template-columns:200px minmax(0,1fr) 36px 36px 46px;gap:9px;align-items:center}
-  #profileBody .pfop-panel.pcs .pfop-row,#profileBody .pfop-panel.pcs .pfop-hdr{grid-template-columns:72px 116px 108px 54px 54px 48px}
+  #profileBody .pfop-panel.pcs .pfop-row,#profileBody .pfop-panel.pcs .pfop-hdr{grid-template-columns:76px 86px 82px 44px 44px 42px;gap:7px}
   #profileBody .pfop-panel.pcs .pf-lgames{color:var(--ink)}
   #profileBody .pfop-panel.pcs .pf-dash{color:var(--dim)}
   #profileBody .pf-lsub{font-size:10px;color:var(--dim)}
@@ -1777,22 +1778,35 @@
   #profileBody .pfop-nm{font-size:13px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;justify-self:start;max-width:100%}
   #profileBody .pfop-num{font-family:var(--mono);font-size:12.5px;text-align:right}
   #profileBody .pfop-num.g{color:var(--win)} #profileBody .pfop-num.b{color:var(--loss)} #profileBody .pfop-num.dim{color:var(--dim)} #profileBody .pfop-num.ink{color:var(--ink)}
-  #profileBody .pf-oe{display:grid;grid-template-columns:minmax(0,600px) auto auto;justify-content:space-between;gap:16px;align-items:stretch}
+  /* 3-across: Openings (its bar is flexible) absorbs the leftover width so By game length and
+     Piece data sit snug beside it — rather than space-between flinging all three apart. */
+  #profileBody .pf-oe{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:20px;align-items:stretch}
   #profileBody .pfop-panel.lns .pfop-row,#profileBody .pfop-panel.lns .pfop-hdr{grid-template-columns:62px 108px 32px 32px 42px}
   /* Three wide tables only fit side-by-side on a wide screen. Openings is the flexible column,
      so when space runs low it gets starved toward zero (names truncate, the toggle header wraps)
      while the two auto columns keep full width. Step down: 2-up with Piece data on its own full
      row below ~1500px, then a single column on phones. */
-  @media(max-width:1500px){
-    #profileBody .pf-oe{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-    #profileBody .pf-oe .pcs{grid-column:1 / -1}
+  /* pf-oe (Openings | By game length | Piece data). Keyed to the panel's own width:
+     - narrow  (<730px): one full-width column, everything stacked
+     - medium (730–1200): Openings full-width on top, then By-game-length + Piece data paired,
+       so the two shorter tables share a row instead of each taking one (Piece data's columns
+       are tightened above so the pair fits)
+     - wide   (≥1200px): all three side by side */
+  @container (max-width:1199px){
+    #profileBody .pf-oe{grid-template-columns:minmax(356px,0.8fr) minmax(0,1.2fr)}
+    #profileBody .pf-oe > .panel:first-child{grid-column:1 / -1}
   }
-  /* Below ~1080px the 2-up openings column is too narrow for its 200px-name row grid — the
-     W/D/L bar collapses to zero and the headers overlap. And the World-tour / heatmap / recent-
-     form trio squeezes each panel under ~260px. Drop both to a single full-width column here;
-     3-up openings still applies above 1500. */
-  @media(max-width:1080px){
+  @container (max-width:819px){
     #profileBody .pf-oe{grid-template-columns:1fr}
+  }
+  /* Not wide enough for three across: heatmap gets the full-width top row, Recent form + World
+     tour pair beneath it. */
+  @container (max-width:899px){
+    #profileBody .pf-duo-b{grid-template-columns:1fr 1fr}
+    #profileBody .pf-duo-b > :first-child{grid-column:1 / -1}
+  }
+  /* Too narrow even for the pair: everything stacks. */
+  @container (max-width:519px){
     #profileBody .pf-duo-b{grid-template-columns:1fr}
   }
   .pf-hcell.pf-now{box-shadow:0 0 0 2px var(--ink),0 0 6px 1px rgba(231,223,196,.5);position:relative;z-index:2}
@@ -2739,7 +2753,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <span class="sub">
         <button class="ghostlink" id="aboutBtn">about</button> ·
         <button class="ghostlink" id="logBtn">changelog<span class="log-dot" id="logDot" hidden></span></button> ·
-        <span class="vtag">v1.0.11</span>
+        <span class="vtag">v1.0.10</span>
       </span>
     </div>
   </header>
@@ -7311,8 +7325,8 @@ function renderProfile(list){
     </div>
 
     <div class="pf-duo pf-duo-b">
-      ${pfRecentForm(gs)}
       ${pfBestTime(gs)}
+      ${pfRecentForm(gs)}
       ${pfWorldTour(gs)}
     </div>
 
@@ -8947,9 +8961,9 @@ function renderInsights(list){
     + dnaSection("Resilience", "resil",  "How you handle adversity — clawing back in a game, holding steady after a loss, and staying sharp deep into a session.",
         iSlot(pRecovery,"Recovery by deficit","games")+iSlot(pBehindOutcome,"Outcome after you fall behind","games")+iSlot(pComebackEnd,"How your comebacks end","games")+iSlot(pTiltCurve,"Tilt curve","games")+iSlot(pFatigue,"Session fatigue","games"), 4)
     + dnaSection("Sharpness",  "sharp",  "How clean your moves are for your rating.",
-        iSlot(pAcc,"Accuracy split",hasAcc?"games":"acc")+iSlot(pDev,"Development discipline","games")+iSlot(pShortLoss,"Short losses","games")+iSlot(pSeesaw,"Material see-saw","games")+iSlot(pTurns,"How often it turns over","games"), 5)
+        iSlot(pAcc,"Accuracy split",hasAcc?"games":"acc")+iSlot(pAccLen,"Accuracy by game length",hasAcc?"games":"acc")+iSlot(pDev,"Development discipline","games")+iSlot(pShortLoss,"Short losses","games")+iSlot(pSeesaw,"Material see-saw","games")+iSlot(pTurns,"How often it turns over","games"), 5)
     + dnaSection("Clock",      "clock",  "How rarely the clock beats you, and where your time goes.",
-        iSlot(pThinkSig,"Thinking signature",hasClock?"games":"clock")+iSlot(pAccLen,"Accuracy by game length",hasAcc?"games":"acc")+iSlot(pClockWar,"Clock left at the end",hasClock?"games":"clock")+tempoPanels(list), 6);
+        iSlot(pThinkSig,"Thinking signature",hasClock?"games":"clock")+iSlot(pClockWar,"Clock left at the end",hasClock?"games":"clock")+tempoPanels(list), 6);
     // "Off the board" / Format face-off section removed per request.
   /* Scroll to the panel a finding points at. Deliberately NOT an href="#id": the hash is
      the tab router, so a fragment link would be read as a tab change. */
@@ -9279,7 +9293,7 @@ function rolling(vals, win){
 // a baseline where one is meaningful, and the current value called out on the line.
 function trendPanel(title, sub, series, opts={}){
   const {fmt=(v)=>v.toFixed(1), goodUp=true, baseline=null, pct=false, minGames=5,
-         dates=[], unit="", warmup=0}=opts;
+         dates=[], unit="", warmup=0, min=null}=opts;   // min: hard axis floor for quantities that can't go below it (counts, rates)
   const pts=series.filter(v=>v!=null);
   if(pts.length<minGames) return iPanel(title,sub,'<div class="isub">Not enough data in view.</div>');
 
@@ -9296,10 +9310,12 @@ function trendPanel(title, sub, series, opts={}){
   const pad0=(hi-lo)*0.05 || Math.abs(hi||1)*0.05 || 1;
   lo-=pad0; hi+=pad0;
   if(pct){ lo=Math.max(0,lo); hi=Math.min(100,hi); }
+  if(min!=null) lo=Math.max(min,lo);   // don't pad the axis below a quantity's real floor
   const rawStep=(hi-lo)/4;
   const mag=Math.pow(10,Math.floor(Math.log10(Math.abs(rawStep)||1)));
   const step=[1,2,2.5,5,10].map(m=>m*mag).find(s=>s>=rawStep) || mag*10;
-  const gLo=Math.floor(lo/step)*step;
+  let gLo=Math.floor(lo/step)*step;
+  if(min!=null) gLo=Math.max(min,gLo);   // and don't let the gridline snap dip under it either
   const gHi=Math.ceil(hi/step)*step;
   const span=Math.max(1e-9,gHi-gLo);
 
@@ -9435,18 +9451,18 @@ function renderTrends(list){
   if(asc.some(g=>g.mates)){
     html+=trendPanel("Missed mates per game",`Rolling average of forced mates you walked past, across scanned games. Zero is the goal; anything above it is free wins left on the table.`,
       rolling(asc.map(g=>g.mates?g.mates.missed:null),w),
-      {fmt:v=>v.toFixed(2),goodUp:false,baseline:0,dates:D,warmup:w-1});
+      {fmt:v=>v.toFixed(2),goodUp:false,baseline:0,dates:D,warmup:w-1,min:0});
   }
 
   html+=trendPanel("Game length",`Rolling average moves per game. Sharp drops often mean early blunders.`,
-    rolling(asc.map(g=>playedOut(g)?g.moves:null),w),{fmt:v=>v.toFixed(0),dates:D,warmup:w-1});
+    rolling(asc.map(g=>playedOut(g)?g.moves:null),w),{fmt:v=>v.toFixed(0),dates:D,warmup:w-1,min:0});
 
   // Material swing: how far material went AGAINST the run of play in each game — the smaller
   // of the peak lead and the deepest deficit. High means the advantage genuinely changed hands.
   // Falling = cleaner, more one-directional games, which is what improvement usually looks like.
   html+=trendPanel("Material swing",`Rolling average of how far material went <em>against</em> you each game, in pawns — the smaller of your best and worst moments, so a one-sided win counts 0. Roughly: under 1 is one-way, 1–2 slight, 3–4 a real reversal, 5+ wild. Falling means cleaner games.`,
     rolling(asc.map(matSwing),w),
-    {fmt:v=>v.toFixed(1),goodUp:false,baseline:0,dates:D,warmup:w-1});
+    {fmt:v=>v.toFixed(1),goodUp:false,baseline:0,dates:D,warmup:w-1,min:0});
 
   const warn = mixed.length>1
     ? `<div class="coach trends-warn" style="grid-column:1/-1;background:none;border-bottom:1px solid var(--rule);padding:3px 10px">
@@ -14967,8 +14983,8 @@ function renderSummary(list){
     <div class="stat"><div class="k">Black Win %</div><div class="v">${wr(asB)} <small>${wc(asB)}</small></div></div>
     <div class="stat"><div class="k">Castled Win %</div><div class="v">${wr(cast)} <small>${wc(cast)}</small></div></div>
     <div class="stat"><div class="k">No-castle Win %</div><div class="v">${wr(noCast)} <small>${wc(noCast)}</small></div></div>
-    <div class="stat" title="Average game length for games that went at least ${MIN_REAL_MOVES} moves.${skipped?` ${skipped} game${skipped===1?"":"s"} under ${MIN_REAL_MOVES} moves (instant abandons and walkovers) ${skipped===1?"is":"are"} excluded.`:""}"><div class="k">Avg moves</div><div class="v">${avgMoves}${skipped?` <small>(${real.length})</small>`:""}</div></div>
-    <div class="stat"><div class="k">Avg Acc</div><div class="v">${avgAcc} <small>(${accs.length})</small></div></div>
+    <div class="stat" title="Average game length for games that went at least ${MIN_REAL_MOVES} moves.${skipped?` ${skipped} game${skipped===1?"":"s"} under ${MIN_REAL_MOVES} moves (instant abandons and walkovers) ${skipped===1?"is":"are"} excluded.`:""}"><div class="k">Moves/g</div><div class="v">${avgMoves}</div></div>
+    <div class="stat"><div class="k">Avg Acc</div><div class="v">${avgAcc}</div></div>
     `
     + (tracked.length ? `<div class="stat" title="Wins where you were down 3+ material at some point and won anyway — games you stole"><div class="k">Comebacks</div><div class="v ${takenBack.length?"res win":""}">${takenBack.length} <small>/${w}</small></div></div>` : "")
     + (tracked.length ? `<div class="stat" title="Losses where you were winning at some point — up 3+ material during the game, or engine-verified winning at the end"><div class="k">Gave Away</div><div class="v ${gaveAway.length?"res loss":""}">${gaveAway.length} <small>/${list.filter(g=>g.result==="Loss").length}</small></div></div>` : "")
@@ -15518,6 +15534,9 @@ document.addEventListener("click",e=>{
   }
   LS.del(key);
   if(inUse){ try{ games=[]; }catch(_){} }
+  // Clearing a person's saved games should also drop them from the username field's recents —
+  // otherwise their name lingers in the dropdown pointing at data that's no longer here.
+  if(key.startsWith("rookbook:cache:")){ try{ removeRecent(key.slice(15)); }catch(_){} }
   renderStorageHealth();
 });
 
