@@ -1668,13 +1668,12 @@
   #profileBody .ng-elo{flex:0 0 auto}
 
   /* Intermediate zone: the Rookbook Rating panel shares its row with "How your games end",
-     so it only gets ~57% of the content width. Below ~1360px that leaves the 6-axis column
-     too narrow — the metric text ("31% of wins by mate…") collapses to one word per line.
-     Stack the radar above the axes so the axis rows span the full panel width before that
-     happens; the radar/games two-column split stays for wider screens. */
-  @media(max-width:1360px){
-    #profileBody .dna-body{grid-template-columns:1fr;gap:14px}
-    #profileBody .radar{max-width:280px;margin:0 auto;display:block}
+     so it only gets ~57% of the content width — enough to crush the 6-axis metric text to one
+     word per line, and to force "How your games end" to stretch tall with dead space. Below
+     ~1500px, give Rookbook Rating the full row (radar + axes stay comfortably side-by-side) and
+     drop "How your games end" onto its own row underneath. The two-up split stays for wide screens. */
+  @media(max-width:1500px){
+    #profileBody .pf-duo-a{grid-template-columns:1fr}
   }
   @media(max-width:820px){
     #profileBody .stats{grid-template-columns:1fr}
