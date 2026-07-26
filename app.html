@@ -7288,12 +7288,12 @@ function renderProfile(list){
     <div class="pf-oe">
       <div class="panel pfop-panel">
         <div class="pfop-head"><div class="panel-h" style="margin:0">Openings</div><span class="pfop-tg pfop-mode"><button class="on" data-v="played" onclick="pfOpToggle(this)">Played</button><button data-v="faced" onclick="pfOpToggle(this)">Faced</button></span><span class="pfop-as">as</span><span class="pfop-tg pfop-color"><button class="on" data-v="all" onclick="pfOpToggle(this)">All</button><button data-v="white" onclick="pfOpToggle(this)">White</button><button data-v="black" onclick="pfOpToggle(this)">Black</button></span></div>
-        <div class="pfop-row pfop-hdr"><span>Opening</span><span>W · D · L</span><span>Games</span><span>Win</span><span>Elo</span></div>
+        <div class="pfop-row pfop-hdr"><span>Opening</span><span>W/D/L</span><span>Games</span><span>Win</span><span>Elo</span></div>
         <div id="pf-oplist">${pfOpRows('played','all')}</div>
       </div>
       <div class="panel pfop-panel lns">
         <div class="pfop-head"><div class="panel-h" style="margin:0">By game length</div></div>
-        <div class="pfop-row pfop-hdr"><span>Length</span><span>W · D · L</span><span>Games</span><span>Win</span><span>Elo</span></div>
+        <div class="pfop-row pfop-hdr"><span>Length</span><span>W/D/L</span><span>Games</span><span>Win</span><span>Elo</span></div>
         <div id="pf-lenlist">${pfLenRows()}</div>
       </div>
       <div class="panel pfop-panel pcs">
