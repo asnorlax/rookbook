@@ -100,7 +100,13 @@
          ledger routine already exist, so the series computes lazily at hover time.
          No new analysis or storage needed. Review-tab sparkline remains a later step.
          ================================================================================ -->
-    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.0.10 <span class="cl-tag">now</span></span><span class="cl-date">26 Jul 2026</span></summary><ul>
+    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.0.11 <span class="cl-tag">now</span></span><span class="cl-date">26 Jul 2026</span></summary><ul>
+        <li>"How you get mated" now charts the material you had when the king fell — spot defensive collapses vs. already-lost games</li>
+        <li>Insights no longer hides empty modules — each shows what unlocks it (more games, Game Review, or move-time data)</li>
+        <li>Overview modules (openings, game length, pieces) show a clear note when there's too little data</li>
+      </ul></details>
+
+    <details class="cl"><summary class="cl-v"><span class="cl-t">v1.0.10</span><span class="cl-date">26 Jul 2026</span></summary><ul>
         <li>Looking up a new account now shows a loading card with live progress — no more mixed-up stats mid-fetch</li>
         <li>Modules missing data now keep their size and say exactly what fills them in</li>
         <li>Mate-timing chart extends past move 60</li>
@@ -1288,6 +1294,11 @@
     text-align:center;padding:18px 22px;font-size:12.5px;color:var(--dim);font-family:var(--sans);line-height:1.55}
   .need-data b{color:var(--read)}
   .need-data .nd-x{font-size:11.5px;opacity:.85}
+  /* A stubbed Insights panel: real title, quieter than a panel with data so a thin account
+     reads as "here's what unlocks as you play," not as broken or empty. */
+  #insights .ipanel-stub{opacity:.7}
+  #insights .ipanel-stub h3{color:var(--dim)}
+  #insights .ipanel-stub .need-data{min-height:96px}
   /* a hairline stops the footer floating loose under the content; the copyright drops to
      the bottom in a dimmer tone since it's the least useful line on the page */
   footer{margin-top:16px;border-top:1px solid var(--rule);padding:14px 0 0 8px;
@@ -2705,7 +2716,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <span class="sub">
         <button class="ghostlink" id="aboutBtn">about</button> ·
         <button class="ghostlink" id="logBtn">changelog<span class="log-dot" id="logDot" hidden></span></button> ·
-        <span class="vtag">v1.0.10</span>
+        <span class="vtag">v1.0.11</span>
       </span>
     </div>
   </header>
@@ -6928,6 +6939,7 @@ function pfLedgerRow(o,avg,nm){
 function pfOpRows(mode,color){
   const D=window.__pfOps; if(!D) return "";
   const avg=D.overall, rows=(D[mode]&&D[mode][color])||[];
+  if(!rows.length) return needData("games","No opening reaches 6 games in this view yet.");
   let html=rows.map(o=>{
     const flip = color==="black"?1 : color==="white"?0 : (mode==="played" ? (o.own?1:0) : (o.own?0:1));  // show from the side YOU were
     const oc=`<span class="pill ${o.own?"B":"W"}" title="${o.own?"a Black defense":"a White opening"}">${o.own?"B":"W"}</span>`;
@@ -6954,6 +6966,7 @@ function pfEndgamesGrid(gs){
 function pfEgRows(){
   const D=window.__pfEg; if(!D) return "";
   const base=D.overall, rows=D.rows||[];
+  if(!rows.length) return needData("games","No endgame type reaches 3 games in this range yet.");
   const sgn=(v,s)=>v>0?`+${v}${s}`:v<0?`${v}${s}`:`±0${s}`;
   let html=rows.map(o=>{ const d=o.wr-base, wc=o.wr>=base+2?"g":o.wr<=base-2?"b":"ink", dc=d>=2?"g":d<=-2?"b":"dim", ec=o.e>0?"g":o.e<0?"b":"dim";
     return `<div class="pfop-row"><span class="pfop-nm">${o.fam}</span><span class="pfop-num dim">${o.reach}%</span><span class="pfop-num ${wc}">${o.wr}%</span><span class="pfop-num ${dc} pfop-adv">${sgn(d,"%")}</span><span class="pfop-num ${ec}">${sgn(o.e,"")}</span></div>`; }).join("");
@@ -6974,6 +6987,7 @@ function pfLengthGrid(gs){
 function pfLenRows(){
   const D=window.__pfLen; if(!D) return "";
   const avg=D.overall, rows=D.rows||[];
+  if(!rows.length) return needData("games","No length band reaches 6 games in this range yet.");
   let html=rows.map(o=>pfLedgerRow(o,avg,`<span class="pf-lcell"><span class="pf-lname">${o.fam}</span></span>`)).join("");
   for(let i=rows.length;i<6;i++) html+=`<div class="pfop-row pfop-empty"><span class="pf-lname">&nbsp;</span></div>`;
   return html;
@@ -6994,8 +7008,7 @@ function pfPiecesGrid(gs){
 }
 function pfPieceRows(){
   const D=window.__pfPc;
-  const pad=k=>{ let h=""; for(let i=0;i<k;i++) h+=`<div class="pfop-row pfop-empty"><span class="pf-lname">&nbsp;</span></div>`; return h; };
-  if(!D||!D.any) return pad(6);
+  if(!D||!D.any) return needData("refetch","Per-piece activity is read from each game's moves.");
   const num=v=>`<span class="pf-lgames">${v.toLocaleString()}</span>`;
   const act=(v,g)=>`<span class="pf-lgames">${v.toLocaleString()} <span class="pf-lsub">(${g.toFixed(1)}/g)</span></span>`;
   let html=D.rows.map(o=>{
@@ -7022,6 +7035,7 @@ function pfRatingGapGrid(gs){
 function pfGapRows(){
   const D=window.__pfGap; if(!D) return "";
   const base=D.overall, rows=D.rows||[];
+  if(!rows.length) return needData("games","Not enough rated games with opponent ratings yet.");
   const sgn=(v,s)=>v>0?`+${v}${s}`:v<0?`${v}${s}`:`±0${s}`;
   let html=rows.map(o=>{ const d=o.wr-base, wc=o.wr>=base+2?"g":o.wr<=base-2?"b":"ink", dc=d>=2?"g":d<=-2?"b":"dim", ec=o.e>0?"g":o.e<0?"b":"dim";
     return `<div class="pfop-row"><span class="pfop-nm">${o.fam}</span><span class="pfop-num dim">${o.n}</span><span class="pfop-num ${wc}">${o.wr}%</span><span class="pfop-num ${dc} pfop-adv">${sgn(d,"%")}</span><span class="pfop-num ${ec}">${sgn(o.e,"")}</span></div>`; }).join("");
@@ -7631,6 +7645,7 @@ const NEED_TXT={
   opps:   "Run <b>Look up opponents</b> (top of the page) and this fills in.",
   evals:  "Run <b>Evaluate positions</b> (top of the page) and this fills in.",
   acc:    "Needs accuracy data — run <b>Game Review</b> on chess.com, then re-fetch here.",
+  clock:  "Needs move times — play live games (bullet, blitz, rapid) and re-fetch.",
   refetch:"Your saved games predate this analysis — hit <b>Fetch games</b> and this fills in.",
   games:  "Not enough games here yet — this fills in as you play more."
 };
@@ -7638,6 +7653,12 @@ function needData(kind, extra){
   return `<div class="need-data"><span>${NEED_TXT[kind]||NEED_TXT.games}</span>`
        + (extra?`<span class="nd-x">${extra}</span>`:"") + `</div>`;
 }
+// A whole Insights panel rendered as a placeholder: same title and footprint as the real one,
+// just quieter, so a thin account shows the full page (nothing hidden) with each empty module
+// saying what unlocks it. iSlot returns the real panel when it has content, else the stub.
+function iSlug(title){ return "ip-"+String(title).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
+function iStub(title, kind, extra){ return `<div class="ipanel ipanel-stub" id="${iSlug(title)}"><h3>${title}</h3>${needData(kind,extra)}</div>`; }
+function iSlot(content, title, kind, extra){ return content || iStub(title, kind, extra); }
 
 
 /* ============ BLOWN LEADS TAB ============
@@ -8557,24 +8578,62 @@ function renderInsights(list){
   // Defense axis: how the king actually fell (no engine eval needed — just how the loss
   // finished), so this axis has substance even before Game Review has run on anything.
   {
-    const mated=list.filter(g=>g.result==="Loss" && g.how==="checkmate" && typeof g.moves==="number");
-    if(mated.length>=3){
-      const n=mated.length, pc=x=>Math.round(100*x/n);
-      const quick=mated.filter(g=>g.moves<=20).length;
-      const alreadyLost=mated.filter(g=>typeof g.troughMat==="number" && g.troughMat<=-3).length;
-      const fromLevel=n-alreadyLost;
-      const drow=(label,x)=>`<div class="irow"><span class="ilabel" title="${label}">${label}</span><span class="itrack"><span class="ifill neutral" style="width:${pc(x)}%;display:block"></span></span><span class="ival">${x} <span>(${pc(x)}%)</span></span></div>`;
+    // The material analog of the "When mate is delivered" timing chart: instead of the MOVE the
+    // king fell on, the axis is YOUR material balance at that moment. Same grammar — green = mates
+    // you delivered, coral = mates you received — but the signed axis tells a different story:
+    //   green far right  = you win material first, then mate (a grinder's finish)
+    //   green near/below 0 = you mate without a material edge (a real attacker)
+    //   coral near/above 0 = you were mated while materially fine — defensive collapses, the fixable ones
+    //   coral far left   = you were already lost; the mate is the symptom, not the cause
+    const isMate=g=>g.how==="checkmate"||resignForcedMate(g);   // ehI isn't defined until below this block
+    const dMat=list.filter(g=>g.result==="Win"  && isMate(g) && typeof g.mat==="number");
+    const rMat=list.filter(g=>g.result==="Loss" && isMate(g) && typeof g.mat==="number");
+    if(rMat.length>=3){
+      const n=rMat.length, pc=x=>Math.round(100*x/n);
+      // the two actionable buckets, read off final material at the mate
+      const alreadyLost=rMat.filter(g=>g.mat<=-3).length, fromLevel=n-alreadyLost;
+      // ---- grouped histogram on a signed material axis ----
+      const MC=10, BWm=2, nBinsM=(2*MC)/BWm;   // clamp to ±10 pawns, 2-pawn bins
+      const binOfM=v=>{ let c=Math.max(-MC+1e-4,Math.min(MC-1e-4,v)); let b=Math.floor((c+MC)/BWm); return b<0?0:b>=nBinsM?nBinsM-1:b; };
+      const cD=new Array(nBinsM).fill(0), cR=new Array(nBinsM).fill(0);
+      dMat.forEach(g=>cD[binOfM(g.mat)]++); rMat.forEach(g=>cR[binOfM(g.mat)]++);
+      const maxC=Math.max(...cD,...cR,1);
+      const W=720,Hc=210,mL=26,mR=10,mT=8,mB=30, pW=W-mL-mR, pH=Hc-mT-mB, baseY=mT+pH;
+      const niceStep=v=>[1,2,5,10,20,25,50].find(x=>x>=v/4)||100;
+      const yStep=niceStep(maxC), yMax=Math.max(yStep,Math.ceil(maxC/yStep)*yStep);
+      const yA=c=>mT+pH*(1-c/yMax);
+      const xOf=v=>mL+((Math.max(-MC,Math.min(MC,v))+MC)/(2*MC))*pW;
+      let grid=""; for(let t=0;t<=yMax+1e-6;t+=yStep) grid+=`<line x1="${mL}" y1="${yA(t).toFixed(1)}" x2="${W-mR}" y2="${yA(t).toFixed(1)}" stroke="var(--rule)" stroke-width="0.5"/><text x="${mL-5}" y="${(yA(t)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--dim)" font-family="var(--mono)">${t}</text>`;
+      // the zero line splits "you were up" (right) from "you were down" (left)
+      const zx=xOf(0);
+      const zero=`<line x1="${zx.toFixed(1)}" y1="${mT}" x2="${zx.toFixed(1)}" y2="${baseY}" stroke="var(--dim)" stroke-width="0.7" stroke-dasharray="2 2"/>`;
+      const slot=pW/nBinsM, bw=Math.max(1.5,slot/2-1);
+      let bars="";
+      for(let i=0;i<nBinsM;i++){ const lo=i*BWm-MC, hi=lo+BWm;
+        const rng=`${i===0?"−"+MC+" or worse":i===nBinsM-1?"+"+(MC-BWm)+" or better":(lo>0?"+"+lo:lo)+" to "+(hi>0?"+"+hi:hi)}`;
+        const bx=mL+i*slot;
+        if(cD[i]){ const by=yA(cD[i]); bars+=`<rect x="${(bx+0.5).toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${(baseY-by).toFixed(1)}" fill="var(--win)" fill-opacity="0.9"><title>material ${rng}: ${cD[i]} delivered</title></rect>`; }
+        if(cR[i]){ const by=yA(cR[i]); bars+=`<rect x="${(bx+slot/2+0.5).toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${(baseY-by).toFixed(1)}" fill="var(--loss)" fill-opacity="0.9"><title>material ${rng}: ${cR[i]} received</title></rect>`; }
+      }
+      let xticks=""; [-10,-5,0,5,10].forEach(v=>{ const x=xOf(v); xticks+=`<text x="${x.toFixed(1)}" y="${(baseY+12).toFixed(1)}" text-anchor="middle" font-size="9" fill="var(--dim)" font-family="var(--mono)">${v>0?"+"+v:v}</text>`; });
+      const xTitle=`<text x="${(mL+pW/2).toFixed(1)}" y="${(Hc-2).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="var(--dim)" font-family="var(--sans)" letter-spacing="0.6">your material when the mate landed  ·  ← behind    ahead →</text>`;
+      const axis=`<line x1="${mL}" y1="${mT}" x2="${mL}" y2="${baseY}" stroke="var(--rule)" stroke-width="0.8"/><line x1="${mL}" y1="${baseY}" x2="${W-mR}" y2="${baseY}" stroke="var(--rule)" stroke-width="0.8"/>`;
+      const chart=`<svg class="acc-chart" viewBox="0 0 ${W} ${Hc}" role="img" aria-label="Checkmates delivered vs received, by your material at the mate">${grid}${zero}${axis}${bars}${xticks}${xTitle}</svg>`;
+      const dot=c=>`<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c};vertical-align:-1px;margin-right:5px"></span>`;
+      const statline=`<div class="isub" style="display:flex;gap:22px;flex-wrap:wrap;margin:1px 0 6px;font-size:12px"><span>${dot("var(--win)")}deliver ${dMat.length}</span><span>${dot("var(--loss)")}receive ${n}</span></div>`;
+      // the actionable read: split received mates into fixable collapses vs already-lost
+      const tile=(v,lbl,sub,cls)=>`<div style="flex:1 1 0;min-width:0;background:var(--panel2);border-left:3px solid ${cls};padding:9px 12px;border-radius:0 4px 4px 0">`
+        +`<div style="font-family:var(--mono);font-size:21px;line-height:1;color:${cls}">${v}<span style="font-size:11px;color:var(--dim);margin-left:3px">${pc(v)}%</span></div>`
+        +`<div style="font-size:11.5px;color:var(--read);margin-top:4px;line-height:1.35">${lbl}</div>`
+        +`<div style="font-size:10.5px;color:var(--dim);margin-top:2px">${sub}</div></div>`;
+      const tiles=`<div style="display:flex;gap:10px;margin-top:4px">`
+        +tile(fromLevel,"from a level-or-better position","defensive collapses — the fixable ones","var(--loss)")
+        +tile(alreadyLost,"already down 3+ material","the mate was the symptom, not the cause","var(--dim)")+`</div>`;
       const dnote=fromLevel>alreadyLost
-        ? "More come from level or better positions than from lost ones — those are defensive collapses, not just losing games ending in mate."
-        : "Most come when you were already losing — the mate is the symptom, not the cause.";
-      pDefense+=iPanel("How you get mated",`The ${n} games where the king actually fell — most losses you resign or flag before it gets that far.`,
-        `<div class="isub" style="margin:-2px 0 8px;color:var(--dim)">By speed</div>`
-        +drow("Quick — inside 20 moves",quick)
-        +drow("Dragged out — 20+ moves",n-quick)
-        +`<div class="isub" style="margin:6px 0 8px;color:var(--dim)">By how the game stood</div>`
-        +drow("Already down 3+ material",alreadyLost)
-        +drow("From a level-or-better position",fromLevel)
-        +`<div class="isub" style="margin-top:9px">${dnote}</div>`);
+        ? `<div class="isub" style="margin-top:9px">More of your mates land while the game is still <b>level or better</b> — that points at king safety, not lost causes.</div>`
+        : `<div class="isub" style="margin-top:9px">Most come when you were <b>already losing</b> — tighten the earlier play and the mates take care of themselves.</div>`;
+      pDefense+=iPanel("How you get mated",`Where the game stood, in material, when the king actually fell — most losses you resign or flag before it gets that far.`,
+        statline+chart+tiles+dnote);
     }
   }
   // ---- Extra panels that flesh out the thin DNA sections (all move/material/clock based, no eval needed) ----
@@ -8832,6 +8891,10 @@ function renderInsights(list){
       +`<div class="dna-cards">${insDna.axes.map(a=>`<button class="dna-card ${scoreCls(a.val)}" data-scrollto="dna-${a.key}"><span class="dna-card-top"><span class="dna-card-head"><span class="dna-card-name">${a.label}</span><span class="dna-card-score">${a.val}<small>/100</small></span></span><span class="dna-card-jump">&rarr;</span></span><ul class="dna-card-metric">${(a.bullets&&a.bullets.length?a.bullets:[a.metric]).map(b=>`<li>${b}</li>`).join("")}</ul></button>`).join("")}</div>`
     +`</div>`
     +`</div>` : "";
+  // what data the account actually carries, so a stub can name the RIGHT blocker: accuracy panels
+  // say "run Game Review", clock panels say "needs move times", the rest say "play more games"
+  const hasAcc=list.some(g=>typeof g.acc==="number");
+  const hasClock=list.some(g=>g.times&&g.times.mine&&g.times.mine.length>=6);
   const wipBanner=(()=>{ try{ if(localStorage.getItem("rookbook:wipInsights")==="1") return ""; }catch(e){} return `<div class="wipbar" id="wipInsights"><span class="wiptxt"><b>Insights is being actively rebuilt.</b> <span class="wipdim">Sorry for any rough edges — it's getting better every week.</span></span><button class="wipx" id="wipDismiss" aria-label="Dismiss this notice" title="Dismiss">&times;</button></div>`; })();
   box.innerHTML=wipBanner+`<div style="grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 0 10px"><h3 class="ptitle">Insights</h3><span class="isub" style="margin:0;font-family:var(--sans)">What your games add up to — where you're strong, where you're weak, and how you hold up.</span></div>`
     + insScopeNote
@@ -8846,15 +8909,22 @@ function renderInsights(list){
         // top row: the mates chart (2/3) + the Autopsy beside it; then the rest.
         // pLossEnd removed — the Autopsy already breaks down how losses end.
         // standard 2-up grid (same as every other section) — mates + autopsy fill the top row.
-        const panels=pMateArrive+pAutopsy+pMissedMate+pKill+pDefense+pSwing+pCastleMate+pMateFormat;
+        const panels=iSlot(pMateArrive,"When mate is delivered","games")+iSlot(pAutopsy,"Autopsy","games")
+          +iSlot(pMissedMate,"Mates: landed vs left","games")+iSlot(pKill,"Do you go for the kill?","games")
+          +iSlot(pDefense,"How you get mated","games")+iSlot(pSwing,"Material swing","games")
+          +iSlot(pCastleMate,"Castling","games")+iSlot(pMateFormat,"Which clock gets you mated","games","Compares time controls — needs games in more than one.");
         const body=panels||`<div class="ipanel">${needData("games")}</div>`;
         // id="dna-attack" is the section; the empty #dna-steady anchor keeps the Defense radar card's jump working
         return `<section class="dna-sec admerge" id="dna-attack"><span id="dna-steady" style="scroll-margin-top:14px"></span><header class="dna-sec-head"><span class="dna-eyebrow">${title}</span></header><div class="dna-mods">${body}</div></section>`;
       })()
-    + dnaSection("Conversion", "conv",   "Turning won positions into won games.",                     pConvert+pLeadSize+pGiveback, 3)
-    + dnaSection("Resilience", "resil",  "How you handle adversity — clawing back in a game, holding steady after a loss, and staying sharp deep into a session.", pRecovery+pBehindOutcome+pComebackEnd+pTiltCurve+pFatigue, 4)
-    + dnaSection("Sharpness",  "sharp",  "How clean your moves are for your rating.",                 pAcc+pDev+pShortLoss+pSeesaw+pTurns, 5)
-    + dnaSection("Clock",      "clock",  "How rarely the clock beats you, and where your time goes.", pThinkSig+pAccLen+pClockWar+tempoPanels(list), 6);
+    + dnaSection("Conversion", "conv",   "Turning won positions into won games.",
+        iSlot(pConvert,"Conversion & swindles","games")+iSlot(pLeadSize,"Conversion by lead size","games")+iSlot(pGiveback,"How much of the lead you hand back","games"), 3)
+    + dnaSection("Resilience", "resil",  "How you handle adversity — clawing back in a game, holding steady after a loss, and staying sharp deep into a session.",
+        iSlot(pRecovery,"Recovery by deficit","games")+iSlot(pBehindOutcome,"Outcome after you fall behind","games")+iSlot(pComebackEnd,"How your comebacks end","games")+iSlot(pTiltCurve,"Tilt curve","games")+iSlot(pFatigue,"Session fatigue","games"), 4)
+    + dnaSection("Sharpness",  "sharp",  "How clean your moves are for your rating.",
+        iSlot(pAcc,"Accuracy split",hasAcc?"games":"acc")+iSlot(pDev,"Development discipline","games")+iSlot(pShortLoss,"Short losses","games")+iSlot(pSeesaw,"Material see-saw","games")+iSlot(pTurns,"How often it turns over","games"), 5)
+    + dnaSection("Clock",      "clock",  "How rarely the clock beats you, and where your time goes.",
+        iSlot(pThinkSig,"Thinking signature",hasClock?"games":"clock")+iSlot(pAccLen,"Accuracy by game length",hasAcc?"games":"acc")+iSlot(pClockWar,"Clock left at the end",hasClock?"games":"clock")+tempoPanels(list), 6);
     // "Off the board" / Format face-off section removed per request.
   /* Scroll to the panel a finding points at. Deliberately NOT an href="#id": the hash is
      the tab router, so a fragment link would be read as a tab change. */
@@ -14052,7 +14122,7 @@ function tempoPanels(list){
   const withT=list.filter(g=>g.times && g.times.mine && g.times.mine.length>=6);
   // keep the module's spot: old saves have no clock data (refetch fixes it); tiny accounts just
   // haven't played enough live games yet
-  if(withT.length<5) return `<div class="ipanel"><h3>Tempo</h3>${needData(list.length>=20?"refetch":"games")}</div>`;
+  if(withT.length<5) return `<div class="ipanel ipanel-stub" id="ip-tempo"><h3>Tempo</h3>${needData(list.some(g=>g.times&&g.times.mine&&g.times.mine.length)?"games":"clock")}</div>`;
   const isW=g=>g.result==="Win";
   const pct=(a,b)=>b?Math.round(100*a/b):0;
   const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
