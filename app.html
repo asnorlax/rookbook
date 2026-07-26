@@ -7658,7 +7658,9 @@ function needData(kind, extra){
 // saying what unlocks it. iSlot returns the real panel when it has content, else the stub.
 function iSlug(title){ return "ip-"+String(title).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
 function iStub(title, kind, extra){ return `<div class="ipanel ipanel-stub" id="${iSlug(title)}"><h3>${title}</h3>${needData(kind,extra)}</div>`; }
-function iSlot(content, title, kind, extra){ return content || iStub(title, kind, extra); }
+// On the sample account, a permanently-gray stub (the demo is rapid-only, so some never unlock)
+// reads as unpolished on the landing showcase — hide there; real accounts get the honest stub.
+function iSlot(content, title, kind, extra){ return content || ((typeof DEMO!=="undefined"&&DEMO) ? "" : iStub(title, kind, extra)); }
 
 
 /* ============ BLOWN LEADS TAB ============
@@ -14122,7 +14124,7 @@ function tempoPanels(list){
   const withT=list.filter(g=>g.times && g.times.mine && g.times.mine.length>=6);
   // keep the module's spot: old saves have no clock data (refetch fixes it); tiny accounts just
   // haven't played enough live games yet
-  if(withT.length<5) return `<div class="ipanel ipanel-stub" id="ip-tempo"><h3>Tempo</h3>${needData(list.some(g=>g.times&&g.times.mine&&g.times.mine.length)?"games":"clock")}</div>`;
+  if(withT.length<5) return (typeof DEMO!=="undefined"&&DEMO) ? "" : `<div class="ipanel ipanel-stub" id="ip-tempo"><h3>Tempo</h3>${needData(list.some(g=>g.times&&g.times.mine&&g.times.mine.length)?"games":"clock")}</div>`;
   const isW=g=>g.result==="Win";
   const pct=(a,b)=>b?Math.round(100*a/b):0;
   const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
