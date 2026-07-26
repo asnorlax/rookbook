@@ -100,7 +100,13 @@
          ledger routine already exist, so the series computes lazily at hover time.
          No new analysis or storage needed. Review-tab sparkline remains a later step.
          ================================================================================ -->
-    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.0.8 <span class="cl-tag">now</span></span><span class="cl-date">23 Jul 2026</span></summary><ul>
+    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.0.9 <span class="cl-tag">now</span></span><span class="cl-date">25 Jul 2026</span></summary><ul>
+        <li>Updated the overview page with additional modules</li>
+        <li>Updated the Rookbook Rating calculation</li>
+        <li>Insights rework still in progress</li>
+      </ul></details>
+
+    <details class="cl"><summary class="cl-v"><span class="cl-t">v1.0.8</span><span class="cl-date">23 Jul 2026</span></summary><ul>
         <li>Added an overview page breaking down a macro look of your chess.com stats</li>
         <li>Forced-mate resignations are now scored as checkmates across your stats</li>
         <li>Added a <a href="/is-chess-com-down.html" target="_blank" rel="noopener">live Chess.com status page</a> — check whether Chess.com is down, slow, or not loading, and whether it's just you</li>
@@ -765,11 +771,7 @@
   #insights .dna-mods > .ipanel{min-width:0;margin:0;border:1px solid var(--rule);background:var(--panel2)}
   #insights .dna-mods > .ipanel.wide{grid-column:1/-1}
   /* merged Attack+Defense: the mates chart leads at 2/3 width (spans 2 of 3 cols); the rest fill in */
-  #insights .admerge .ad-body{padding:16px 18px}
-  #insights .admerge .ad-top{display:grid;grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr);gap:14px;margin-bottom:14px}
-  #insights .admerge .ad-rest{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-  #insights .admerge .ad-body .ipanel{min-width:0;margin:0;border:1px solid var(--rule);background:var(--panel2)}
-  @media(max-width:860px){ #insights .admerge .ad-top,#insights .admerge .ad-rest{grid-template-columns:minmax(0,1fr)} }
+  /* A&D uses the standard .dna-mods grid (the ad-body/ad-top restructure collapsed panels to 0 height). */
   #insights .dna-sec.evtarget{animation:evflash 1.4s ease-out}
   @media(max-width:720px){
     #insights .dna-mods{grid-template-columns:minmax(0,1fr);gap:12px;padding:12px}
@@ -2672,7 +2674,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <span class="sub">
         <button class="ghostlink" id="aboutBtn">about</button> ·
         <button class="ghostlink" id="logBtn">changelog<span class="log-dot" id="logDot" hidden></span></button> ·
-        <span class="vtag">v1.0.8</span>
+        <span class="vtag">v1.0.9</span>
       </span>
     </div>
   </header>
@@ -8761,13 +8763,11 @@ function renderInsights(list){
         const title=`ATTACK ${scr(atk)} + DEFENSE ${scr(def)}`;
         // top row: the mates chart (2/3) + the Autopsy beside it; then the rest.
         // pLossEnd removed — the Autopsy already breaks down how losses end.
-        // top row (mates chart + autopsy, custom ratio) is separate from the rest (uniform 2-up),
-        // so the mates chart can be narrow without the lower panels going uneven.
-        const rest=pMissedMate+pKill+pDefense+pSwing+pCastleMate+pMateFormat;
-        const inner=`<div class="ad-top">${pMateArrive}${pAutopsy}</div>`+(rest?`<div class="ad-rest">${rest}</div>`:"");
-        const body=(pMateArrive||pAutopsy||rest)?inner:`<div class="ipanel">The games behind this fill in as you play more.</div>`;
+        // standard 2-up grid (same as every other section) — mates + autopsy fill the top row.
+        const panels=pMateArrive+pAutopsy+pMissedMate+pKill+pDefense+pSwing+pCastleMate+pMateFormat;
+        const body=panels||`<div class="ipanel">The games behind this fill in as you play more.</div>`;
         // id="dna-attack" is the section; the empty #dna-steady anchor keeps the Defense radar card's jump working
-        return `<section class="dna-sec admerge" id="dna-attack"><span id="dna-steady" style="scroll-margin-top:14px"></span><header class="dna-sec-head"><span class="dna-eyebrow">${title}</span></header><div class="ad-body">${body}</div></section>`;
+        return `<section class="dna-sec admerge" id="dna-attack"><span id="dna-steady" style="scroll-margin-top:14px"></span><header class="dna-sec-head"><span class="dna-eyebrow">${title}</span></header><div class="dna-mods">${body}</div></section>`;
       })()
     + dnaSection("Conversion", "conv",   "Turning won positions into won games.",                     pConvert+pLeadSize+pGiveback, 3)
     + dnaSection("Resilience", "resil",  "How you handle adversity — clawing back in a game, holding steady after a loss, and staying sharp deep into a session.", pRecovery+pBehindOutcome+pComebackEnd+pTiltCurve+pFatigue, 4)
@@ -15346,7 +15346,7 @@ document.addEventListener("click",e=>{
 const logEl=$("changelog");
 // The newest changelog version. Bump this whenever a new entry is added at the top, and the
 // changelog button shows an unread dot until the reader opens it once at this version.
-const LATEST_LOG_V="1.0.8";
+const LATEST_LOG_V="1.0.9";
 function refreshLogDot(){
   const dot=$("logDot"); if(!dot) return;
   const seen=LS.get("rookbook:log:seen");
