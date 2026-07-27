@@ -603,13 +603,14 @@
     });
   })();
 
-  // social proof: total chess.com accounts looked up on Rookbook (reads the app's GoatCounter fetch tally)
+  // social proof: total chess.com accounts looked up on Rookbook (reads the first-party
+  // /api/lookups counter — accurate, and not ad-blockable the way the GoatCounter script is)
   (function(){
     var el=document.getElementById("lookupCount"); if(!el) return;
-    fetch("https://rookbookchess.goatcounter.com/counter/event/fetch.json")
+    fetch("/api/lookups")
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){ if(!d||d.count==null) return;
-        var n=parseInt(String(d.count).replace(/,/g,""),10)||0; if(n<1) return;
+        var n=parseInt(d.count,10)||0; if(n<1) return;
         el.innerHTML="<b>"+n.toLocaleString()+"</b> chess.com accounts looked up on Rookbook"; })
       .catch(function(){});
   })();

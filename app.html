@@ -987,8 +987,8 @@
   #panel-log tbody td{padding-left:8px;padding-right:8px}
   #panel-log thead th{padding-left:8px;padding-right:8px}
   /* the Date cell is now the chess.com link — keep it looking like text until hovered */
-  #panel-log .datelink{color:inherit;text-decoration:none;border-bottom:1px dotted var(--dim)}
-  #panel-log .datelink:hover{color:var(--green);border-color:var(--green)}
+  .datelink{color:inherit;text-decoration:none;border-bottom:1px dotted var(--dim)}
+  .datelink:hover{color:var(--green);border-color:var(--green)}
   /* magnifier in the Opp header summons the opponent search (kept out of the filter bar) */
   .opphdr-mag{cursor:pointer;margin-left:6px;opacity:.5;font-size:11px;user-select:none;vertical-align:baseline}
   .opphdr-mag:hover{opacity:1}
@@ -1015,6 +1015,9 @@
   .castle-no{color:var(--loss);font-weight:700}
   th.flagcol, td.flagcol{width:12px;padding-left:8px;padding-right:0;text-align:center}
   th.starcol, td.starcol{width:16px;padding-left:2px;padding-right:2px;text-align:center}
+  /* Feed star column: match the Game Log's edge/gutter spacing (the .weekly tables otherwise pad
+     the first cell 3px-left / 11px-right, so the star hugs the edge and sits too far from the date) */
+  .weekly td.starcol{padding-left:8px;padding-right:8px}
   .gflag{
     display:inline-block;font-size:17px;line-height:1;
     padding:2px 3px;
@@ -2733,7 +2736,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
   <!-- ===================== SIDEBAR (removable: delete this block, the .sidenav styles,
        the SIDENAV js block, and set LAYOUT default to "tabs") ===================== -->
   <nav class="sidenav" id="sidenav">
-    <button class="sn-toggle" id="snToggle" title="Collapse the menu">«</button>
+    <button class="sn-toggle" id="snToggle">«</button>
     <div class="sn-locked">No games loaded yet.<br> <b>Click any page</b> to tour sample data.</div>
 
     <div class="sn-group">
@@ -2807,7 +2810,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
           <option value="m:2">Last 2 months</option>
           <option value="m:3">Last 3 months</option>
           <option value="m:6">Last 6 months</option>
-          <option value="m:999">Everything</option>
+          <option value="g:2000">Everything (recent 2,000)</option>
         </optgroup>
         <optgroup label="By games">
           <option value="g:25">Last 25 games</option>
@@ -2935,6 +2938,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <button class="chip" data-val="star" title="Games you starred in the log">&#9733;</button>
       <button class="chip" data-val="comeback" title="Wins pulled back from 3+ material down">Comeback ↺</button>
       <button class="chip" data-val="flag" title="Games that deserve a second look: blown 3+ leads, too-early resignations, squandered winning positions">Blown &#9873;</button>
+      <button class="chip" data-val="bot" title="Isolate games against chess.com bots and coaches — hidden from your stats by default">Bots &#129302;</button>
     </div>
     <span class="fsearch" data-key="opp" hidden><input id="oppSearch" type="text" placeholder="filter: opponent" autocomplete="off" spellcheck="false"><button id="oppSearchX" title="Clear" type="button">✕</button></span>
     <span class="fnote" id="fnote" hidden></span>
@@ -3176,7 +3180,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
           <option value="m:2">Last 2 months</option>
           <option value="m:3">Last 3 months</option>
           <option value="m:6">Last 6 months</option>
-          <option value="m:999">Everything</option>
+          <option value="g:2000">Everything (recent 2,000)</option>
         </optgroup>
         <optgroup label="By games">
           <option value="g:25">Last 25 games</option>
@@ -3528,17 +3532,21 @@ function track(name){
     if(window.goatcounter && window.goatcounter.count)
       window.goatcounter.count({ path:"event/"+name, title:name, event:true });
   }catch(e){}
+  // First-party lookup tally: same-origin, so ad blockers can't drop it the way they drop
+  // GoatCounter's script. A bare +1 — no username, nothing about the account leaves the browser.
+  if(name==="fetch"){ try{ fetch("/api/lookups",{method:"POST",keepalive:true}).catch(()=>{}); }catch(e){} }
 }
-// Profile-lookup counter: shows the running GoatCounter event/fetch tally on the welcome screen as
-// social proof. Read-only — the tally itself is racked up by track("fetch") on every lookup. Silent on fail.
+// Profile-lookup counter: shows the running lookup tally on the welcome screen as social proof.
+// Reads the first-party /api/lookups endpoint (accurate; not ad-blockable) — racked up by
+// track("fetch") on every lookup. Read-only, silent on fail.
 (function lookupCounter(){
   const anchor=document.querySelector(".welcome .wel-sub");
   if(!anchor) return;
   const el=document.createElement("div"); el.className="lookup-count";
   anchor.insertAdjacentElement("afterend", el);
-  fetch("https://rookbookchess.goatcounter.com/counter/event/fetch.json")
+  fetch("/api/lookups")
     .then(r=>r.ok?r.json():null)
-    .then(d=>{ if(!d||!d.count) return; const n=parseInt(String(d.count).replace(/[^0-9]/g,""),10);
+    .then(d=>{ if(!d||d.count==null) return; const n=Number(d.count)||0;
       if(n>0) el.innerHTML=`<b>${n.toLocaleString()}</b> chess.com accounts looked up on Rookbook`; })
     .catch(()=>{});
 })();
@@ -3668,10 +3676,12 @@ function visibleGames(opts={}){
     (F.col==="all" || g.color===F.col) &&
     (F.cas==="all" || g.castled===F.cas) &&
     (F.how==="all" || F.how.has(g.how)) &&
-    (F.mark==="all"
+    (F.mark==="all" || F.mark==="bot"
       || (F.mark==="flag" && isFlagged(g))
       || (F.mark==="star" && isStarred(g))
       || (F.mark==="comeback" && isComeback(g))) &&
+    // Bots/coach games are hidden from every view by default; the "Bots" filter isolates them.
+    (F.mark==="bot" ? isBotGame(g) : !isBotGame(g)) &&
     ((!F.banned || opts.ignoreBanned) || (g.oppStatus && g.oppStatus.startsWith("closed"))) &&
     (F.rated==="all" || (F.rated==="rated" ? g.rated!==false : g.rated===false)) &&
     (opts.skipTcf || F.tcf==="all" || F.tcf.has(g.tc)) &&
@@ -3688,7 +3698,15 @@ function isComeback(g){ return g.result==="Win" && typeof g.troughMat==="number"
 // Chess.com coach bots ("Coach-David", "Coach-Sofia", …) are ordinary-looking accounts with no API
 // bot flag — the reliable tell is the reserved "Coach-" username prefix. These are practice-vs-
 // computer games, so they're dropped from the dataset at load time and never reach any stat.
-function isBotGame(g){ return /^coach-/i.test((g.oppName||"").trim()); }
+// A game against a chess.com bot (coach bots, the leveled "Play Bots", or the old Play Computer).
+// chess.com tags all of them in the PGN Event: "Play vs Coach", "Play vs Bot", or "Computer" —
+// human games are "Live Chess" / "Daily Chess" / "Let's Play!", so this is a clean signal.
+// The coach-* handle check is a belt-and-suspenders fallback for games missing a PGN.
+function isBotGame(g){
+  if(/^coach-/i.test((g.oppName||"").trim())) return true;
+  const ev=(/\[Event\s+"([^"]*)"\]/.exec(g.pgn||"")||[])[1]||"";
+  return /^Play vs /i.test(ev) || /^Computer$/i.test(ev);
+}
 /* ---------- time-class filter (multi-select dropdown) ----------
    One checkbox per class present in the loaded games. All checked (or none) reads
    as "all". Unlike result/color filters, this one can't defeat any view — a rolling
@@ -4217,7 +4235,7 @@ function gid(g){ return g.url || (g.date.getTime()+"-"+g.oppName); }
 // Blown Leads is the same star you'd see in the log, and the Starred filter picks it up.
 function starCell(g){
   const on=!!(META[gid(g)]&&META[gid(g)].star);
-  return `<td class="ctr"><span class="star ${on?"on":""}" data-star="${gid(g)}" title="Star this game — filter to starred games with the \u2605 chip">${on?"\u2605":"\u2606"}</span></td>`;
+  return `<td class="starcol"><span class="star ${on?"on":""}" data-star="${gid(g)}" title="Star this game — filter to starred games with the \u2605 chip">${on?"\u2605":"\u2606"}</span></td>`;
 }
 // One handler for every star in the app, wherever the row lives.
 document.addEventListener("click",e=>{
@@ -4630,8 +4648,9 @@ function loadCache(u){
   // Revive dates, and drop anything a past bug or a hand-edited store left mangled —
   // one Invalid Date would otherwise poison every chart and sort.
   games=c.games.map(g=>({...g, date:new Date(g.date)}))
-               .filter(g=>g && g.date instanceof Date && !isNaN(g.date))
-               .filter(g=>!isBotGame(g));   // drop coach-bot games left in an older cache
+               .filter(g=>g && g.date instanceof Date && !isNaN(g.date));
+  // Bots stay in the dataset now — they're hidden from every stat by visibleGames() and surfaced
+  // only by the Game Log's "Bots" filter. (Previously they were dropped here and on fetch.)
   if(!games.length) return false;
   applyOppDir();
   applyAnalysisDir();
@@ -5062,9 +5081,11 @@ async function fetchGamesFor(u, rangeVal, tc, onStatus=()=>{}){
     ? ` \u2014 ${urls.length} months of history, this may take a few minutes. Newest games come first; hit Stop to keep what's loaded.`
     : "";
   const out=[];
+  const FETCH_MAX=2000;   // hard safety cap so no range (even a stale m:999 deep-link) can load enough games to freeze the page
   for(let i=0;i<urls.length;i++){
     if(FETCH_CANCEL) break;                       // user hit Stop — keep what we have
     if(byGames && out.length>=target) break;
+    if(out.length>=FETCH_MAX) break;
     onStatus(byGames ? `Fetching\u2026 ${out.length} of ${target} games so far`
                      : `Fetching month ${i+1} of ${urls.length}\u2026${slow}`);
     let res;
@@ -5080,6 +5101,7 @@ async function fetchGamesFor(u, rangeVal, tc, onStatus=()=>{}){
     for(let k=month.length-1;k>=0;k--){
       if(FETCH_CANCEL) break;                     // Stop mid-parse: keep what's parsed so far
       if(byGames && out.length>=target) break;
+      if(out.length>=FETCH_MAX) break;
       const g=month[k];
       if(!wantGame(g, tc)) continue;
       out.push(mapApiGame(g, u));
@@ -5260,7 +5282,6 @@ async function fetchGames(force){
       games = await fetchGamesFor(u, $("months").value, tc, s=>{ $("status").textContent=s; });
     }
 
-    games=games.filter(g=>!isBotGame(g));   // coach-bot practice games never enter the dataset
     deltasFor(games);
     if(typeof scoutEmptyState==="function"){ scoutEmptyState(); compareEmptyState(); }
     setTimeout(migrateParses, 60);   // cached games merged in may predate the current parser
@@ -5357,7 +5378,6 @@ async function backgroundRefresh(u){
   const [mode,val]=$("months").value.split(":");   // honor a "last N games" range
   if(mode==="g") games=games.slice(0, parseInt(val,10));
 
-  games=games.filter(g=>!isBotGame(g));   // coach-bot practice games never enter the dataset
   deltasFor(games);
   applyOppDir();
   applyAnalysisDir();
@@ -7794,7 +7814,7 @@ function renderBlown(list){
         const gap = g.delta!=null ? `<span class="res loss">${g.delta}</span>` : "—";
         return `<tr>
           ${starCell(g)}
-          <td class="num" style="white-space:nowrap">${tcDotHTML(g)}${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span></td>
+          <td class="num" style="white-space:nowrap">${tcDotHTML(g)}${g.url?`<a href="${g.url}" target="_blank" rel="noopener" class="datelink" title="Open this game on chess.com ↗">${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span></a>`:`${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span>`}</td>
           <td><span class="pill ${g.color}">${g.color}</span></td>
           <td class="opp">${fmtOpp(g)}</td>
           <td class="num">${g.oppElo}</td>
@@ -7809,7 +7829,7 @@ function renderBlown(list){
           <td class="num">${g.moves}</td>
           <td class="num">${clk(g)}</td>
           <td class="num">${gap}</td>
-          <td class="ctr">${g.url?`<a href="${g.url}" target="_blank" rel="noopener">view</a> <a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"—"}</td>
+          <td class="ctr">${g.url?`<a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"—"}</td>
         </tr>`;
       };
       const verdictOf=g=>threwItAway(g) ? ["res loss","was winning","The engine had you at +1.0 or better when the game ended and you still lost — usually a resignation or a flag in a winning position."]
@@ -7902,7 +7922,7 @@ function renderBlown(list){
         const early=gifts.filter(g=>g.qloss.move<=20);
         const rows=[...gifts].sort((a,b)=>b.date-a.date).map(g=>`<tr>
           ${starCell(g)}
-          <td class="num" style="white-space:nowrap">${tcDotHTML(g)}${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span></td>
+          <td class="num" style="white-space:nowrap">${tcDotHTML(g)}${g.url?`<a href="${g.url}" target="_blank" rel="noopener" class="datelink" title="Open this game on chess.com ↗">${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span></a>`:`${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span>`}</td>
           <td class="ctr"><span class="pill ${g.color}">${g.color}</span></td>
           <td class="opp">${fmtOpp(g)}</td>
           <td class="num">${g.oppElo??"—"}</td>
@@ -7924,7 +7944,7 @@ function renderBlown(list){
           <td class="num">${g.delta!=null?`<span class="${g.delta>0?"res win":g.delta<0?"res loss":"dim"}">${g.delta>0?"+":""}${g.delta}</span>`:"—"}</td>
           <td class="${g.result==="Win"?"res win":g.result==="Loss"?"res loss":"res draw"}">${g.result}</td>
           <td>${g.how}</td>
-          <td class="ctr">${g.url?`<a href="${g.url}" target="_blank" rel="noopener">view</a> <a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"—"}</td>
+          <td class="ctr">${g.url?`<a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"—"}</td>
         </tr>`).join("");
         body=`<div class="coach" style="border:1px solid var(--rule);margin-bottom:12px">
             <div class="cline bad"><span class="cdot"></span><span><b>${gifts.length} game${gifts.length===1?"":"s"} where your queen left the board and nothing close came back.</b> You went ${w}/${gifts.length-w-dr}/${dr} in them${early.length?`, and ${early.length} happened by move 20 — open those and look for one repeated tactic: a fork, a pin, or a queen left loose on an open line`:""}.</span></div>
@@ -14181,7 +14201,7 @@ function renderMates(list){
       const popPlayed = `class="res loss matpop"${pair}`;
       return `<tr>
         ${starCell(g)}
-        <td class="num" style="white-space:nowrap">${tcDotHTML(g)}${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span></td>
+        <td class="num" style="white-space:nowrap">${tcDotHTML(g)}${g.url?`<a href="${g.url}" target="_blank" rel="noopener" class="datelink" title="Open this game on chess.com ↗">${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span></a>`:`${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span>`}</td>
         <td class="ctr"><span class="pill ${g.color}">${g.color}</span></td>
         <td class="opp">${fmtOpp(g)}</td>
         <td class="num">${g.oppElo??"—"}</td>
@@ -14198,7 +14218,7 @@ function renderMates(list){
         <td class="num">${swingCell(m.matThen, g.mat)}</td>
         <td class="num">${g.delta!=null?`<span class="${g.delta>0?"res win":g.delta<0?"res loss":"dim"}">${g.delta>0?"+":""}${g.delta}</span>`:"—"}</td>
         <td>${g.how}</td>
-        <td class="ctr">${g.url?`<a href="${g.url}" target="_blank" rel="noopener">view</a> <a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"—"}</td>
+        <td class="ctr">${g.url?`<a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"—"}</td>
       </tr>`;
     }).join("");
 
@@ -15892,7 +15912,6 @@ function applyLayout(){
   document.documentElement.classList.remove("nav-collapsed");  // bootstrap marker done its job
   $("sidenav").classList.toggle("collapsed", SN_COLLAPSED);
   $("snToggle").textContent = SN_COLLAPSED ? "\u00bb" : "\u00ab";
-  $("snToggle").title = SN_COLLAPSED ? "Expand the menu" : "Collapse the menu";
   LS.set("rookbook:navcollapsed", SN_COLLAPSED);
 }
 $("snToggle").addEventListener("click",()=>{ SN_COLLAPSED=!SN_COLLAPSED; applyLayout(); });
@@ -16049,7 +16068,7 @@ if(HASH.user) $("user").value=HASH.user;
 // (range also accepts raw m:999 / g:200 values). Apply it to the fetch controls now, so the
 // cache/fetch decision below reads the requested config.
 const NORM_TC=v=>/^(all|rapid|blitz|bullet|daily)$/i.test(v||"")?String(v).toLowerCase():"";
-const NORM_RANGE=v=>{ v=String(v||"").toLowerCase(); if(/^(max|all|everything|m:999)$/.test(v)) return "m:999"; return /^[mg]:\d+$/.test(v)?v:""; };
+const NORM_RANGE=v=>{ v=String(v||"").toLowerCase(); if(/^(max|all|everything|m:999)$/.test(v)) return "g:2000"; return /^[mg]:\d+$/.test(v)?v:""; };
 const URL_TC=NORM_TC(HASH.tc), URL_RANGE=NORM_RANGE(HASH.range), URL_FETCH_CFG=!!(URL_TC||URL_RANGE);
 if(URL_TC){ $("tc").value=URL_TC; try{ syncScoutTc(); }catch(e){}
   // "all" un-scopes the Insights page from your main format; a specific class lets it auto-scope.
