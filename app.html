@@ -3532,21 +3532,17 @@ function track(name){
     if(window.goatcounter && window.goatcounter.count)
       window.goatcounter.count({ path:"event/"+name, title:name, event:true });
   }catch(e){}
-  // First-party lookup tally: same-origin, so ad blockers can't drop it the way they drop
-  // GoatCounter's script. A bare +1 — no username, nothing about the account leaves the browser.
-  if(name==="fetch"){ try{ fetch("/api/lookups",{method:"POST",keepalive:true}).catch(()=>{}); }catch(e){} }
 }
-// Profile-lookup counter: shows the running lookup tally on the welcome screen as social proof.
-// Reads the first-party /api/lookups endpoint (accurate; not ad-blockable) — racked up by
-// track("fetch") on every lookup. Read-only, silent on fail.
+// Profile-lookup counter: shows the running GoatCounter event/fetch tally on the welcome screen as
+// social proof. Read-only — the tally itself is racked up by track("fetch") on every lookup. Silent on fail.
 (function lookupCounter(){
   const anchor=document.querySelector(".welcome .wel-sub");
   if(!anchor) return;
   const el=document.createElement("div"); el.className="lookup-count";
   anchor.insertAdjacentElement("afterend", el);
-  fetch("/api/lookups")
+  fetch("https://rookbookchess.goatcounter.com/counter/event/fetch.json")
     .then(r=>r.ok?r.json():null)
-    .then(d=>{ if(!d||d.count==null) return; const n=Number(d.count)||0;
+    .then(d=>{ if(!d||!d.count) return; const n=parseInt(String(d.count).replace(/[^0-9]/g,""),10);
       if(n>0) el.innerHTML=`<b>${n.toLocaleString()}</b> chess.com accounts looked up on Rookbook`; })
     .catch(()=>{});
 })();
@@ -4648,9 +4644,8 @@ function loadCache(u){
   // Revive dates, and drop anything a past bug or a hand-edited store left mangled —
   // one Invalid Date would otherwise poison every chart and sort.
   games=c.games.map(g=>({...g, date:new Date(g.date)}))
-               .filter(g=>g && g.date instanceof Date && !isNaN(g.date));
-  // Bots stay in the dataset now — they're hidden from every stat by visibleGames() and surfaced
-  // only by the Game Log's "Bots" filter. (Previously they were dropped here and on fetch.)
+               .filter(g=>g && g.date instanceof Date && !isNaN(g.date))
+               .filter(g=>!isBotGame(g));   // drop coach-bot games left in an older cache
   if(!games.length) return false;
   applyOppDir();
   applyAnalysisDir();

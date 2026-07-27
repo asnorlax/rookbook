@@ -13,8 +13,3 @@
 [[edge_functions]]
   path = "/player/*"
   function = "player"
-
-# First-party lookup counter (Netlify Blobs) — accurate where the ad-blockable GoatCounter tally isn't.
-[[edge_functions]]
-  path = "/api/lookups"
-  function = "lookups"
