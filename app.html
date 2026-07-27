@@ -1667,6 +1667,23 @@
   #profileBody .ng-meta .res.win{color:var(--win)} #profileBody .ng-meta .res.loss{color:var(--loss)} #profileBody .ng-meta .res.draw{color:var(--draw)}
   #profileBody .ng-opp{overflow:hidden;text-overflow:ellipsis;min-width:0}
   #profileBody .ng-elo{flex:0 0 auto}
+  /* Notable games are keyed to the profile's own width (container), not the viewport, so the
+     sidebar expand/collapse doesn't misfire the breakpoints. On smaller widths the cards go
+     COMPACT — emoji, padding and fonts shrink and the opponent name drops — so two still fit
+     per row instead of stacking into tall full-width cards. One card per row only on true phones. */
+  @container (max-width:900px){ #profileBody .notable{grid-template-columns:repeat(2,1fr)} }
+  @container (max-width:720px){
+    #profileBody .notable{grid-template-columns:repeat(2,1fr);gap:8px}
+    #profileBody .ng{gap:10px;padding:9px 11px}
+    #profileBody .ng-em{font-size:19px}
+    #profileBody .ng-tag{font-size:10px;letter-spacing:.03em;gap:5px}
+    #profileBody .ng-top{margin-bottom:3px}
+    #profileBody .ng-when{font-size:10px}
+    #profileBody .ng-desc{font-size:12px;margin-bottom:4px}
+    #profileBody .ng-meta{font-size:11px;gap:6px}
+    #profileBody .ng-opp{display:none}   /* drop the opponent name to fit; result + Elo stay */
+  }
+  @container (max-width:450px){ #profileBody .notable{grid-template-columns:1fr} }
 
   /* Intermediate zone: the Rookbook Rating panel shares its row with "How your games end",
      so it only gets ~57% of the content width — enough to crush the 6-axis metric text to one
@@ -1683,14 +1700,8 @@
     #profileBody .patterns{grid-template-columns:1fr}
     #profileBody .pf-duo{grid-template-columns:1fr}
     #profileBody .hmband{grid-template-columns:1fr;gap:16px}
-    #profileBody .notable{grid-template-columns:repeat(2,1fr)}
   }
   @media(max-width:560px){
-    /* phones: one card per row. The emoji drops its tile/fixed column and becomes a small
-       auto-width marker next to the title, so it only takes its own width. Title clamps to
-       2 lines + a 1-line meta (rating dropped) = 3 lines. */
-    #profileBody .notable{grid-template-columns:1fr}
-    /* Layout C notable cards are display:block and stack naturally on mobile — no per-card overrides needed. */
     /* World tour keeps its w/l bar on mobile (full width there); its row layout is handled by .pf-duo-b. */
     #profileBody .pf-tiles{justify-content:center}
   }
@@ -1742,6 +1753,20 @@
   .mm-sq b{font-weight:700}
   .mm-ranks{display:flex;flex-direction:column;justify-content:space-around;color:var(--dim);font-family:var(--mono);font-size:11px}
   .mm-files{grid-column:1;display:grid;grid-template-columns:repeat(8,1fr);gap:3px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:11px}
+  /* Checkmate map (Attack + Defense): two mini boards — where you deliver mate vs where you get mated.
+     Boards are normalized to the mated king's side (its back rank at the bottom, kingside on the right),
+     so white and black games pool into one readable pattern. */
+  #insights .cmm{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;justify-content:center}
+  #insights .cmm-side{flex:1 1 150px;min-width:135px;max-width:230px;display:flex;flex-direction:column;gap:8px}
+  #insights .cmm-cap{font-size:12.5px;color:var(--ink);display:flex;align-items:center;gap:7px}
+  #insights .cmm-cap b{font-family:var(--mono);font-size:14px}
+  #insights .cmm-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:0 0 auto}
+  #insights .cmm-outer{display:flex;flex-direction:column;gap:3px}
+  #insights .cmm-board{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;aspect-ratio:1}
+  #insights .cmm-sq{display:flex;align-items:center;justify-content:center;border:1px solid var(--rule);border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:700;min-width:0;line-height:1}
+  #insights .cmm-files{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;text-align:center;color:var(--dim);font-family:var(--mono);font-size:9px}
+  #insights .cmm-note{font-size:10.5px;color:var(--dim);line-height:1.35;text-align:center}
+  #insights .cmm-thin{padding:24px 8px;text-align:center}
   .pf-chartnote{font-family:var(--mono);font-size:10.5px;color:#6A675B;margin-top:9px}
   .pf-hm{display:grid;gap:3px}
   .pf-hcell{width:100%;aspect-ratio:1;border-radius:2px;background:rgba(255,255,255,.04)}
@@ -1787,16 +1812,23 @@
      while the two auto columns keep full width. Step down: 2-up with Piece data on its own full
      row below ~1500px, then a single column on phones. */
   /* pf-oe (Openings | By game length | Piece data). Keyed to the panel's own width:
-     - narrow  (<730px): one full-width column, everything stacked
-     - medium (730–1200): Openings full-width on top, then By-game-length + Piece data paired,
-       so the two shorter tables share a row instead of each taking one (Piece data's columns
-       are tightened above so the pair fits)
-     - wide   (≥1200px): all three side by side */
+     - wide  (≥1200px): all three side by side; Piece data keeps its per-game (x/g) sub-stats
+     - mid   (820–1199): Openings full-width on top, By-game-length + Piece data paired below,
+       still wide enough to carry the (x/g) sub-stats
+     - tight (630–819): same pairing, but too narrow for both tables at full width — drop Piece
+       data's per-game (x/g) sub-stats and tighten both tables' columns so the pair still fits
+     - phone (<630px): one full-width column, everything stacked */
   @container (max-width:1199px){
     #profileBody .pf-oe{grid-template-columns:minmax(356px,0.8fr) minmax(0,1.2fr)}
     #profileBody .pf-oe > .panel:first-child{grid-column:1 / -1}
   }
   @container (max-width:819px){
+    #profileBody .pf-oe{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+    #profileBody .pfop-panel.pcs .pf-lsub{display:none}   /* drop the "(6.9/g)" so the two tables fit side by side */
+    #profileBody .pfop-panel.pcs .pfop-row,#profileBody .pfop-panel.pcs .pfop-hdr{grid-template-columns:70px 34px 48px 30px 28px 30px;gap:4px}
+    #profileBody .pfop-panel.lns .pfop-row,#profileBody .pfop-panel.lns .pfop-hdr{grid-template-columns:54px 76px 34px 30px 36px;gap:6px}
+  }
+  @container (max-width:629px){
     #profileBody .pf-oe{grid-template-columns:1fr}
   }
   /* Not wide enough for three across: heatmap gets the full-width top row, Recent form + World
@@ -8910,7 +8942,7 @@ function renderInsights(list){
     const body=panels||`<div class="ipanel">${needData("games")}</div>`;
     return `<section class="dna-sec ${cls}" id="dna-${key}">`
       +`<header class="dna-sec-head"><span class="dna-eyebrow">${title}</span>`
-      +`<span class="dna-sec-score">${a.val}<small>/100</small></span></header>`
+      +`<span class="dna-sec-score">${a.val}</span></header>`
       +`<div class="dna-mods">${body}</div></section>`;
   };
   // Enlarged radar + fleshed-out axis breakdown at the top; each row jumps to its section below.
@@ -8926,8 +8958,8 @@ function renderInsights(list){
   const dnaHeroHTML = insDna ? `<div class="ins-dna">`
     +`<div class="ins-dna-radar">${pfRadarBig(insDna.axes)}</div>`
     +`<div class="ins-dna-cards-wrap">`
-      +`<div class="ins-dna-h">Overall Rookbook Rating${dnaOverall!=null?` <span class="dna-overall ${scoreCls(dnaOverall)}">${dnaOverall}<small>/100</small></span>`:""}${insDna&&insDna.ratingPct!=null?(()=>{ const rw=Math.round(insDna.ratingWeight*100), pw=100-rw; return `<span class="dna-info-wrap"><span class="dna-info" tabindex="0" role="button" aria-label="How this is scored">?</span><span class="dna-info-pop"><p>Each attribute is <b>peer-relative</b> — scored against the opponents you faced (all near your rating), where <b>50 = even with your field</b>.</p><p>Every score is then lifted ${rw}% toward how your rating ranks: <b>${insDna.myElo||"?"}</b> ${insDna.domTc} ≈ <b>${insDna.ratingPct}th percentile</b>.</p><p class="dna-calc-formula">each = ${pw}% × field + ${rw}% × ${insDna.ratingPct}<br>Overall = ${pw}% × ${insDna.peerMean} + ${rw}% × ${insDna.ratingPct} = <b>${insDna.overall}</b></p><p class="dna-wts-h">Overall weights</p><div class="dna-wts">${insDna.weights.map(w=>{ const mx=insDna.weights[0].w||1; return `<div class="dna-wt"><span class="dna-wt-l">${w.label}</span><span class="dna-wt-bar"><i style="width:${Math.round(100*w.w/mx)}%"></i></span><span class="dna-wt-v">${w.w}</span></div>`; }).join("")}</div><p class="dna-calc-note">Percentiles are approximate.</p></span></span>`; })():""}</div>`
-      +`<div class="dna-cards">${insDna.axes.map(a=>`<button class="dna-card ${scoreCls(a.val)}" data-scrollto="dna-${a.key}"><span class="dna-card-top"><span class="dna-card-head"><span class="dna-card-name">${a.label}</span><span class="dna-card-score">${a.val}<small>/100</small></span></span><span class="dna-card-jump">&rarr;</span></span><ul class="dna-card-metric">${(a.bullets&&a.bullets.length?a.bullets:[a.metric]).map(b=>`<li>${b}</li>`).join("")}</ul></button>`).join("")}</div>`
+      +`<div class="ins-dna-h">Overall Rookbook Rating${dnaOverall!=null?` <span class="dna-overall ${scoreCls(dnaOverall)}">${dnaOverall}</span>`:""}${insDna&&insDna.ratingPct!=null?(()=>{ const rw=Math.round(insDna.ratingWeight*100), pw=100-rw; return `<span class="dna-info-wrap"><span class="dna-info" tabindex="0" role="button" aria-label="How this is scored">?</span><span class="dna-info-pop"><p>Each attribute is <b>peer-relative</b> — scored against the opponents you faced (all near your rating), where <b>50 = even with your field</b>.</p><p>Every score is then lifted ${rw}% toward how your rating ranks: <b>${insDna.myElo||"?"}</b> ${insDna.domTc} ≈ <b>${insDna.ratingPct}th percentile</b>.</p><p class="dna-calc-formula">each = ${pw}% × field + ${rw}% × ${insDna.ratingPct}<br>Overall = ${pw}% × ${insDna.peerMean} + ${rw}% × ${insDna.ratingPct} = <b>${insDna.overall}</b></p><p class="dna-wts-h">Overall weights</p><div class="dna-wts">${insDna.weights.map(w=>{ const mx=insDna.weights[0].w||1; return `<div class="dna-wt"><span class="dna-wt-l">${w.label}</span><span class="dna-wt-bar"><i style="width:${Math.round(100*w.w/mx)}%"></i></span><span class="dna-wt-v">${w.w}</span></div>`; }).join("")}</div><p class="dna-calc-note">Percentiles are approximate.</p></span></span>`; })():""}</div>`
+      +`<div class="dna-cards">${insDna.axes.map(a=>`<button class="dna-card ${scoreCls(a.val)}" data-scrollto="dna-${a.key}"><span class="dna-card-top"><span class="dna-card-head"><span class="dna-card-name">${a.label}</span><span class="dna-card-score">${a.val}</span></span><span class="dna-card-jump">&rarr;</span></span><ul class="dna-card-metric">${(a.bullets&&a.bullets.length?a.bullets:[a.metric]).map(b=>`<li>${b}</li>`).join("")}</ul></button>`).join("")}</div>`
     +`</div>`
     +`</div>` : "";
   // what data the account actually carries, so a stub can name the RIGHT blocker: accuracy panels
@@ -8950,7 +8982,7 @@ function renderInsights(list){
         // standard 2-up grid (same as every other section) — mates + autopsy fill the top row.
         const panels=iSlot(pMateArrive,"When mate is delivered","games")+iSlot(pAutopsy,"Autopsy","games")
           +iSlot(pMissedMate,"Mates: landed vs left","games")+iSlot(pKill,"Do you go for the kill?","games")
-          +iSlot(pDefense,"How you get mated","games")+iSlot(pSwing,"Material swing","games")
+          +iSlot(pfMateMap(list)||pDefense,"How you get mated","games")+iSlot(pSwing,"Material swing","games")
           +iSlot(pCastleMate,"Castling","games")+iSlot(pMateFormat,"Which clock gets you mated","games","Compares time controls — needs games in more than one.");
         const body=panels||`<div class="ipanel">${needData("games")}</div>`;
         // id="dna-attack" is the section; the empty #dna-steady anchor keeps the Defense radar card's jump working
@@ -9080,6 +9112,77 @@ function renderMoveMap(list){
   const tabs=[...document.querySelectorAll('#panel-charts .mm-tab')];
   tabs.forEach(b=>b.onclick=()=>{ tabs.forEach(x=>x.classList.toggle('on',x===b)); drawMoveMap(b.dataset.mm); });
   setTimeout(()=>{ computeMoveMap(list); const on=tabs.find(b=>b.classList.contains('on')); drawMoveMap(on?on.dataset.mm:"all"); }, 20);
+}
+
+// ---------- checkmate map: where you deliver mate vs where your king falls ----------
+// The mated king is the loser (from g.result); its final square is just the destination of its last
+// king move / castle — pure string parsing, no chess.js. (load_pgn ran ~30ms per clock-annotated
+// chess.com game — ~850ms over a demo, seconds on a big account — because it revalidates every ply.
+// This is ~450x faster and byte-identical to the replay on real games.)
+function mateKingSquare(pgn, white){
+  const body=pgn.replace(/\[[^\]]*\]/g," ").replace(/\{[^}]*\}/g," ").replace(/\$\d+/g," ").replace(/\d+\.(\.\.)?/g," ").replace(/(1-0|0-1|1\/2-1\/2|\*)/g," ");
+  const toks=body.trim().split(/\s+/).filter(Boolean);
+  let sq=white?"e1":"e8";                          // where the king sits if it never moves
+  for(let i=(white?0:1);i<toks.length;i+=2){ const t=toks[i]; if(!t) continue;
+    if(t[0]==="O") sq = t.indexOf("O-O-O")===0 ? (white?"c1":"c8") : (white?"g1":"g8");   // castling
+    else if(t[0]==="K"){ const m=t.match(/Kx?([a-h][1-8])/); if(m) sq=m[1]; }             // a king move
+  }
+  return (+sq[1]-1)*8+(sq.charCodeAt(0)-97);       // a1=0 … h8=63
+}
+let _cmmData=null,_cmmKey="";
+function computeMateMap(list){
+  const key=list.length+"|"+((list[0]&&list[0].url)||"")+"|"+((list[list.length-1]&&list[list.length-1].url)||"");
+  if(_cmmData && _cmmKey===key) return _cmmData;
+  const deliver=new Array(64).fill(0), receive=new Array(64).fill(0);
+  let nD=0,nR=0;
+  for(const g of list){
+    if(!g.pgn || typeof g.moves!=="number" || g.moves<1) continue;
+    if(g.result!=="Win" && g.result!=="Loss") continue;       // a draw is never a board mate
+    // Same mate criterion as "When mate is delivered" (ehI): a board checkmate OR a resignation in a
+    // forced mate. resignForcedMate is memoized and already computed by that panel — so no new load_pgn.
+    if(g.how!=="checkmate" && !resignForcedMate(g)) continue;
+    const mine = g.color==="W" ? "w" : "b";
+    const isDeliver = g.result==="Win";                       // you won by mate → their king; you lost → yours
+    const matedColor = isDeliver ? (mine==="w"?"b":"w") : mine;
+    const sq=mateKingSquare(g.pgn, matedColor==="w");
+    const rr=Math.floor(sq/8), ff=sq%8;
+    // Both boards from YOUR seat: your king falls at the bottom (defense), their king up the board (attack).
+    if(isDeliver){ const disp = matedColor==="b" ? sq : (7-rr)*8+ff; deliver[disp]++; nD++; }   // their back rank → top
+    else         { const disp = matedColor==="w" ? sq : (7-rr)*8+ff; receive[disp]++; nR++; }   // your back rank → bottom
+  }
+  _cmmData={deliver,receive,nD,nR}; _cmmKey=key; return _cmmData;
+}
+// Returns a full-width .ipanel, or "" when neither side has enough mates (caller falls back).
+function pfMateMap(list){
+  const d=computeMateMap(list), MIN=5;
+  if(d.nD<MIN && d.nR<MIN) return "";
+  const files=["a","b","c","d","e","f","g","h"];
+  const GRN="124,194,135", COR="208,90,80";
+  const board=(grid,rgb)=>{
+    const max=Math.max(1,...grid); let cells="";
+    for(let r=7;r>=0;r--) for(let f=0;f<8;f++){
+      const c=grid[r*8+f], t=c/max, a=c?(0.16+0.84*t):0, dark=t>=0.5;
+      const bg=c?`rgba(${rgb},${a.toFixed(3)})`:"rgba(255,255,255,.03)";
+      cells+=`<div class="cmm-sq" style="background:${bg}">${c?`<span style="color:${dark?"#12110c":"var(--read)"}">${c}</span>`:""}</div>`;
+    }
+    return `<div class="cmm-outer"><div class="cmm-board">${cells}</div><div class="cmm-files">${files.map(f=>`<span>${f}</span>`).join("")}</div></div>`;
+  };
+  const dot=c=>`<span class="cmm-dot" style="background:${c}"></span>`;
+  const side=(grid,n,rgb,cap,note,thin)=> d[thin]>=MIN
+    ? `<div class="cmm-side"><div class="cmm-cap">${dot(`rgb(${rgb})`)}${cap} <b>${n}</b></div>${board(grid,rgb)}<div class="cmm-note">${note}</div></div>`
+    : `<div class="cmm-side"><div class="cmm-cap">${dot(`rgb(${rgb})`)}${cap}</div><div class="isub cmm-thin">Only ${n} board checkmate${n===1?"":"s"} so far${thin==="nR"?" — most losses you resign before mate":""}. Not enough to map yet.</div></div>`;
+  const sideD=side(d.deliver,d.nD,GRN,"You deliver","where you land mate — their king","nD");
+  const sideR=side(d.receive,d.nR,COR,"You get mated","where your king falls","nR");
+  // verdict: share of received mates on the mated king's own kingside corner (g/h files, first two ranks)
+  let verdict="";
+  if(d.nR>=MIN){
+    const ks=d.receive[6]+d.receive[7]+d.receive[14]+d.receive[15];
+    const pc=Math.round(100*ks/d.nR);
+    if(pc>=40) verdict=`<b>${pc}% of the mates against you land on the kingside corner (g/h files).</b> That's a back-rank / castled-king pattern, not scattered luck — give the king luft.`;
+  }
+  return `<div class="ipanel" id="ip-checkmate-map"><h3>Checkmate map — where kings fall</h3>`
+    +`<div class="isub">Seen from your side of the board — you attack up top (their king), you get mated at home (bottom); kingside on the right. Shade = how often a king fell there.</div>`
+    +`<div class="cmm">${sideD}${sideR}</div>${verdict?`<div class="isub" style="margin-top:10px">${verdict}</div>`:""}</div>`;
 }
 
 // ---------- volume: how many games you actually play, by hour and by weekday ----------
@@ -14975,6 +15078,7 @@ function renderSummary(list){
   const accs=list.map(g=>g.acc).filter(a=>a!=null);
   const avgAcc=accs.length ? (accs.reduce((a,b)=>a+b,0)/accs.length).toFixed(1) : "—";
   const bannedN=(F.banned?visibleGames({ignoreBanned:true}):list).filter(g=>g.oppStatus&&g.oppStatus.startsWith("closed")).length;
+  const oppsLookedUp=list.some(g=>g.oppStatus);   // has "Look up opponents" run at all?
   s.innerHTML=`
     <div class="stat"><div class="k">Record</div><div class="v">${list.length?(100*w/list.length).toFixed(1):"0.0"}% <small>${w}/${l}/${d}</small></div></div>
     <div class="stat"><div class="k">Last 10</div><div class="v">${last10}</div></div>
@@ -14988,7 +15092,9 @@ function renderSummary(list){
     `
     + (tracked.length ? `<div class="stat" title="Wins where you were down 3+ material at some point and won anyway — games you stole"><div class="k">Comebacks</div><div class="v ${takenBack.length?"res win":""}">${takenBack.length} <small>/${w}</small></div></div>` : "")
     + (tracked.length ? `<div class="stat" title="Losses where you were winning at some point — up 3+ material during the game, or engine-verified winning at the end"><div class="k">Gave Away</div><div class="v ${gaveAway.length?"res loss":""}">${gaveAway.length} <small>/${list.filter(g=>g.result==="Loss").length}</small></div></div>` : "")
-    + (bannedN ? `<div class="stat statbtn${F.banned?" statbtn-on":""}" data-bantoggle title="${bannedN} game${bannedN===1?"":"s"} against accounts that have been closed or banned by chess.com${BANNED_NEW.size?` — ${BANNED_NEW.size} discovered since you last looked, likely refunded`:""}. Requires Look up opponents. Click to ${F.banned?"show everything again":"show only those games"}."><div class="k">Closed opps${BANNED_NEW.size?`<span class="ban-new">${BANNED_NEW.size} new</span>`:""}</div><div class="v ${F.banned?"res loss":""}"><span style="font-size:.72em;vertical-align:1px">⛔</span> ${bannedN}</div></div>` : "");
+    + (bannedN
+        ? `<div class="stat statbtn${F.banned?" statbtn-on":""}" data-bantoggle title="${bannedN} game${bannedN===1?"":"s"} against accounts that have been closed or banned by chess.com${BANNED_NEW.size?` — ${BANNED_NEW.size} discovered since you last looked, likely refunded`:""}. Requires Look up opponents. Click to ${F.banned?"show everything again":"show only those games"}."><div class="k">Closed opps${BANNED_NEW.size?`<span class="ban-new">${BANNED_NEW.size} new</span>`:""}</div><div class="v ${F.banned?"res loss":""}"><span style="font-size:.72em;vertical-align:1px">⛔</span> ${bannedN}</div></div>`
+        : `<div class="stat" title="${oppsLookedUp?"None of the opponents you faced have since been closed or banned by chess.com — a clean slate. (Found via Look up opponents.)":"Games against accounts chess.com later closed or banned — usually cheaters, and you may be owed rating refunds for them. Run Look up opponents (top of the page) to check yours."}"><div class="k">Closed opps</div><div class="v dim"><span style="font-size:.72em;vertical-align:1px">⛔</span> ${oppsLookedUp?"0":"—"}</div></div>`);
   if(typeof SUMMARY_W!=="undefined" && SUMMARY_W) s.querySelectorAll(".stat").forEach(el=>{
     const k=el.querySelector(".k");
     if(k && SUMMARY_W[k.textContent]) el.style.minWidth=SUMMARY_W[k.textContent]+"px";
