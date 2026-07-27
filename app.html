@@ -100,14 +100,7 @@
          ledger routine already exist, so the series computes lazily at hover time.
          No new analysis or storage needed. Review-tab sparkline remains a later step.
          ================================================================================ -->
-    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.0.10 <span class="cl-tag">now</span></span><span class="cl-date">26 Jul 2026</span></summary><ul>
-        <li>Looking up a new account now shows a loading card with live progress — no more mixed-up stats mid-fetch</li>
-        <li>Modules missing data now keep their size and say exactly what fills them in</li>
-        <li>Mate-timing chart extends past move 60</li>
-        <li>Shorter status messages and small text cleanups</li>
-      </ul></details>
-
-    <details class="cl"><summary class="cl-v"><span class="cl-t">v1.0.9</span><span class="cl-date">25 Jul 2026</span></summary><ul>
+    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.0.9 <span class="cl-tag">now</span></span><span class="cl-date">25 Jul 2026</span></summary><ul>
         <li>Updated the overview page with additional modules</li>
         <li>Updated the Rookbook Rating calculation</li>
         <li>Insights rework still in progress</li>
@@ -2325,6 +2318,10 @@
   #insights .wipbar .wipdim{color:var(--dim)}
   #insights .wipbar .wipx{background:transparent;border:0;color:#6A675B;font-size:17px;line-height:1;cursor:pointer;padding:0 2px;flex:0 0 auto}
   #insights .wipbar .wipx:hover{color:var(--ink)}
+  /* "work in progress" banner for tabs still being built (Compare, Review, Repertoire) */
+  .wip-note{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--rule);border-left:3px solid var(--draw);border-radius:7px;padding:8px 14px;margin:0 0 14px;font-size:12.5px;line-height:1.45}
+  .wip-note b{color:var(--ink);font-weight:600}
+  .wip-note span{color:var(--dim)}
 
   @media (max-width:760px){
     .controls{padding:12px}
@@ -2785,7 +2782,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <span class="sub">
         <button class="ghostlink" id="aboutBtn">about</button> ·
         <button class="ghostlink" id="logBtn">changelog<span class="log-dot" id="logDot" hidden></span></button> ·
-        <span class="vtag">v1.0.10</span>
+        <span class="vtag">v1.0.9</span>
       </span>
     </div>
   </header>
@@ -3086,6 +3083,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
   </div>
 
   <div id="panel-tree" hidden>
+    <div class="wip-note"><b>Work in progress.</b> <span>The Repertoire tab is still being built — expect rough edges.</span></div>
     <div class="weekly" id="tree"></div>
   </div>
 
@@ -3118,6 +3116,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
   </div>
 
   <div id="panel-review" hidden>
+    <div class="wip-note"><b>Work in progress.</b> <span>The Review tab is still being built — expect rough edges.</span></div>
     <div class="twin">
       <span class="isub" style="margin:0">Game</span>
       <div class="revpick" id="revPick">
@@ -3164,6 +3163,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
 
 
   <div id="panel-compare" hidden>
+    <div class="wip-note"><b>Work in progress.</b> <span>The Compare tab is still being built — expect rough edges.</span></div>
     <div class="twin">
       <span class="isub" style="margin:0">Compare against:</span>
       <span class="userfield"><input type="text" id="rival" placeholder="chess.com username" spellcheck="false" style="width:200px" autocomplete="off">
@@ -3685,6 +3685,10 @@ function isFlagged(g){
 function isStarred(g){ const m=META[gid(g)]; return !!(m && m.star); }
 // the mirror image of a blown lead: you were 3+ material down and won anyway
 function isComeback(g){ return g.result==="Win" && typeof g.troughMat==="number" && g.troughMat<=-3; }
+// Chess.com coach bots ("Coach-David", "Coach-Sofia", …) are ordinary-looking accounts with no API
+// bot flag — the reliable tell is the reserved "Coach-" username prefix. These are practice-vs-
+// computer games, so they're dropped from the dataset at load time and never reach any stat.
+function isBotGame(g){ return /^coach-/i.test((g.oppName||"").trim()); }
 /* ---------- time-class filter (multi-select dropdown) ----------
    One checkbox per class present in the loaded games. All checked (or none) reads
    as "all". Unlike result/color filters, this one can't defeat any view — a rolling
@@ -4626,7 +4630,8 @@ function loadCache(u){
   // Revive dates, and drop anything a past bug or a hand-edited store left mangled —
   // one Invalid Date would otherwise poison every chart and sort.
   games=c.games.map(g=>({...g, date:new Date(g.date)}))
-               .filter(g=>g && g.date instanceof Date && !isNaN(g.date));
+               .filter(g=>g && g.date instanceof Date && !isNaN(g.date))
+               .filter(g=>!isBotGame(g));   // drop coach-bot games left in an older cache
   if(!games.length) return false;
   applyOppDir();
   applyAnalysisDir();
@@ -5255,6 +5260,7 @@ async function fetchGames(force){
       games = await fetchGamesFor(u, $("months").value, tc, s=>{ $("status").textContent=s; });
     }
 
+    games=games.filter(g=>!isBotGame(g));   // coach-bot practice games never enter the dataset
     deltasFor(games);
     if(typeof scoutEmptyState==="function"){ scoutEmptyState(); compareEmptyState(); }
     setTimeout(migrateParses, 60);   // cached games merged in may predate the current parser
@@ -5351,6 +5357,7 @@ async function backgroundRefresh(u){
   const [mode,val]=$("months").value.split(":");   // honor a "last N games" range
   if(mode==="g") games=games.slice(0, parseInt(val,10));
 
+  games=games.filter(g=>!isBotGame(g));   // coach-bot practice games never enter the dataset
   deltasFor(games);
   applyOppDir();
   applyAnalysisDir();
@@ -9594,7 +9601,7 @@ function renderTrends(list){
     if(typeof g.oppElo==="number") wk.opp.push(g.oppElo);
     if(typeof g.moves==="number") wk.mv.push(g.moves);
     if(isComeback(g)) wk.cmbk++;
-    if(g.result==="Loss" && typeof g.peakMat==="number" && g.peakMat>=3) wk.blown++;
+    if(isFlagged(g)) wk.blown++;   // same "blown lead" test as the Blown Leads page, so the counts agree
     if(g.result==="Loss" && g.how==="time" && WK_LCG(g)) wk.timeL++;
     if(g.castled==="yes"||g.castled==="no"){ wk.castN++; if(g.castled==="yes") wk.cast++; }
     // Daily games measure move times in days, not seconds — including them would report
@@ -9638,7 +9645,7 @@ function renderTrends(list){
       <td class="num">${accCell}</td>
       <td class="num">${avgMv}</td>
       <td class="num">${k.cmbk?`<span class="res win" title="${k.cmbk} of your ${k.w} wins were comebacks from 3+ material down (${k.w?Math.round(100*k.cmbk/k.w):0}%)">${k.cmbk}</span>`:'<span class="dim">0</span>'}</td>
-      <td class="num">${k.blown?`<span class="res loss" title="${k.blown} of your ${k.l} losses were blown leads — up 3+ material at some point (${k.l?Math.round(100*k.blown/k.l):0}%)">${k.blown}</span>`:'<span class="dim">0</span>'}</td>
+      <td class="num">${k.blown?`<span class="res loss" title="${k.blown} of your ${k.l} losses are blown leads — the same games listed on the Blown Leads page (${k.l?Math.round(100*k.blown/k.l):0}% of losses)">${k.blown}</span>`:'<span class="dim">0</span>'}</td>
       <td class="num">${k.scanned?(k.miss?`<span class="res loss" title="A missed mate in ${k.miss} of ${k.scanned} scanned games (${Math.round(100*k.miss/k.scanned)}%)">${k.miss}</span>`:'<span class="dim">0</span>'):'<span class="dim">—</span>'}</td>
       <td class="num">${k.castN?`<span title="Castled in ${k.cast} of ${k.castN} played-out games">${Math.round(100*k.cast/k.castN)}%</span>`:'—'}</td>
     </tr>`;
@@ -9683,7 +9690,7 @@ function renderTrends(list){
         <th class="num" title="Average chess.com accuracy. Green: 2+ above your overall average. Red: 2+ below.">Avg Acc</th>
         <th class="num">Avg Moves</th>
         <th class="num" title="Wins pulled back from 3+ material down. The percentage is the share of your WINS that were comebacks, not of all games.">Comeback</th>
-        <th class="num" title="Losses where you'd been up 3+ material. The percentage is the share of your LOSSES that were blown leads, not of all games.">Blown</th>
+        <th class="num" title="Blown leads — winning games you lost, the same set shown on the Blown Leads page. The percentage is the share of your LOSSES that were blown, not of all games.">Blown</th>
         <th class="num" title="Forced mates walked past, across scanned games. The percentage is the share of SCANNED games with a miss — — means nothing scanned.">Missed</th>
         <th class="num" title="Share of played-out games where you castled">Castle</th>
       </tr></thead><tbody>${rows}${totalRow}</tbody></table>
