@@ -607,7 +607,7 @@
     border-left:2px solid var(--rule);border-right:2px solid var(--rule);border-bottom:2px solid var(--rule);
     background:var(--panel);
   }
-  .ipanel{padding:18px 20px;border-bottom:1px solid var(--rule);border-right:1px solid var(--rule)}
+  .ipanel{padding:18px 20px;border-bottom:1px solid var(--rule);border-right:1px solid var(--rule);content-visibility:auto;contain-intrinsic-size:auto none}
   .ipanel h3{
     font-size:13px;letter-spacing:.12em;text-transform:uppercase;
     color:var(--ink);margin-bottom:3px;font-weight:600;font-family:"Poppins",var(--sans);
@@ -981,7 +981,7 @@
     padding:6px 8px;border-bottom:1px solid var(--rule);
     white-space:nowrap;font-variant-numeric:tabular-nums;
   }
-  td.opp{
+  th.opp, td.opp{
     max-width:178px;overflow:hidden;text-overflow:ellipsis;
   }
   /* The game log carries ~26 columns, so its cells earn tighter side-padding than other
@@ -1018,7 +1018,7 @@
   .pill.B{background:transparent;color:var(--ink)}
   .castle-no{color:var(--loss);font-weight:700}
   th.flagcol, td.flagcol{width:12px;padding-left:8px;padding-right:0;text-align:center}
-  th.starcol, td.starcol{width:16px;padding-left:2px;padding-right:2px;text-align:center}
+  th.starcol, td.starcol{width:16px;padding-left:2px;padding-right:0;text-align:center}
   /* Feed star column: match the Game Log's edge/gutter spacing (the .weekly tables otherwise pad
      the first cell 3px-left / 11px-right, so the star hugs the edge and sits too far from the date) */
   .weekly td.starcol{padding-left:8px;padding-right:8px}
@@ -1335,7 +1335,7 @@
   }
   .coach h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:10px;font-weight:700;font-family:"Poppins",var(--sans)}
   /* long coach lists clamp to ~4½ lines; the fade + half-visible line invite the click */
-  .coachclip{max-height:165px;overflow:hidden;position:relative}
+  .coachclip{max-height:135px;overflow:hidden;position:relative}
   .coachclip::after{content:"";position:absolute;left:0;right:0;bottom:0;height:36px;
     background:linear-gradient(rgba(15,17,16,0), var(--panel));pointer-events:none}
   .coachclip.open{max-height:none}
@@ -1527,7 +1527,7 @@
   #profileBody .l,#profileBody .loss{color:var(--loss)}
   #profileBody .d,#profileBody .draw{color:var(--draw)}
   #profileBody .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
-  #profileBody .panel{background:var(--panel2);border:1px solid var(--rule);padding:16px 18px}
+  #profileBody .panel{background:var(--panel2);border:1px solid var(--rule);padding:16px 18px;content-visibility:auto;contain-intrinsic-size:auto none}
   #profileBody .panel-h{font-family:"Poppins",var(--sans);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin:0 0 13px;display:flex;justify-content:space-between;align-items:baseline}
   #profileBody .panel-h .sub{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--dim)}
   #profileBody .pf-notable-h, #profileBody .pf-notable-h .sub{white-space:nowrap}
@@ -3674,11 +3674,11 @@ document.getElementById("rowsGroup").addEventListener("click",e=>{
   ROWCAP = b.dataset.val==="all" ? Infinity : +b.dataset.val;
   shown = ROWCAP;
   document.querySelectorAll("#rowsGroup .chip").forEach(c=>c.classList.toggle("active",c===b));
-  render();
+  renderSoon();
 });
 document.getElementById("moreBtn").addEventListener("click",()=>{
   shown += (ROWCAP===Infinity ? 50 : ROWCAP);
-  render(true);
+  renderSoon(true);
 });
 function visibleGames(opts={}){
   return games.filter(g=>
@@ -3760,7 +3760,7 @@ function syncTcUI(){
     const checked=[...panel.querySelectorAll("input:checked")].map(i=>i.dataset.tc);
     const all=tcClasses();
     F.tcf = (checked.length===0 || checked.length===all.length) ? "all" : new Set(checked);
-    syncTcUI(); shown=ROWCAP; render();
+    syncTcUI(); shown=ROWCAP; renderSoon();
   });
   document.addEventListener("click",()=>{ panel.hidden=true; });
 })();
@@ -3832,7 +3832,7 @@ function syncHowUI(){
   panel.addEventListener("change",()=>{
     const checked=[...panel.querySelectorAll("input:checked")].map(i=>i.dataset.how);
     F.how = (checked.length===0 || checked.length===HOW_OPTS.length) ? "all" : new Set(checked);
-    syncHowUI(); shown=ROWCAP; render();
+    syncHowUI(); shown=ROWCAP; renderSoon();
   });
   document.addEventListener("click",()=>{ panel.hidden=true; });
 })();
@@ -3876,7 +3876,7 @@ $("summary").addEventListener("click",e=>{
       if(k) SUMMARY_W[k.textContent]=el.getBoundingClientRect().width;
     });
   }
-  F.banned=!F.banned; shown=ROWCAP; render();
+  F.banned=!F.banned; shown=ROWCAP; renderSoon();
   // Opening the view IS the "you've seen them" event. Mark seen AFTER the reveal render,
   // so the NEW badges and the dot show on the render that opens it, then clear next time.
   if(opening) markBannedSeen();
@@ -3893,7 +3893,7 @@ document.querySelectorAll(".fgroup").forEach(grp=>{
     shown=ROWCAP;
     grp.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active", off ? c.dataset.val==="all" : c===btn));
     grp.classList.toggle("at-all", F[grp.dataset.key]==="all");
-    render();
+    renderSoon();
   });
 });
 
@@ -5100,7 +5100,7 @@ function mapApiGame(g, u){
 // outside the requested time class.
 function wantGame(g, tc){ return g.rules==="chess" && (tc==="all" || (tc instanceof Set ? tc.has(g.time_class) : g.time_class===tc)); }
 
-async function fetchGamesFor(u, rangeVal, tc, onStatus=()=>{}){
+async function fetchGamesFor(u, rangeVal, tc, onStatus=()=>{}, onBatch=null){
   const ar = await api(`https://api.chess.com/pub/player/${u}/games/archives`);
   if(!ar.ok) throw new Error(ar.status===404 ? `User "${u}" not found.` : "API error "+ar.status);
   const archives = (await ar.json()).archives || [];
@@ -5149,6 +5149,7 @@ async function fetchGamesFor(u, rangeVal, tc, onStatus=()=>{}){
         t0=performance.now();
       }
     }
+    if(onBatch && out.length) onBatch(out);
   }
   out.sort((a,b)=>b.date-a.date);
   return byGames ? out.slice(0,target) : out;
@@ -5284,6 +5285,10 @@ async function fetchGames(force){
   if(!u){ $("status").textContent="Type a username first."; return; }
   FETCHING=true; FETCH_CANCEL=false; BG_TOKEN++;   // the user asked — background work stands down
   FETCH_ABORT = (typeof AbortController!=="undefined") ? new AbortController() : null;
+  if(!games.length){
+    const pb=$("profileBody");
+    if(pb) pb.innerHTML='<div class="empty" style="text-align:center;padding:60px 20px"><b>Fetching games…</b><br>Your profile builds here as games load.</div>';
+  }
   markSwitching(u);             // looking up someone new? dim the previous account's stats
   const btn=$("load");
   btn.style.minWidth=Math.ceil(btn.getBoundingClientRect().width)+"px";
@@ -5316,7 +5321,16 @@ async function fetchGames(force){
       // honor a "last N games" range even when topping up
       if(mode==="g") games=games.slice(0, cap);
     } else {
-      games = await fetchGamesFor(u, $("months").value, tc, s=>{ $("status").textContent=s; });
+      let batchRendered=false;
+      games = await fetchGamesFor(u, $("months").value, tc, s=>{ $("status").textContent=s; }, snap=>{
+        if(!batchRendered && snap.length>=10){
+          batchRendered=true;
+          games=[...snap].sort((a,b)=>b.date-a.date);
+          deltasFor(games);
+          enterApp();
+          render();
+        }
+      });
     }
 
     deltasFor(games);
@@ -6480,7 +6494,13 @@ document.addEventListener("click",e=>{
   if(boardTip && !boardTip.hidden && !e.target.closest(".btip")){ boardTip.hidden=true; TIP_PIN=null; }
 });
 
+let _renderRAF=0;
+function renderSoon(keepTab){
+  cancelAnimationFrame(_renderRAF);
+  _renderRAF=requestAnimationFrame(()=>render(keepTab));
+}
 function render(keepTab){
+  cancelAnimationFrame(_renderRAF);
   // The log's static skeleton stays out of the layout until this runs at least once.
   { const pl=$("panel-log"); if(pl) pl.classList.add("ready"); }
   document.documentElement.classList.remove("booting");   // real content now sets the height
@@ -6532,11 +6552,13 @@ function render(keepTab){
     $("endgames").innerHTML='<div class="empty" style="grid-column:1/-1">No games match the filters.</div>';
     return;
   }
-  for(const g of rows){
-    const tr=document.createElement("tr");
-    const res=g.result;
-    tr.innerHTML=buildRow(g);
-    tb.appendChild(tr);
+  { const frag=document.createDocumentFragment();
+    for(const g of rows){
+      const tr=document.createElement("tr");
+      tr.innerHTML=buildRow(g);
+      frag.appendChild(tr);
+    }
+    tb.appendChild(frag);
   }
   // notes + stars
   const tbEl=$("rows");
@@ -6590,7 +6612,7 @@ function pfTrend(gs, tc, classes){
   const cg=gs.filter(g=>g.tc===tc && g.elo!=null).sort((a,b)=>a.date-b.date);
   const chips=(classes||[]).map(c=>`<span class="pf-tchip${c===tc?" on":""}" data-pftc="${c}">${tcCap(c)}</span>`).join("");
   const head=`<div class="pf-thead"><div class="pf-h" style="margin:0">${tcCap(tc)} rating</div><div class="pf-tchips">${chips}</div></div>`;
-  if(cg.length<4) return `<div class="pf-chartcard">${head}<div class="isub">Not enough ${tcCap(tc)} games yet.</div></div>`;
+  if(cg.length<4) return `<div class="pf-chartcard">${head}<div class="isub">Not enough ${tcCap(tc)} games yet (needs 4).</div></div>`;
   const full=cg.map(g=>g.elo), rMin=Math.min(...full), rMax=Math.max(...full), last=full[full.length-1];
   let arr=full; const MAXP=110;                        // bucket-average so hundreds of games read as a smooth line
   if(full.length>MAXP){ arr=[]; const step=full.length/MAXP;
@@ -7327,7 +7349,7 @@ function renderProfile(list){
   let chosen = [pickCls("good"), pickCls("warn"), pickCls("bad")].filter(Boolean);
   for(const f of findings){ if(chosen.length>=3) break; if(!chosen.includes(f)) chosen.push(f); }   // fill if a severity is missing
   const read = chosen.length ? chosen.slice(0,3).map(f=>f.outerHTML).join("").replace(/\s*<(a|button) class="evlink"[^>]*>[\s\S]*?<\/\1>/g,"")
-    : '<div class="isub">Not enough games yet for a read.</div>';
+    : '<div class="isub">Not enough games yet for a read (needs 20).</div>';
 
   // three diagnostic stats (count + rate)
   const winning=gs.filter(g=>typeof g.peakMat==="number"&&g.peakMat>=3);
@@ -7491,7 +7513,7 @@ function renderAccHour(list){
   const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
   const withA=list.filter(g=>g.acc!=null);
   if(withA.length<10){
-    box.innerHTML='<div class="empty">Not enough games with accuracy data.</div>';
+    box.innerHTML='<div class="empty">Not enough games with accuracy data (needs 10).</div>';
     note.textContent=""; setChartAvg("accHourChart","");
     return;
   }
@@ -7536,7 +7558,7 @@ function renderElo(list){
   // Badges come from the tcf-IGNORING pool: ticking one class in the top dropdown
   // steers the chart but the other ladders' badges stay visible and clickable.
   const all=[...visibleGames({skipTcf:true})].sort((a,b)=>a.date-b.date);
-  if(all.length<2){ box.innerHTML='<div class="empty">Not enough games for a trend.</div>'; return; }
+  if(all.length<2){ box.innerHTML='<div class="empty">Not enough games for a trend (needs 2).</div>'; return; }
 
   // Ratings are PER TIME CLASS — rapid, blitz and bullet are different ladders on different
   // scales. One class at a time is the honest default (most-played first); "Overlay"
@@ -7881,8 +7903,8 @@ function renderBlown(list){
       const body = rows
         ? `<div class="tablewrap" style="border:1px solid var(--rule);max-height:720px;overflow-y:auto">
              <table><thead><tr>
-               <th class="ctr" title="Star games to save them — the \u2605 filter chip shows only starred games">\u2605</th>
-               <th class="num">Date</th><th class="ctr">B/W</th><th>Opponent</th><th class="num">Opp Elo</th>
+               <th class="starcol" title="Star games to save them — the \u2605 filter chip shows only starred games">\u2605</th>
+               <th class="num">Date</th><th class="ctr">B/W</th><th class="opp">Opponent</th><th class="num">Opp Elo</th>
                <th class="num" title="Result and the rating it cost you">Result</th>
                <th>Verdict</th>
                <th>Lost by</th>
@@ -7990,7 +8012,7 @@ function renderBlown(list){
           </div>
           <div class="tablewrap" style="border:1px solid var(--rule);max-height:560px;overflow-y:auto">
           <table style="width:auto"> <thead><tr>
-            <th class="ctr" title="Star games to save them">\u2605</th><th class="num">Date</th><th class="ctr">B/W</th><th>Opponent</th><th class="num">Opp Elo</th>
+            <th class="starcol" title="Star games to save them">\u2605</th><th class="num">Date</th><th class="ctr">B/W</th><th class="opp">Opponent</th><th class="num">Opp Elo</th>
             <th class="num" title="The move your queen was captured on">Move</th>
             <th class="num" title="The move that took it — hover a value for the board just before it lands">Taken by</th>
             <th class="num" title="Net material across the moment your queen fell — near \u22129 means nothing came back">Swing</th>
@@ -8038,7 +8060,7 @@ function renderInsights(list){
     // "not enough games" while the games are literally still arriving.
     box.innerHTML = FETCHING
       ? `<div class="empty" style="grid-column:1/-1"><b>Reading your games\u2026</b><br>${list.length? list.length+" so far. " : ""}Your insights appear here as they load.</div>`
-      : '<div class="empty" style="grid-column:1/-1">Not enough games for insights.</div>';
+      : '<div class="empty" style="grid-column:1/-1">Not enough games for insights (needs 5).</div>';
     return;
   }
   /* ---- default scope: your main time control ----
@@ -8285,7 +8307,7 @@ function renderInsights(list){
       const r4=d4.length?Math.round(100*d4.filter(isW).length/d4.length):null;
       const rnote=(r1!=null&&r4!=null&&d1.length>=8&&d4.length>=8)
         ? `You recover ${r1}% of games when down just 1, but only ${r4}% once you're down 4 or more. ${r1-r4>=25?"The hole gets steep fast — don't let a small deficit become a big one.":"Your recovery holds up better than most as the deficit grows."}`
-        : "Not enough games at each depth to call the pattern yet.";
+        : "Not enough games at each depth to call the pattern yet (needs 8 per bucket).";
       pRecovery+=iPanel("Recovery by deficit","How often you win after falling behind by 1, 2, 3, or 4+ material at a settled moment.",
         rbody+`<div class="isub" style="margin-top:9px">${rnote}</div>`);
     }
@@ -8575,7 +8597,7 @@ function renderInsights(list){
             : w2-q>=10
               ? `<b>You thrive in a scrap.</b> ${w2}% in games that change hands vs ${q}% in one-way ones. Complications are your friend — avoid dry positions.`
               : "You play about the same whether the game changes hands or not.")
-        : "Not enough games at the extremes to call it yet.";
+        : "Not enough games at the extremes to call it yet (needs 10 per side).";
       pSwing=iPanel("Material swing","How far material went <em>against</em> you before the game settled — the smaller of your best and worst moments. A one-sided win scores 0; a game that genuinely changed hands scores high.",
         body+`<div class="isub" style="margin-top:9px">${note}</div>`);
     }
@@ -8670,7 +8692,7 @@ function renderInsights(list){
         ? (c1-c2>=10 ? `<b>You don't win the scrappy ones.</b> Once you're ahead, simplify — every turnover is another chance for you to be the one who blunders.`
            : c2-c1>=10 ? `<b>You're better in a brawl.</b> Sharp, messy positions suit you — steadier players will try to avoid them.`
            : "You do about as well whether the game turns over or not.")
-        : "Not enough games at each extreme to call it yet.";
+        : "Not enough games at each extreme to call it yet (needs 10 per side).";
       pTurns=iPanel("How often it turns over",`How many times material changed direction by 3+ in a game — your games average ${avg} turns. Separate from swing (how far it went): this counts the lead changing hands.`,
         hero+body+`<div class="isub" style="margin-top:9px">${tnote}</div>`);
     }
@@ -8960,7 +8982,7 @@ function renderInsights(list){
         const v = mN-mC>=6 ? "Castling clearly keeps your king safer." : mC-mN>=6 ? "Oddly, you're mated <i>more</i> when you castle — the danger's coming from elsewhere." : "Castling barely changes your mate rate.";
         body+=`<div class="isub" style="margin-top:9px">${v}${whenNote}</div>`;
       } else {
-        body+=`<div class="isub" style="margin-top:9px">${whenNote.trim()||"Not enough games yet to compare king safety with and without castling."}</div>`;
+        body+=`<div class="isub" style="margin-top:9px">${whenNote.trim()||"Not enough games yet to compare king safety with and without castling (needs 8 per side)."}</div>`;
       }
       pCastleMate=iPanel("Castling","How safe your king is once it's tucked away — mate rate when you castle versus when you don't.",body);
     }
@@ -9098,7 +9120,7 @@ function renderInsights(list){
   if(bApply) bApply.addEventListener("click",()=>{
     if(!INS_SCOPE_MAIN) return;
     F.tcf=new Set([INS_SCOPE_MAIN]);   // the numbers don't change — the label now agrees with them
-    syncTcUI(); shown=ROWCAP; render();
+    syncTcUI(); shown=ROWCAP; renderSoon();
   });
 }
 
@@ -9345,7 +9367,7 @@ function renderGap(list){
   list=list.filter(g=>g.tc!=="daily");
   const box=$("gapChart");
   const rated=list.filter(g=>g.delta!=null);
-  if(rated.length<20){ box.innerHTML='<div class="empty">Not enough rated games.</div>'; return; }
+  if(rated.length<20){ box.innerHTML='<div class="empty">Not enough rated games (needs 20).</div>'; return; }
   const gap=g=>(g.oppEloBefore ?? g.oppElo) - (g.eloBefore ?? g.elo);
   const buckets=[["\u2264\u221250",-Infinity,-50],["\u221249\u2026\u221215",-49,-15],["\u00b114",-14,14],["+15\u2026+49",15,49],["\u2265+50",50,Infinity]];
   const rows=buckets.map(([label,lo,hi])=>{
@@ -9379,7 +9401,7 @@ function renderGap(list){
 function renderLen(list){
   const box=$("lenChart");
   const withMv=list.filter(g=>typeof g.moves==="number");
-  if(withMv.length<20){ box.innerHTML='<div class="empty">Not enough games.</div>'; return; }
+  if(withMv.length<20){ box.innerHTML='<div class="empty">Not enough games (needs 20).</div>'; return; }
   const bins=[[0,9],[10,19],[20,29],[30,39],[40,49],[50,59],[60,79],[80,Infinity]];
   const labels=["<10","10-19","20-29","30-39","40-49","50-59","60-79","80+"];
   const data=bins.map(([lo,hi])=>{
@@ -9409,7 +9431,7 @@ function renderLen(list){
 function renderAccLen(list){
   const box=$("accLenChart"), note=$("accLenNote");
   const withA=list.filter(g=>g.acc!=null && typeof g.moves==="number");
-  if(withA.length<10){ box.innerHTML='<div class="empty">Not enough games with accuracy data.</div>'; note.textContent=""; return; }
+  if(withA.length<10){ box.innerHTML='<div class="empty">Not enough games with accuracy data (needs 10).</div>'; note.textContent=""; return; }
   const bins=[[0,9],[10,19],[20,29],[30,39],[40,49],[50,59],[60,79],[80,Infinity]];
   const labels=["<10","10-19","20-29","30-39","40-49","50-59","60-79","80+"];
   const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
@@ -9439,7 +9461,7 @@ function renderAccLen(list){
 function renderStreak(list){
   const box=$("streakChart");
   const asc=[...list].sort((a,b)=>a.date-b.date);
-  if(asc.length<20){ box.innerHTML='<div class="empty">Not enough games.</div>'; return; }
+  if(asc.length<20){ box.innerHTML='<div class="empty">Not enough games (needs 20).</div>'; return; }
   const W=560,H=130,pad=8;
   // running streak value: + for win streaks, - for loss streaks
   let run=0;
@@ -9599,7 +9621,7 @@ function trendPanel(title, sub, series, opts={}){
 function renderTrends(list){
   const box=$("trends"), wk=$("weekly");
   if(list.length<10){
-    box.innerHTML='<div class="empty" style="grid-column:1/-1">Not enough games for trends.</div>';
+    box.innerHTML='<div class="empty" style="grid-column:1/-1">Not enough games for trends (needs 10).</div>';
     wk.innerHTML=""; return;
   }
   // One ladder at a time by default — same doctrine as the Elo chart. Badges on the
@@ -9616,7 +9638,7 @@ function renderTrends(list){
       <button class="chip ${active==="mixed"?"active":""}" data-trendtc="mixed" title="All formats on one timeline — rating-scale charts will jump between ladders">Mixed</button>
     </div>` : "";
   if(pool.length<10){
-    box.innerHTML=badges+`<div class="empty" style="grid-column:1/-1">Not enough ${tcCap(active)} games for trends.</div>`;
+    box.innerHTML=badges+`<div class="empty" style="grid-column:1/-1">Not enough ${tcCap(active)} games for trends (needs 10).</div>`;
     wk.innerHTML="";
     box.querySelectorAll("[data-trendtc]").forEach(c=>c.addEventListener("click",()=>{ TREND_TC=c.dataset.trendtc; renderTrends(list); }));
     return;
@@ -11545,7 +11567,7 @@ document.getElementById("opGroup").addEventListener("click",e=>{
   const b=e.target.closest(".chip"); if(!b) return;
   OPGROUP=b.dataset.g;
   document.querySelectorAll("#opGroup .chip").forEach(c=>c.classList.toggle("active",c===b));
-  render();
+  renderSoon();
   // a new grouping means new positions — work those out too, same as opening the tab does
   if(!BEST_RUNNING && pendingBestPositions(visibleGames(), OPGROUP).length) computeBestMoves(visibleGames());
 });
@@ -11553,7 +11575,7 @@ document.getElementById("opWindow").addEventListener("click",e=>{
   const b=e.target.closest(".chip"); if(!b) return;
   OPWINDOW = b.dataset.n==="all" ? Infinity : +b.dataset.n;
   document.querySelectorAll("#opWindow .chip").forEach(c=>c.classList.toggle("active",c===b));
-  render();
+  renderSoon();
 });
 
 // The opening group key for a game. Named modes read a tagged property; the mN modes
@@ -11950,7 +11972,7 @@ function applyTabFilters(tab){
   // hide the whole bar when nothing in it applies (trends and openings moved theirs inline)
   bar.style.display = (allowed.length && tab!=="trends" && tab!=="openings") ? "" : "none";
   if(typeof syncTcUI==="function") syncTcUI();
-  if(changed) render();
+  if(changed) renderSoon();
 }
 
 
@@ -12981,8 +13003,8 @@ function renderEndgames(list){
         ${rows?`<div class="isub" style="margin:14px 0 7px">The ${lost.length} losses</div>
           <div class="tablewrap" style="border:1px solid var(--rule);max-height:520px;overflow-y:auto">
             <table><thead><tr>
-              <th class="ctr" title="Star a game to keep it">\u2605</th>
-              <th class="num">Date</th><th>B/W</th><th>Opponent</th><th class="num">Opp Elo</th>
+              <th class="starcol" title="Star a game to keep it">\u2605</th>
+              <th class="num">Date</th><th>B/W</th><th class="opp">Opponent</th><th class="num">Opp Elo</th>
               <th class="num" title="Result and the rating it cost you">Result</th>
               <th>Endgame</th>
               <th>How</th>
@@ -13758,7 +13780,7 @@ function renderSessions(list){
   const dailyNote = dailyN
     ? `<div class="isub" style="margin-bottom:10px">Live games only \u2014 ${dailyN} daily game${dailyN===1?"":"s"} excluded. A correspondence game is played across days, so it isn't part of any one sitting.</div>`
     : "";
-  if(sess.length<2){ box.innerHTML=dailyNote+'<div class="empty">Not enough games to find sessions.</div>'; return; }
+  if(sess.length<2){ box.innerHTML=dailyNote+'<div class="empty">Not enough games to find sessions (needs 2).</div>'; return; }
   const best=sess.reduce((a,b)=>b.net>a.net?b:a);
   const worst=sess.reduce((a,b)=>b.net<a.net?b:a);
   const avgLen=(sess.reduce((a,s)=>a+s.games.length,0)/sess.length).toFixed(1);
@@ -14264,15 +14286,15 @@ function renderMates(list){
   mtLines.push(["good",`You found and played <b>${found}</b> forced mate${found===1?"":"s"} the moment ${found===1?"it":"they"} appeared${tookLater?`, plus <b>${tookLater}</b> more you got to a move or two late — those still count among your misses below, since the first chance got away`:""}.`]);
   if(missed) mtLines.push(["bad",`You missed <b>${missed}</b> distinct forced mate${missed===1?"":"s"} — a mate that stays on the board for several moves in a row counts once, not once per move it survived.`]);
   if(chances) mtLines.push([chances>missed?"bad":"warn",`Across those misses, you played <b>${chances}</b> move${chances===1?"":"s"} total while a forced mate was sitting on the board${chances>missed?`, including <b>${chances-missed}</b> second (or third) chances on a mate you'd already walked past once`:""}.`]);
-  mtLines.push([conv>=80?"good":conv>=50?"warn":"bad",`When a forced mate is actually on the board, you play it <b>${conv}%</b> of the time — ${conv>=80?"sharp, you rarely leave the point on the table.":conv>=50?"close to a coin flip: about as often as not, you make some other move instead and the chance is gone.":"most of the time you play something else instead, and the chance is gone."}`]);
+  mtLines.push([conv>=80?"good":conv>=50?"warn":"bad",`When a forced mate is actually on the board, you play it <b>${found}/${found+missed}</b> (<b>${conv}%</b>) of the time — ${conv>=80?"sharp, you rarely leave the point on the table.":conv>=50?"close to a coin flip: about as often as not, you make some other move instead and the chance is gone.":"most of the time you play something else instead, and the chance is gone."}`]);
   if(gamesMissed.length) mtLines.push(["warn",`<b>${gamesMissed.length}</b> of your ${scanned.length} scanned games had at least one missed mate in them (${Math.round(100*gamesMissed.length/scanned.length)}%).`]);
-  if(lostAfterMiss) mtLines.push(["bad",`In <b>${lostAfterMiss}</b> of your <b>${gamesMissed.length}</b> games with a missed mate, you failed to win outright — the point got away after mate was already on the board.`]);
+  if(lostAfterMiss) mtLines.push(["bad",`In <b>${lostAfterMiss}</b> of your <b>${gamesMissed.length}</b> games with a missed mate (${Math.round(100*lostAfterMiss/gamesMissed.length)}%), you failed to win outright — the point got away after mate was already on the board.`]);
   mtLines.push([missed===0?"good":(lostAfterMiss>0||bledOut>0)?"bad":"good", verdict]);
-  if(thrown) mtLines.push(["bad",`In <b>${thrown}</b> of your missed mates, the move you played instead threw the win away on the spot right then — see the Cost column below. Those are the ones worth reviewing.`]);
+  if(thrown) mtLines.push(["bad",`In <b>${thrown}</b> of your <b>${missed}</b> missed mates (${Math.round(100*thrown/missed)}%), the move you played instead threw the win away on the spot right then — see the Cost column below. Those are the ones worth reviewing.`]);
   if(escaped) mtLines.push(["warn",`Your opponents missed a forced mate against you <b>${escaped}</b> time${escaped===1?"":"s"} — lucky, not earned.`]);
-  if(gamesEscaped.length) mtLines.push([wonAfterEscape?"good":"warn",`Of the <b>${gamesEscaped.length}</b> game${gamesEscaped.length===1?"":"s"} where an opponent missed a mate against you, you went on to win <b>${wonAfterEscape}</b> of them outright — swindles completed.`]);
-  if(drewAfterEscape) mtLines.push(["warn",`<b>${drewAfterEscape}</b> of those <b>${gamesEscaped.length}</b> escaped-mate games you could only salvage into a draw, not a win.`]);
-  if(bledOut) mtLines.push(["bad",`In <b>${bledOut}</b> of your <b>${missed}</b> missed mates, you went on to bleed 3+ material by the end anyway — the miss wasn't harmless even though it didn't cost the game.`]);
+  if(gamesEscaped.length) mtLines.push([wonAfterEscape?"good":"warn",`Of the <b>${gamesEscaped.length}</b> game${gamesEscaped.length===1?"":"s"} where an opponent missed a mate against you, you went on to win <b>${wonAfterEscape}</b> of them (${Math.round(100*wonAfterEscape/gamesEscaped.length)}%) outright — swindles completed.`]);
+  if(drewAfterEscape) mtLines.push(["warn",`<b>${drewAfterEscape}</b> of those <b>${gamesEscaped.length}</b> escaped-mate games (${Math.round(100*drewAfterEscape/gamesEscaped.length)}%) you could only salvage into a draw, not a win.`]);
+  if(bledOut) mtLines.push(["bad",`In <b>${bledOut}</b> of your <b>${missed}</b> missed mates (${Math.round(100*bledOut/missed)}%), you went on to bleed 3+ material by the end anyway — the miss wasn't harmless even though it didn't cost the game.`]);
   const mtRank={good:0,warn:1,bad:2};
   mtLines.sort((a,b)=>mtRank[a[0]]-mtRank[b[0]]);
   // Always the first line, always green, never part of the sort or the collapse — the
@@ -14332,8 +14354,8 @@ function renderMates(list){
     ${strip}
     ${rows?`<div class="tablewrap" style="border:1px solid var(--rule);max-height:720px;overflow-y:auto">
       <table><thead><tr>
-        <th class="ctr" title="Star games to save them — the ★ filter chip shows only starred games">★</th>
-        <th class="num">Date</th><th class="ctr">B/W</th><th>Opponent</th>
+        <th class="starcol" title="Star games to save them — the ★ filter chip shows only starred games">★</th>
+        <th class="num">Date</th><th class="ctr">B/W</th><th class="opp">Opponent</th>
         <th class="num">Opp Elo</th>
         <th class="num" title="Result and the rating it cost you">Result</th>
         <th class="num">Move</th>
