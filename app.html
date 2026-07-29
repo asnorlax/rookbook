@@ -3061,6 +3061,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
   </div>
 
   <div id="panel-openings" hidden>
+    <div class="wip-note"><b>Work in progress.</b> <span>The Openings tab is still being built — expect rough edges.</span></div>
     <div class="twin">
       <span id="opFilters" style="display:inline-flex;gap:10px;align-items:center"></span>
       <span class="isub" style="margin:0">Analyze my last</span>
@@ -3094,6 +3095,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
   </div>
 
   <div id="panel-endgames" hidden>
+    <div class="wip-note"><b>Work in progress.</b> <span>The Endgames tab is still being built — expect rough edges.</span></div>
     <div class="igrid" id="endgames"></div>
   </div>
 
@@ -3208,6 +3210,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
   </div>
 
   <div id="panel-glossary" hidden>
+    <div class="wip-note"><b>Work in progress.</b> <span>The Reference tab is still being built — expect rough edges.</span></div>
     <div class="weekly">
       <h3>Glossary and Methodology</h3>
 
@@ -3845,6 +3848,17 @@ document.addEventListener("click",e=>{
   COACH_OPEN=c.classList.toggle("open");
   b.innerHTML = COACH_OPEN ? "show less ▴" : `show all ${b.dataset.n} ▾`;
 });
+// Same pattern, own ids and own state — Missed Mates' sentence list re-renders independently
+// of Insights, so sharing #coachclip/#coachMore would let one page's toggle click the other's.
+let MT_COACH_OPEN=false;
+document.addEventListener("click",e=>{
+  const b=e.target.closest("#mtCoachMore");
+  if(!b) return;
+  const c=document.getElementById("mtCoachClip");
+  if(!c) return;
+  MT_COACH_OPEN=c.classList.toggle("open");
+  b.innerHTML = MT_COACH_OPEN ? "show less ▴" : `show all ${b.dataset.n} ▾`;
+});
 
 // the Banned-opps summary tile toggles a quiet filter of its own (log page only — it
 // resets the moment you leave, so it can't silently shape other tabs)
@@ -4375,6 +4389,23 @@ function matSwing(g){
 }
 const TC_COLOR={rapid:"var(--green)", blitz:"#7FA9D4", bullet:"#D3B25A", daily:"#C08BC0"};
 const tcCap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;   // "rapid" -> "Rapid", everywhere a class is shown
+// The Time class filter is multi-select, so its label can be one class or several —
+// "Rapid" alone, or "Rapid + Blitz" when more than one is checked. Shared by the
+// scope intros below and by Insights' own subtitle.
+function tcfLabel(){
+  if(F.tcf==="all") return null;
+  return [...F.tcf].map(tcCap).join(" + ");
+}
+// Shared "In your N ... games" lead-in for Blown Leads / Missed Mates subtitles — folds in
+// the Time class, Rated/Unrated, and White/Black filters when they're active, so the
+// subtitle never silently disagrees with what's actually being counted.
+function scopeIntro(n){
+  const tcLabel = tcfLabel();
+  const tc = tcLabel ? tcLabel+" " : "";
+  const rated = F.rated==="rated" ? "rated " : F.rated==="unrated" ? "unrated " : "";
+  const color = F.col==="W" ? " playing as white" : F.col==="B" ? " playing as black" : "";
+  return `In your ${n} ${tc}${rated}game${n===1?"":"s"}${color}`;
+}
 // Time-pressure analyses skip games that STARTED short: 20 seconds left in bullet is
 // Tuesday, not a crisis. Known base under 3 minutes = excluded; unknown base falls back
 // to the time class.
@@ -7694,7 +7725,7 @@ function renderElo(list){
       ${dots}
       ${peakLabel}
     </svg>${legend}
-    <div class="isub" style="margin-top:6px">Accuracy, blunder rate, opponent strength and more over time live in <a href="#tab=trends" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--green)">Trends</a> \u2014 with these filters attached.</div>`;
+    <div class="isub" style="margin-top:6px">Accuracy, blown lead rate, opponent strength and more over time live in <a href="#tab=trends" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--green)">Trends</a> \u2014 with these filters attached.</div>`;
   wire();
 }
 
@@ -7819,13 +7850,13 @@ function renderBlown(list){
         const matNow = fmtMat(g);
         const lost = typeof g.peakMat==="number" && typeof g.mat==="number" && g.peakMat>g.mat
           ? `<span class="res loss">\u2212${g.peakMat-g.mat}</span>` : "—";
-        const gap = g.delta!=null ? `<span class="res loss">${g.delta}</span>` : "—";
         return `<tr>
           ${starCell(g)}
           <td class="num" style="white-space:nowrap">${tcDotHTML(g)}${g.url?`<a href="${g.url}" target="_blank" rel="noopener" class="datelink" title="Open this game on chess.com ↗">${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span></a>`:`${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span>`}</td>
           <td><span class="pill ${g.color}">${g.color}</span></td>
           <td class="opp">${fmtOpp(g)}</td>
           <td class="num">${g.oppElo}</td>
+          <td class="num">${fmtDelta(g)}</td>
           <td><span class="${tagCls}" ${tagTip?`title="${tagTip}" style="border-bottom:1px dotted var(--rule)"`:""}>${tag}</span></td>
           <td>${g.how}</td>
           <td class="num">${peak}</td>
@@ -7836,7 +7867,6 @@ function renderBlown(list){
           <td class="num">${g.acc!=null?g.acc.toFixed(1):'<span class="dim">—</span>'}</td>
           <td class="num">${g.moves}</td>
           <td class="num">${clk(g)}</td>
-          <td class="num">${gap}</td>
           <td class="ctr">${g.url?`<a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"—"}</td>
         </tr>`;
       };
@@ -7853,6 +7883,7 @@ function renderBlown(list){
              <table><thead><tr>
                <th class="ctr" title="Star games to save them — the \u2605 filter chip shows only starred games">\u2605</th>
                <th class="num">Date</th><th class="ctr">B/W</th><th>Opponent</th><th class="num">Opp Elo</th>
+               <th class="num" title="Result and the rating it cost you">Result</th>
                <th>Verdict</th>
                <th>Lost by</th>
                <th class="num" title="Biggest material lead you held at any point — hover a value to see the board at that moment">Peak</th>
@@ -7863,7 +7894,7 @@ function renderBlown(list){
                <th class="num" title="Your accuracy, if the game has been reviewed on chess.com">Acc</th>
                <th class="num">Moves</th>
                <th class="num" title="Your clock when it ended">Clock</th>
-               <th class="num">Elo</th><th class="ctr">Game</th>
+               <th class="ctr">Game</th>
              </tr></thead><tbody>${rows}</tbody></table>
            </div>
            <div class="isub" style="margin-top:9px;line-height:1.75">
@@ -7990,7 +8021,7 @@ function renderBlown(list){
   }
   box.innerHTML=`<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px">
       <h3 class="ptitle">Blown leads</h3>
-      <span class="isub" style="margin:0;font-family:var(--sans);color:var(--dim)">${blownTotal>0?`${blownTotal} game${blownTotal===1?"":"s"} of a 3+ material lead blown, resulting in <span class="res loss">−${blownElo}</span> elo handed over.`:`Games where you blew a 3+ material lead.`}</span>
+      <span class="isub" style="margin:0;font-family:var(--sans);color:var(--read);font-size:13px">${blownTotal>0?`${scopeIntro(list.length)} you've blown a ${BLOWN_PEAK||3}+ material lead <b>${blownTotal}</b> time${blownTotal===1?"":"s"}, resulting in <span class="res loss">−${blownElo}</span> elo.`:`${scopeIntro(list.length)}, you've never blown a ${BLOWN_PEAK||3}+ material lead. That's real discipline.`}</span>
     </div>${html}`;
 }
 
@@ -9012,7 +9043,12 @@ function renderInsights(list){
   const hasAcc=list.some(g=>typeof g.acc==="number");
   const hasClock=list.some(g=>g.times&&g.times.mine&&g.times.mine.length>=6);
   const wipBanner=(()=>{ try{ if(localStorage.getItem("rookbook:wipInsights")==="1") return ""; }catch(e){} return `<div class="wipbar" id="wipInsights"><span class="wiptxt"><b>Insights is being actively rebuilt.</b> <span class="wipdim">Sorry for any rough edges — it's getting better every week.</span></span><button class="wipx" id="wipDismiss" aria-label="Dismiss this notice" title="Dismiss">&times;</button></div>`; })();
-  box.innerHTML=wipBanner+`<div style="grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 0 10px"><h3 class="ptitle">Insights</h3><span class="isub" style="margin:0;font-family:var(--sans);color:var(--dim)">What your games add up to — where you're strong, where you're weak, and how you hold up.</span></div>`
+  // Subtitle names what's actually in `list` — the auto-scoped time control (INS_SCOPE_MAIN)
+  // and/or a manually-picked single class, plus rated/unrated — so it never quietly disagrees
+  // with the numbers below it.
+  const subScopeTc = INS_SCOPE_MAIN ? tcCap(INS_SCOPE_MAIN) : tcfLabel();
+  const subScopeBits = [subScopeTc||"", F.rated!=="all"?F.rated:""].filter(Boolean).join(" ");
+  box.innerHTML=wipBanner+`<div style="grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 0 10px"><h3 class="ptitle">Insights</h3><span class="isub" style="margin:0;font-family:var(--sans);color:var(--read);font-size:13px">Data from your ${list.length} ${subScopeBits?subScopeBits+" ":""}game${list.length===1?"":"s"}, breaking down your strengths and weaknesses.</span></div>`
     + insScopeNote
     + dnaHeroHTML
     + renderCoach(list)
@@ -9198,10 +9234,26 @@ function computeMateMap(list){
   }
   _cmmData={deliver,receive,nD,nR}; _cmmKey=key; return _cmmData;
 }
+// Color split lives only here, not on the shared F filter — this panel is one card among many
+// in Insights, and flipping the whole tab to White-only just to look at this board was the bug.
+let CMM_COL="all";
 // Returns a full-width .ipanel, or "" when neither side has enough mates (caller falls back).
 function pfMateMap(list){
-  const d=computeMateMap(list), MIN=5;
-  if(d.nD<MIN && d.nR<MIN) return "";
+  const filtered = CMM_COL==="all" ? list : list.filter(g=>g.color===CMM_COL);
+  const d=computeMateMap(filtered), MIN=5;
+  const colf=`<div class="fgroup cmm-colf" style="display:inline-flex">
+      <button class="chip${CMM_COL==="all"?" active":""}" data-cmmcol="all">All</button>
+      <button class="chip${CMM_COL==="W"?" active":""}" data-cmmcol="W">White</button>
+      <button class="chip${CMM_COL==="B"?" active":""}" data-cmmcol="B">Black</button>
+    </div>`;
+  if(d.nD<MIN && d.nR<MIN){
+    // Too little total data to map. At "All" let the DNA slot fall back to Defense instead
+    // (existing behavior); once a color is chosen deliberately, keep the panel (with its
+    // toggle) so switching to White doesn't make the whole card vanish and get replaced.
+    if(CMM_COL==="all") return "";
+    return `<div class="ipanel" id="ip-checkmate-map"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap"><h3 style="margin:0">Checkmate map — where kings fall</h3>${colf}</div>`
+      +`<div class="isub" style="margin-top:8px">Not enough board checkmates as ${CMM_COL==="W"?"White":"Black"} yet to map.</div></div>`;
+  }
   const files=["a","b","c","d","e","f","g","h"];
   const GRN="124,194,135", COR="208,90,80";
   const board=(grid,rgb)=>{
@@ -9226,10 +9278,19 @@ function pfMateMap(list){
     const pc=Math.round(100*ks/d.nR);
     if(pc>=40) verdict=`<b>${pc}% of the mates against you land on the kingside corner (g/h files).</b> That's a back-rank / castled-king pattern, not scattered luck — give the king luft.`;
   }
-  return `<div class="ipanel" id="ip-checkmate-map"><h3>Checkmate map — where kings fall</h3>`
+  return `<div class="ipanel" id="ip-checkmate-map"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap"><h3 style="margin:0">Checkmate map — where kings fall</h3>${colf}</div>`
     +`<div class="isub">Drawn from your side of the board, just as you'd see it sitting down — you attack up top (their king), you get mated at home (bottom). Shade = how often a king fell there.</div>`
     +`<div class="cmm">${sideD}${sideR}</div>${verdict?`<div class="isub" style="margin-top:10px">${verdict}</div>`:""}</div>`;
 }
+// Checkmate map's local color toggle. Scoped to CMM_COL, not the shared F filter, so flipping
+// it only re-renders this one panel (via renderInsights) instead of re-filtering the whole app.
+document.addEventListener("click", e=>{
+  const b=e.target.closest("[data-cmmcol]");
+  if(!b) return;
+  const off=b.classList.contains("active") && b.dataset.cmmcol!=="all";
+  CMM_COL=off?"all":b.dataset.cmmcol;
+  renderInsights(visibleGames());
+});
 
 // ---------- volume: how many games you actually play, by hour and by weekday ----------
 // Count, not result — the sample size behind the win-rate charts, so a tall win-rate bar
@@ -9593,7 +9654,7 @@ function renderTrends(list){
   html+=trendPanel("Pieces left home",`Rolling average undeveloped minors at game end. Falling is better here.`,
     rolling(asc.map(g=>playedOut(g)?g.undev:null),w),{fmt:v=>v.toFixed(1),goodUp:false,baseline:0,dates:D,warmup:w-1});
 
-  html+=trendPanel("Blunder rate",`Rolling % of games where you were winning and lost anyway — an engine-verified thrown game or a blown 3+ material lead. The realest improvement metric on this page: falling means fewer gifts.`,
+  html+=trendPanel("Blown lead rate",`Rolling % of games where you were winning and lost anyway — an engine-verified thrown game or a blown 3+ material lead. The realest improvement metric on this page: falling means fewer gifts.`,
     rolling(asc.map(g=>typeof g.peakMat!=="number"?null:(threwItAway(g)||(squandered(g)>=3&&g.peakMat>=3))?100:0),w),
     {fmt:v=>v.toFixed(0),unit:"%",pct:true,goodUp:false,baseline:0,dates:D,warmup:w-1});
 
@@ -14167,34 +14228,21 @@ function renderMates(list){
   const drewAfterEscape=gamesEscaped.filter(g=>g.result==="Draw").length;
   const gamesMissed=scanned.filter(g=>g.mates.missed>0);
   const lostAfterMiss=gamesMissed.filter(g=>g.result!=="Win").length;
+  const wonAfterMiss=gamesMissed.filter(g=>g.result==="Win").length;
+  const lostGamesAfterMiss=gamesMissed.filter(g=>g.result==="Loss").length;
+  const eloFromMissLosses=gamesMissed.filter(g=>g.result==="Loss").reduce((a,g)=>a+Math.abs(g.delta||0),0);
   const conv=(found+missed)?Math.round(100*found/(found+missed)):0;
 
-  const stat=(k,v,cls,tip)=>`<div class="stat" title="${tip||""}"><div class="k">${k}</div><div class="v ${cls||""}">${v}</div></div>`;
-  const strip=`<div class="summary" style="border:1px solid var(--rule);margin-bottom:16px">
-    ${stat("Mates found",found,"res win",`Forced mates you spotted and played${tookLater?` \u2014 including ${tookLater} you took a move or two late`:""}`)}
-    ${stat("Mates missed",missed,missed?"res loss":"","Distinct oversights: a mate that stays on the board for several moves counts as ONE, not one per move it survived")}
-    ${stat("Moves walked past",chances,chances>missed?"res loss":"dim","Total moves you played while a forced mate sat on the board")}
-    ${stat("Conversion",conv+"%",conv>=80?"res win":conv>=50?"":"res loss","How often you took the mate when it was there")}
-    ${stat("Games affected",gamesMissed.length,gamesMissed.length?"res loss":"")}
-    ${stat("\u2026and not won",lostAfterMiss,lostAfterMiss?"res loss":"","Games where you missed a mate and still failed to win")}
-    ${stat("They missed",escaped,escaped?"res draw":"","Mates your opponents had against you and didn't play")}
-    ${gamesEscaped.length?stat("…and you won",wonAfterEscape+`<small>/${gamesEscaped.length}</small>`,wonAfterEscape?"res win":"dim","Games where an opponent had mate against you, didn't play it, and you went on to win — swindles completed"):""}
-    ${drewAfterEscape?stat("…and you drew",drewAfterEscape+`<small>/${gamesEscaped.length}</small>`,"res draw","Games where an opponent had mate against you, didn't play it, and you still walked off with half a point — a swindled draw"):""}
-    ${stat("Leaked 3+ after",bledOut,bledOut?"res loss":"dim","Misses after which you went on to lose 3+ material by the end of the game")}
-  </div>`;
-
-  // Practice: the same positions with the answer removed. Only offered once there is
-  // something to practice on — a trainer with nothing in it is worse than no button.
-  const trainable=scanned.flatMap(g=>g.mates.misses.filter(m=>m.fenBefore && m.mate)).length;
-  const practice = trainable ? `<div id="mtSlot"></div>` : "";
-
+  // Same numbers the old stat strip + the two headline callouts, merged into one
+  // collapsible coach list (mirrors Insights’ "What your data says": good -> warn ->
+  // bad, first 5 shown, the rest behind a "show all" toggle when there’s more than that).
   const costCell=m=>{
     const c=m.costEval;
-    if(c===undefined) return '<span class="dim" title="Not evaluated yet — this runs automatically while you\'re on this tab">\u2026</span>';
-    if(c===null) return '<span class="dim">\u2014</span>';
+    if(c===undefined) return '<span class="dim" title="Not evaluated yet — this runs automatically while you\'re on this tab">…</span>';
+    if(c===null) return '<span class="dim">—</span>';
     if(c.mate!==undefined) return c.mate>0
       ? `<span class="dim" title="Still a forced mate after your move — the miss cost tempo, nothing else">#${Math.abs(c.mate)}</span>`
-      : `<span class="res loss" title="After your move HE had a forced mate">\u2212#${Math.abs(c.mate)}</span>`;
+      : `<span class="res loss" title="After your move HE had a forced mate">−#${Math.abs(c.mate)}</span>`;
     const v=c.cp;
     const s=(v>0?"+":"")+v.toFixed(1);
     if(v>=3)  return `<span class="dim" title="Still completely winning after your move">${s}</span>`;
@@ -14203,6 +14251,42 @@ function renderMates(list){
   };
   const costed=gamesMissed.flatMap(g=>g.mates.misses).filter(m=>m.costEval!==undefined && m.costEval!==null);
   const thrown=costed.filter(m=>m.costEval.mate!==undefined ? m.costEval.mate<0 : m.costEval.cp<0.5).length;
+
+  const verdict = missed===0
+    ? `<span class="res win"><b>You never missed a forced mate</b> across ${scanned.length} games. Ruthless.</span>`
+    : lostAfterMiss>0
+      ? `<b class="res loss">${lostAfterMiss} game${lostAfterMiss===1?"":"s"} you failed to win with mate on the board.</b> That's not strategy, not openings, not tilt — you just didn't look.`
+      : bledOut>0
+        ? `You won every one of your missed-mate games anyway, but in <b class="res loss">${bledOut}</b> of them you still gave up 3+ material after walking past the mate${worstSwing!=null?` — the worst bled <b class="res loss">${worstSwing}</b>`:""}. You didn't lose the game, you just made it harder than it had to be.`
+        : `You missed ${missed} mate${missed===1?"":"s"}, but won every one of those games anyway. Sloppy, not fatal.`;
+
+  const mtLines=[];
+  mtLines.push(["good",`You found and played <b>${found}</b> forced mate${found===1?"":"s"} the moment ${found===1?"it":"they"} appeared${tookLater?`, plus <b>${tookLater}</b> more you got to a move or two late — those still count among your misses below, since the first chance got away`:""}.`]);
+  if(missed) mtLines.push(["bad",`You missed <b>${missed}</b> distinct forced mate${missed===1?"":"s"} — a mate that stays on the board for several moves in a row counts once, not once per move it survived.`]);
+  if(chances) mtLines.push([chances>missed?"bad":"warn",`Across those misses, you played <b>${chances}</b> move${chances===1?"":"s"} total while a forced mate was sitting on the board${chances>missed?`, including <b>${chances-missed}</b> second (or third) chances on a mate you'd already walked past once`:""}.`]);
+  mtLines.push([conv>=80?"good":conv>=50?"warn":"bad",`When a forced mate is actually on the board, you play it <b>${conv}%</b> of the time — ${conv>=80?"sharp, you rarely leave the point on the table.":conv>=50?"close to a coin flip: about as often as not, you make some other move instead and the chance is gone.":"most of the time you play something else instead, and the chance is gone."}`]);
+  if(gamesMissed.length) mtLines.push(["warn",`<b>${gamesMissed.length}</b> of your ${scanned.length} scanned games had at least one missed mate in them (${Math.round(100*gamesMissed.length/scanned.length)}%).`]);
+  if(lostAfterMiss) mtLines.push(["bad",`In <b>${lostAfterMiss}</b> of your <b>${gamesMissed.length}</b> games with a missed mate, you failed to win outright — the point got away after mate was already on the board.`]);
+  mtLines.push([missed===0?"good":(lostAfterMiss>0||bledOut>0)?"bad":"good", verdict]);
+  if(thrown) mtLines.push(["bad",`In <b>${thrown}</b> of your missed mates, the move you played instead threw the win away on the spot right then — see the Cost column below. Those are the ones worth reviewing.`]);
+  if(escaped) mtLines.push(["warn",`Your opponents missed a forced mate against you <b>${escaped}</b> time${escaped===1?"":"s"} — lucky, not earned.`]);
+  if(gamesEscaped.length) mtLines.push([wonAfterEscape?"good":"warn",`Of the <b>${gamesEscaped.length}</b> game${gamesEscaped.length===1?"":"s"} where an opponent missed a mate against you, you went on to win <b>${wonAfterEscape}</b> of them outright — swindles completed.`]);
+  if(drewAfterEscape) mtLines.push(["warn",`<b>${drewAfterEscape}</b> of those <b>${gamesEscaped.length}</b> escaped-mate games you could only salvage into a draw, not a win.`]);
+  if(bledOut) mtLines.push(["bad",`In <b>${bledOut}</b> of your <b>${missed}</b> missed mates, you went on to bleed 3+ material by the end anyway — the miss wasn't harmless even though it didn't cost the game.`]);
+  const mtRank={good:0,warn:1,bad:2};
+  mtLines.sort((a,b)=>mtRank[a[0]]-mtRank[b[0]]);
+  // Always the first line, always green, never part of the sort or the collapse — the
+  // context every other bullet depends on shouldn't be something "show all" can hide.
+  const mtHead=`<div class="cline good"><span class="cdot"></span><span>Having mate available means you were already winning — so missing one usually costs moves, not the game.</span></div>`;
+  const mtClines=mtLines.map(([cls,txt])=>`<div class="cline ${cls}"><span class="cdot"></span><span>${txt}</span></div>`).join("");
+  const strip = mtLines.length>5
+    ? `<div class="coach" style="border:1px solid var(--rule);margin-bottom:16px">${mtHead}<div class="coachclip${MT_COACH_OPEN?" open":""}" id="mtCoachClip">${mtClines}</div><button class="ghostlink" id="mtCoachMore" data-n="${mtLines.length}" style="margin-top:6px">${MT_COACH_OPEN?"show less ▴":`show all ${mtLines.length} ▾`}</button></div>`
+    : `<div class="coach" style="border:1px solid var(--rule);margin-bottom:16px">${mtHead}${mtClines}</div>`;
+
+  // Practice: the same positions with the answer removed. Only offered once there is
+  // something to practice on — a trainer with nothing in it is worse than no button.
+  const trainable=scanned.flatMap(g=>g.mates.misses.filter(m=>m.fenBefore && m.mate)).length;
+  const practice = trainable ? `<div id="mtSlot"></div>` : "";
 
   const rows=gamesMissed
     .sort((a,b)=>b.date-a.date)
@@ -14224,7 +14308,7 @@ function renderMates(list){
         <td class="ctr"><span class="pill ${g.color}">${g.color}</span></td>
         <td class="opp">${fmtOpp(g)}</td>
         <td class="num">${g.oppElo??"—"}</td>
-        <td class="${g.result==="Win"?"res win":g.result==="Loss"?"res loss":"res draw"}">${g.result}</td>
+        <td class="num">${fmtDelta(g)}</td>
         <td class="num" title="First available on move ${m.move} of a ${g.moves}-move game">${m.move}<span class="dim">/${g.moves}</span></td>
         <td class="num" title="${m.walkedPast===1?"You had one chance and didn't take it":`The same mate stayed on the board for ${m.walkedPast} of your moves`}">${m.walkedPast>1?`<span class="res loss">${m.walkedPast}×</span>`:`<span class="dim">1×</span>`}</td>
         <td class="num"><span ${pop}>${m.mate}</span></td>
@@ -14235,39 +14319,23 @@ function renderMates(list){
         <td class="num">${matCell(m.matThen)}</td>
         <td class="num">${matCell(g.mat)}</td>
         <td class="num">${swingCell(m.matThen, g.mat)}</td>
-        <td class="num">${g.delta!=null?`<span class="${g.delta>0?"res win":g.delta<0?"res loss":"dim"}">${g.delta>0?"+":""}${g.delta}</span>`:"—"}</td>
         <td>${g.how}</td>
         <td class="ctr">${g.url?`<a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"—"}</td>
       </tr>`;
     }).join("");
 
-  const verdict = missed===0
-    ? `<span class="res win"><b>You never missed a forced mate</b> across ${scanned.length} games. Ruthless.</span>`
-    : lostAfterMiss>0
-      ? `<b class="res loss">${lostAfterMiss} game${lostAfterMiss===1?"":"s"} you failed to win with mate on the board.</b> That's not strategy, not openings, not tilt — you just didn't look.`
-      : bledOut>0
-        ? `You won these anyway, but look at the swing column: in <b class="res loss">${bledOut}</b> of them you gave up 3+ material after walking past the mate${worstSwing!=null?` — the worst bled <b class="res loss">${worstSwing}</b>`:""}. You didn't lose the game, you just made it harder than it had to be.`
-        : `You missed ${missed}, but won those games anyway. Sloppy, not fatal.`;
-
   box.innerHTML=`<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px">
       <h3 class="ptitle">Missed mates</h3>
-      <span class="isub" style="margin:0;font-family:var(--sans);color:var(--dim)">Every position in which you missed delivering a game-ending checkmate.</span>
+      <span class="isub" style="margin:0;font-family:var(--sans);color:var(--read);font-size:13px">${missed>0?`${scopeIntro(list.length)} you've missed <b>${missed}</b> checkmate${missed===1?"":"s"} across ${gamesMissed.length} game${gamesMissed.length===1?"":"s"}. ${wonAfterMiss} time${wonAfterMiss===1?"":"s"} you won anyway, but you lost ${lostGamesAfterMiss} of those games, giving away <span class="res loss">${eloFromMissLosses}</span> elo.`:`${scopeIntro(list.length)} you've never missed a forced checkmate. Ruthless.`}</span>
     </div>
-    <div class="isub" style="margin-bottom:12px">
-      Scanned ${scanned.length} game${scanned.length===1?"":"s"}${pending && !(typeof DEMO!=="undefined" && DEMO)?` \u00b7 <button id="mateRun" style="font-size:10px;padding:5px 12px;margin:0 2px;vertical-align:1px">Scan ${pending} new game${pending===1?"":"s"}</button>`:""}.
-      Having mate available means you were already winning — so missing one usually costs moves, not the game.
-    </div>
+    ${pending && !(typeof DEMO!=="undefined" && DEMO)?`<div class="isub" style="margin-bottom:12px"><button id="mateRun" style="font-size:10px;padding:5px 12px;margin:0 2px;vertical-align:1px">Scan ${pending} new game${pending===1?"":"s"}</button></div>`:""}
     ${strip}
-    <div class="coach" style="border:1px solid var(--rule);margin-bottom:16px">
-      <div class="cline ${missed?"bad":"good"}"><span class="cdot"></span><span>${verdict}</span></div>
-      ${thrown?`<div class="cline bad"><span class="cdot"></span><span><b class="res loss">In ${thrown} of these, the move you played instead threw the win away on the spot</b> — see the Cost column. Those are the ones worth a review.</span></div>`:""}
-    </div>
     ${rows?`<div class="tablewrap" style="border:1px solid var(--rule);max-height:720px;overflow-y:auto">
       <table><thead><tr>
-        <th class="ctr" title="Star games to save them — the \u2605 filter chip shows only starred games">\u2605</th>
+        <th class="ctr" title="Star games to save them — the ★ filter chip shows only starred games">★</th>
         <th class="num">Date</th><th class="ctr">B/W</th><th>Opponent</th>
         <th class="num">Opp Elo</th>
-        <th>Result</th>
+        <th class="num" title="Result and the rating it cost you">Result</th>
         <th class="num">Move</th>
         <th class="num" title="How many of your moves the same mate stayed available for. More than one means you walked past it repeatedly.">Chances</th>
         <th class="num" title="The mate you had">Mate available</th>
@@ -14278,7 +14346,6 @@ function renderMates(list){
         <th class="num" title="Your material edge at the moment mate was on the board">Mat then</th>
         <th class="num" title="Your material edge when the game finally ended">Mat end</th>
         <th class="num" title="What happened to your material between missing the mate and the game ending">Swing</th>
-        <th class="num" title="What the game did to your rating">Elo ±</th>
         <th>Ended by</th><th class="ctr">Game</th>
       </tr></thead><tbody>${rows}</tbody></table>
     </div>`:'<div class="isub">No misses to list.</div>'}
