@@ -773,12 +773,27 @@
   #insights .dna-eyebrow .dna-inl.good{color:var(--win)} #insights .dna-eyebrow .dna-inl.bad{color:var(--loss)} #insights .dna-eyebrow .dna-inl.mid{color:var(--draw)}
   #insights .dna-mods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:16px 18px}
   #insights .dna-mods > .ipanel{min-width:0;margin:0;border:1px solid var(--rule);background:var(--panel2)}
+  #insights .dna-mods > .ipanel-stack{min-width:0;margin:0}
+  #insights .dna-mods > .ipanel-stack > .ipanel{border:1px solid var(--rule);background:var(--panel2);content-visibility:visible}
   #insights .dna-mods > .ipanel.wide{grid-column:1/-1}
+  /* A&D lower block: equal-width columns — the "When mate is delivered" histogram on the left, the
+     three supporting reads (kill / material swing / castling) stacked on the right. The row height is
+     driven by the stack; the histogram's chart flex-grows to fill it, so there's no dead space under it.
+     content-visibility:visible is required — the base .ipanel default is `auto`, which collapses these
+     panels to 0 height (the old A&D bug). */
+  #insights .ad-lower{grid-column:1/-1;min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}
+  #insights .ad-lower > .ipanel{min-width:0;margin:0;border:1px solid var(--rule);background:var(--panel2);content-visibility:visible;display:flex;flex-direction:column}
+  #insights .ad-lower > .ipanel-stack{min-width:0;margin:0;display:flex;flex-direction:column;gap:14px}
+  #insights .ad-lower > .ipanel-stack > .ipanel{border:1px solid var(--rule);background:var(--panel2);content-visibility:visible}
+  /* the histogram SVG flex-grows to fill the cell; preserveAspectRatio="none" (set in the markup) lets
+     it stretch, and the viewBox aspect is picked close to the cell's so any distortion is negligible. */
+  #insights #ip-mate-arrive .acc-chart{flex:1;min-height:0;height:auto}
   /* merged Attack+Defense: the mates chart leads at 2/3 width (spans 2 of 3 cols); the rest fill in */
   /* A&D uses the standard .dna-mods grid (the ad-body/ad-top restructure collapsed panels to 0 height). */
   #insights .dna-sec.evtarget{animation:evflash 1.4s ease-out}
   @media(max-width:720px){
     #insights .dna-mods{grid-template-columns:minmax(0,1fr);gap:12px;padding:12px}
+    #insights .ad-lower{grid-template-columns:minmax(0,1fr)}
     #insights .dna-sec{margin-bottom:16px}
   }
   @media(max-width:380px){ #insights .dna-num{display:none} }
@@ -992,7 +1007,7 @@
   #panel-log thead th{padding-left:8px;padding-right:8px}
   /* the Date cell is now the chess.com link — keep it looking like text until hovered */
   .datelink{color:inherit;text-decoration:none;border-bottom:1px dotted var(--dim)}
-  .datelink:hover{color:var(--green);border-color:var(--green)}
+  .datelink:hover, .datelink:hover .dim{color:var(--green);border-color:var(--green)}
   /* magnifier in the Opp header summons the opponent search (kept out of the filter bar) */
   .opphdr-mag{cursor:pointer;margin-left:6px;opacity:.5;font-size:11px;user-select:none;vertical-align:baseline}
   .opphdr-mag:hover{opacity:1}
@@ -1003,6 +1018,9 @@
   thead th:first-child, tbody td:first-child{padding-left:3px}
   tbody tr:nth-child(even){background:rgba(231,223,196,.055)}
   tbody tr:hover{background:rgba(111,164,123,.12)}
+  #panel-blown tbody tr:hover,
+  #panel-mates tbody tr:hover,
+  #panel-log tbody tr:hover{background:rgba(111,164,123,.12)}
   td.num{text-align:right}
   td.ctr{text-align:center}
   .res{font-weight:700}
@@ -1017,8 +1035,11 @@
   .pill.W{background:var(--ink);color:#131813}
   .pill.B{background:transparent;color:var(--ink)}
   .castle-no{color:var(--loss);font-weight:700}
-  th.flagcol, td.flagcol{width:12px;padding-left:8px;padding-right:0;text-align:center}
-  th.starcol, td.starcol{width:16px;padding-left:2px;padding-right:0;text-align:center}
+  th.flagcol, td.flagcol{width:12px;padding-left:4px;padding-right:0;text-align:center}
+  th.starcol, td.starcol{width:16px;padding-left:0;padding-right:0;text-align:center}
+  th.starcol+th, td.starcol+td{padding-left:3px}
+  #panel-log td.flagcol, #panel-log th.flagcol{padding-left:4px}
+  #panel-log td.starcol+td, #panel-log th.starcol+th{padding-left:2px}
   /* Feed star column: match the Game Log's edge/gutter spacing (the .weekly tables otherwise pad
      the first cell 3px-left / 11px-right, so the star hugs the edge and sits too far from the date) */
   .weekly td.starcol{padding-left:8px;padding-right:8px}
@@ -1567,6 +1588,13 @@
   #profileBody .dnaband{padding:18px 20px 20px}
   #profileBody .dna-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:6px}
   #profileBody .dna-title{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;margin-top:2px}
+  /* scope label after "Rookbook Rating": the radar is scored on your main time control only
+     (formats are separate ladders), so it's named right in the header. One flex child of
+     .dna-title (13px off the label), tighter 7px rhythm within. Hidden for single-format accounts. */
+  #profileBody .dna-title .dna-scope{display:inline-flex;align-items:baseline;gap:7px;font-family:"Poppins",var(--sans)}
+  #profileBody .dna-scope .sc-sep{color:var(--dim);font-size:12px}
+  #profileBody .dna-scope .sc-tc{color:var(--green);font-size:12px;font-weight:500}
+  #profileBody .dna-scope .sc-note{color:var(--dim);font-size:11.5px}
   #profileBody .dna-name{font-family:"Poppins",var(--sans);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
   #profileBody .dna-right{text-align:right;padding-top:4px}
   #profileBody .dna-plays{font-family:var(--mono);font-size:12px;color:var(--dim)}
@@ -1757,10 +1785,10 @@
      Boards are normalized to the mated king's side (its back rank at the bottom, kingside on the right),
      so white and black games pool into one readable pattern. */
   #insights .cmm{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;justify-content:center}
-  #insights .cmm-side{flex:1 1 150px;min-width:135px;max-width:230px;display:flex;flex-direction:column;gap:8px}
-  #insights .cmm-cap{font-size:12.5px;color:var(--ink);display:flex;align-items:center;gap:7px}
-  #insights .cmm-cap b{font-family:var(--mono);font-size:14px}
-  #insights .cmm-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:0 0 auto}
+  #insights .cmm-side{flex:1 1 200px;min-width:160px;max-width:340px;display:flex;flex-direction:column;gap:8px}
+  #insights .cmm-cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;font-family:"Poppins",var(--sans);color:var(--ink);display:flex;align-items:center;gap:7px}
+  #insights .cmm-cap b{font-family:var(--mono);font-size:12px;letter-spacing:0;text-transform:none}
+  #insights .cmm-dot{width:9px;height:9px;border-radius:2px;display:inline-block;flex:0 0 auto}
   #insights .cmm-outer{display:flex;flex-direction:column;gap:3px}
   #insights .cmm-board{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;aspect-ratio:1}
   #insights .cmm-sq{display:flex;align-items:center;justify-content:center;border:1px solid var(--rule);border-radius:2px;font-family:var(--mono);font-size:10px;font-weight:700;min-width:0;line-height:1}
@@ -7380,6 +7408,9 @@ function renderProfile(list){
   // time control — the same scope the Insights page uses — so the two radars show identical numbers.
   const dnaGs = (main && byTc[main.tc]) ? byTc[main.tc] : gs;
   const dna=pfDNA(dnaGs, main?main.cur:null), au=pfAutopsy(gs), ops=pfOpenings(gs), notable=pfNotable(gs);
+  // Header scope label — the radar reads main-format games only (formats are separate ladders),
+  // so name the format right in the header. Hidden when the account has just one format.
+  const dnaScope=(main && tiles.length>1)?`<span class="dna-scope"><span class="sc-sep">·</span><span class="sc-tc">${tcCap(main.tc)}</span><span class="sc-note">(all formats in Insights)</span></span>`:"";
   window.__pfOps=pfOpeningsGrid(gs);   // for the client-side openings toggle below
   window.__pfLen=pfLengthGrid(gs);
   window.__pfPc=pfPiecesGrid(gs);
@@ -7407,11 +7438,11 @@ function renderProfile(list){
     <div class="pf-duo pf-duo-a">
       <div class="panel dnaband">
         <div class="dna-head">
-          <div class="dna-title"><span class="lbl">Rookbook Rating</span></div>
+          <div class="dna-title"><span class="lbl">Rookbook Rating</span>${dnaScope}</div>
         </div>
         <div class="dna-body">
           ${pfRadarSVG(dna.axes)}
-          <div class="axes">${dna.axes.map(a=>{const c=pfBarColor(a.val);return `<div class="ax"><span class="ax-name">${a.label}</span><span class="ax-track"><span class="ax-fill" style="width:${a.val}%;background:${c}"></span></span><span class="ax-val" style="color:${c}">${a.val}</span><span class="ax-metric">${a.metric}</span></div>`;}).join("")}</div>
+          <div class="axes">${dna.axes.map(a=>{const c=pfBarColor(a.val);return `<div class="ax"><span class="ax-name">${a.label}</span><span class="ax-track"><span class="ax-fill" style="width:${a.val}%;background:${c}"></span></span><span class="ax-val" style="color:${c}">${a.val}</span><span class="ax-metric">${a.metric.replace(/\s*·\s*field\s+\d+%/g,"")}</span></div>`;}).join("")}</div>
         </div>
       </div>
       <div class="panel">
@@ -7780,6 +7811,20 @@ function iBarRow(label, wins, total){
   // data-sig/data-pct let iPanel see, without re-deriving anything, whether a panel's bars
   // said anything at all — that's what decides if the run gets folded away.
   return `<div class="irow" data-sig="${beats?1:0}"${total?` data-pct="${pct}"`:""}>
+    <span class="ilabel" title="${label}">${label}</span>
+    <span class="itrack"><span class="ifill ${cls}" style="width:${total?pct:0}%;display:block"></span></span>
+    <span class="ival">${val}</span>
+  </div>`;
+}
+
+// Same row as iBarRow, but colored on an absolute 50% line (over 50 = green, under = red, an even
+// 50 = neutral) instead of against your overall win rate — for buckets judged against a coin flip.
+function iBarRowAbs(label, wins, total){
+  const pct = total ? Math.round(100*wins/total) : 0;
+  const val = total ? `${pct}% <span>(${wins}/${total})</span>` : "—";
+  const cls = !total ? "mid" : (pct>50 ? "" : pct<50 ? "bad" : "mid");
+  const sig = (total && pct!==50) ? 1 : 0;
+  return `<div class="irow" data-sig="${sig}"${total?` data-pct="${pct}"`:""}>
     <span class="ilabel" title="${label}">${label}</span>
     <span class="itrack"><span class="ifill ${cls}" style="width:${total?pct:0}%;display:block"></span></span>
     <span class="ival">${val}</span>
@@ -8586,7 +8631,7 @@ function renderInsights(list){
       let body="";
       for(const [label,lo,hi] of defs){
         const grp=tracked.filter(g=>{const s=swing(g); return s>=lo&&s<=hi;});
-        body+=iBarRow(label,grp.filter(isW).length,grp.length);
+        body+=iBarRowAbs(label,grp.filter(isW).length,grp.length);
       }
       const quiet=tracked.filter(g=>swing(g)<=1), wild=tracked.filter(g=>swing(g)>=5);
       const q=quiet.length?Math.round(100*quiet.filter(isW).length/quiet.length):0;
@@ -8767,7 +8812,8 @@ function renderInsights(list){
   const rrowI=(label,val,cls)=>`<div class="irow"><span class="ilabel" style="width:auto;flex:1;white-space:normal">${label}</span><span class="ival ${cls||""}" style="width:auto;font-size:13px">${val}</span></div>`;
   const ehI=g=>(resignForcedMate(g))?"checkmate":(g.how||"other");
   const meanN=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
-  let pShortLoss="",pSeesaw="",pLeadSize="",pGiveback="",pConvPhase="",pKill="",pMateArrive="",pLossEnd="",pCastleMate="",pMateFormat="",pBehindOutcome="",pComebackEnd="",pMissedMate="",pThinkSig="",pAccLen="";
+  let pShortLoss="",pSeesaw="",pLeadSize="",pGiveback="",pConvPhase="",pMateArrive="",pLossEnd="",pCastleMate="",pMateFormat="",pBehindOutcome="",pComebackEnd="",pMissedMate="",pThinkSig="",pAccLen="";
+  let mateStats=null;
   { // Sharpness — Short losses
     const dec=list.filter(g=>g.result==="Loss" && (g.how==="resign"||g.how==="checkmate") && typeof g.moves==="number" && g.moves>=MIN_REAL_MOVES);
     if(dec.length>=8){ const n=dec.length, b1=dec.filter(g=>g.moves<20).length, b2=dec.filter(g=>g.moves>=20&&g.moves<=40).length, b3=n-b1-b2;
@@ -8811,12 +8857,6 @@ function renderInsights(list){
       if(body) pConvPhase=iPanel("Conversion by game phase","Win rate from a 3+ lead, split by when in the game you reached it — early and late leads slip differently.",body+(note?`<div class="isub" style="margin-top:9px">${note}</div>`:""));
     }
   }
-  { // Attack — do you go for the kill
-    const crush=list.filter(g=>g.result==="Win" && typeof g.peakMat==="number" && g.peakMat>=5);
-    if(crush.length>=8){ const n=crush.length, mated=crush.filter(g=>ehI(g)==="checkmate").length, resign=crush.filter(g=>ehI(g)==="resign").length, gift=n-mated-resign;
-      const note=mated/n>=0.4?`You finish the job — ${Math.round(100*mated/n)}% of your totally-winning games end in mate.`:`You rarely deliver the mate (${Math.round(100*mated/n)}%) even when completely winning — you wait for the resignation.`;
-      pKill=iPanel("Do you go for the kill?","Of the games you were completely winning (up 5+ material), how often you actually delivered mate instead of waiting for the resignation.",`<div class="autohead"><span>Totally-winning games</span><span class="dim">${n}</span></div>`+mkStack([{label:"You mated them",n:mated,color:"var(--win)"},{label:"They resigned",n:resign,color:"var(--dim)"},{label:"They flagged or left",n:gift,color:"#8f6b57"}],n)+`<div class="isub" style="margin-top:9px">${note}</div>`); }
-  }
   { // Attack & Defense — mates you DELIVER vs mates you RECEIVE, by the move the mate landed.
     // Two distributions on one axis: green = your checkmate wins, coral = your checkmate losses.
     const deliver=list.filter(g=>g.result==="Win"  && ehI(g)==="checkmate" && typeof g.moves==="number" && g.moves>0);
@@ -8836,9 +8876,12 @@ function renderInsights(list){
         : (medR!=null) ? `You deliver and receive mate at about the same depth (moves ${medD} vs ${medR}).`
         : `${nD} checkmate wins, and you're rarely mated yourself — little on the receiving side to compare.`;
       // ---- grouped histogram: two bars per bin — deliver (green) beside receive (coral) ----
-      // wide viewBox: this panel spans the full section row, so a wide aspect keeps it from
-      // rendering too tall when the SVG scales to 100% width.
-      const W=720,Hc=230,mL=26,mR=10,mT=8,mB=26, pW=W-mL-mR, pH=Hc-mT-mB, baseY=mT+pH;
+      // The SVG flex-grows to fill its equal-width cell (matched to the supporting stack's height) via
+      // preserveAspectRatio="none" below, so there's no dead space under it. Since "none" stretches,
+      // the viewBox aspect is set to the aspect that cell actually renders at (~1.7:1 beside the
+      // two-panel stack at desktop width) — matching it means the stretch is ~1.0 and the axis
+      // numerals stay undistorted. Re-measure if the stack gains or loses a panel.
+      const W=680,Hc=400,mL=26,mR=10,mT=10,mB=26, pW=W-mL-mR, pH=Hc-mT-mB, baseY=mT+pH;
       const niceStep=v=>[1,2,5,10,20,25,50].find(x=>x>=v/4)||100;
       const yStep=niceStep(maxC), yMax=Math.max(yStep,Math.ceil(maxC/yStep)*yStep);
       const yA=c=>mT+pH*(1-c/yMax);
@@ -8853,7 +8896,7 @@ function renderInsights(list){
       const yTitle=`<text x="8" y="${(mT+pH/2).toFixed(1)}" transform="rotate(-90 8 ${(mT+pH/2).toFixed(1)})" text-anchor="middle" font-size="8.5" fill="var(--dim)" font-family="var(--sans)" letter-spacing="0.6">games</text>`;
       const xTitle=`<text x="${(mL+pW/2).toFixed(1)}" y="${(Hc-2).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="var(--dim)" font-family="var(--sans)" letter-spacing="0.6">move the mate landed on</text>`;
       const axes=`<line x1="${mL}" y1="${mT}" x2="${mL}" y2="${baseY}" stroke="var(--rule)" stroke-width="0.8"/><line x1="${mL}" y1="${baseY}" x2="${W-mR}" y2="${baseY}" stroke="var(--rule)" stroke-width="0.8"/>`;
-      const chart=`<svg class="acc-chart" viewBox="0 0 ${W} ${Hc}" role="img" aria-label="Checkmates delivered vs received, by move">${grid}${axes}${bars}${xticks}${yTitle}${xTitle}</svg>`;
+      const chart=`<svg class="acc-chart" viewBox="0 0 ${W} ${Hc}" preserveAspectRatio="none" role="img" aria-label="Checkmates delivered vs received, by move">${grid}${axes}${bars}${xticks}${yTitle}${xTitle}</svg>`;
       // consolidated: one stat line (color dot · count · median) replaces the old verdict + legend + tiles
       const dot=c=>`<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c};vertical-align:-1px;margin-right:5px"></span>`;
       const b=v=>`<b style="color:var(--ink);font-family:var(--mono)">${v}</b>`;
@@ -8885,6 +8928,7 @@ function renderInsights(list){
               ? (notWon?rrowI("Cost you the full point",`${notWon} game${notWon===1?"":"s"}`,"res loss"):"")
                 + `<div class="isub" style="margin-top:9px">${missed} forced mate${missed===1?" was":"s were"} on the board and went unplayed${notWon?` — ${notWon} of them threw the win`:""}. <a class="evlink" href="#tab=mates">See each one on a board →</a></div>`
               : `<div class="isub" style="margin-top:9px">Ruthless — every forced mate that appeared, you took. <a class="evlink" href="#tab=mates">Missed Mates keeps it honest →</a></div>`);
+      mateStats={landed, missed, scanned:scanned.length, notWon};
       pMissedMate=iPanel("Mates: landed vs left","Every forced checkmate that was on the board — the ones you finished, and the ones you walked past.",body);
     } else {
       pMissedMate=iPanel("Mates you left on the board","The other half of finishing: forced checkmates that were on the board and went unplayed.",`<div class="isub">These games haven't been scanned for missed mates yet — it runs right in your browser, no engine needed. <a class="evlink" href="#tab=mates">Scan for missed mates →</a></div>`);
@@ -8962,7 +9006,7 @@ function renderInsights(list){
       }
     }
   }
-  { // Castling — reimagined: castle-rate hero + king-safety (mate rate castled vs not). Stays in Attack+Defense.
+  { // Castling — reimagined: castle-rate hero + win rate (castle vs never) + king-safety verdict. Stays in Attack+Defense.
     const rate=gs=>{ const c=gs.filter(g=>g.castled==="yes").length; return gs.length?Math.round(100*c/gs.length):null; };
     const mr=a=>a.length?Math.round(100*a.filter(g=>g.result==="Loss"&&g.how==="checkmate").length/a.length):null;
     const W=list.filter(g=>g.color==="W"), B=list.filter(g=>g.color==="B");
@@ -8971,20 +9015,22 @@ function renderInsights(list){
     const avgMv=castMoves.length?castMoves.reduce((s,g)=>s+g.castleMove,0)/castMoves.length:null;
     const sided=castledAll.filter(g=>g.castleSide), kPct=sided.length?Math.round(100*sided.filter(g=>g.castleSide==="K").length/sided.length):null;
     const rAll=rate(list), rW=rate(W), rB=rate(B), mC=mr(castledAll), mN=mr(neverAll);
-    const whenNote=avgMv!=null?` You usually castle around <b>move ${avgMv.toFixed(1).replace(/\.0$/,"")}</b>${kPct!=null?`, ${kPct>=85?"almost always kingside":kPct<=15?"almost always queenside":`${kPct}% kingside`}`:""}.`:"";
+    const wrOf=a=>a.length?Math.round(100*a.filter(isW).length/a.length):null;
+    const wC=wrOf(castledAll), wN=wrOf(neverAll);
+    const whenNote=avgMv!=null?`You castle around <b>move ${avgMv.toFixed(1).replace(/\.0$/,"")}</b>${kPct!=null?`, ${kPct>=85?"almost always kingside":kPct<=15?"almost always queenside":`${kPct}% kingside`}`:""}.`:"";
     if(castledAll.length>=6){
       const heroColor=rAll>=70?"var(--win)":rAll>=45?"var(--ink)":"var(--loss)";
-      let body=`<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:8px"><span style="font-family:var(--mono);font-size:30px;line-height:1;color:${heroColor}">${rAll}%</span><span class="isub" style="margin:0;font-size:12.5px">of games you tuck the king away${rW!=null&&rB!=null?` — <b style="color:var(--ink)">${rW}%</b> as White, <b style="color:var(--ink)">${rB}%</b> as Black`:""}</span></div>`;
-      if(mC!=null && mN!=null && castledAll.length>=8 && neverAll.length>=8){
-        const mx=Math.max(1,mC,mN);
-        const row=(label,v)=>`<div class="irow"><span class="ilabel" style="width:auto;flex:1;white-space:normal">${label}</span><span class="itrack" style="flex:0 0 120px"><span class="ifill" style="width:${Math.round(100*v/mx)}%;background:var(--loss);display:block"></span></span><span class="ival" style="width:auto">${v}%</span></div>`;
-        body+=row("Checkmated when you castle",mC)+row("Checkmated when you don't",mN);
-        const v = mN-mC>=6 ? "Castling clearly keeps your king safer." : mC-mN>=6 ? "Oddly, you're mated <i>more</i> when you castle — the danger's coming from elsewhere." : "Castling barely changes your mate rate.";
-        body+=`<div class="isub" style="margin-top:9px">${v}${whenNote}</div>`;
+      let body=`<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:8px"><span style="font-family:var(--mono);font-size:30px;line-height:1;color:${heroColor}">${rAll}%</span><span class="isub" style="margin:0;font-size:12.5px">of games you tuck the king away${rW!=null&&rB!=null?` \u2014 <b style="color:var(--ink)">${rW}%</b> as White, <b style="color:var(--ink)">${rB}%</b> as Black`:""}</span></div>`;
+      if(wC!=null && wN!=null && castledAll.length>=8 && neverAll.length>=8){
+        body+=iBarRowAbs("When you castle",castledAll.filter(isW).length,castledAll.length)+iBarRowAbs("When you never castle",neverAll.filter(isW).length,neverAll.length);
+        const gap=wC-wN;
+        const lead=gap>=6?`You win <b style="color:var(--win)">${gap} points more</b> when you castle (${wC}% vs ${wN}%)`:gap<=-6?`You win <b>${-gap} points more</b> when you <i>don't</i> castle (${wN}% vs ${wC}%)`:`Castling makes little difference to your win rate (${wC}% vs ${wN}%)`;
+        const safe=(mC!=null&&mN!=null)?(mN-mC>=6?`, and you're mated less often too (${mC}% vs ${mN}%)`:mC-mN>=6?`, though you're mated <i>more</i> when you do (${mC}% vs ${mN}%)`:`, and it barely changes how often you're mated (${mC}% vs ${mN}%)`):"";
+        body+=`<div class="isub" style="margin-top:9px">${lead}${safe}. ${whenNote}</div>`;
       } else {
-        body+=`<div class="isub" style="margin-top:9px">${whenNote.trim()||"Not enough games yet to compare king safety with and without castling (needs 8 per side)."}</div>`;
+        body+=`<div class="isub" style="margin-top:9px">${whenNote||"Not enough games yet to compare castling with and without (needs 8 per side)."}</div>`;
       }
-      pCastleMate=iPanel("Castling","How safe your king is once it's tucked away — mate rate when you castle versus when you don't.",body);
+      pCastleMate=iPanel("Castling","Whether tucking your king away keeps it safer \u2014 and whether you actually win more when you do.",body);
     }
   }
   { // Defense — which clock gets you mated (only meaningful across formats)
@@ -9080,13 +9126,23 @@ function renderInsights(list){
         const sc=v=>v>=60?"good":v<42?"bad":"mid";
         const scr=a=>a?`<span class="dna-inl ${sc(a.val)}">${a.val}</span>`:`<span class="dna-inl">–</span>`;
         const title=`ATTACK ${scr(atk)} + DEFENSE ${scr(def)}`;
-        // top row: the mates chart (2/3) + the Autopsy beside it; then the rest.
-        // pLossEnd removed — the Autopsy already breaks down how losses end.
-        // standard 2-up grid (same as every other section) — mates + autopsy fill the top row.
-        const panels=iSlot(pMateArrive,"When mate is delivered","games")+iSlot(pAutopsy,"Autopsy","games")
-          +iSlot(pMissedMate,"Mates: landed vs left","games")+iSlot(pKill,"Do you go for the kill?","games")
-          +iSlot(pfMateMap(list)||pDefense,"How you get mated","games")+iSlot(pSwing,"Material swing","games")
-          +iSlot(pCastleMate,"Castling","games");
+        // Top row (standard 2-up): the Checkmate map + a stack of "What piece lands mate" and the
+        // Autopsy beside it. pLossEnd removed — the Autopsy already breaks down how losses end.
+        const pMatingPc=pfMatingPiece(list);
+        const rightStack=pMatingPc
+          ? `<div class="ipanel-stack" style="display:flex;flex-direction:column;gap:16px">${pMatingPc}${iSlot(pAutopsy,"Autopsy","games")}</div>`
+          : iSlot(pAutopsy,"Autopsy","games");
+        // Lower block: the "When mate is delivered" histogram fills the left cell (its grouped bars
+        // need vertical room); the two supporting reads stack in the right column (.ad-lower).
+        const adLower=`<div class="ad-lower">`
+          +iSlot(pMateArrive,"When mate is delivered","games")
+          +`<div class="ipanel-stack">`
+            +iSlot(pSwing,"Material swing","games")
+            +iSlot(pCastleMate,"Castling","games")
+          +`</div></div>`;
+        const panels=iSlot(pfMateMap(list,mateStats)||pDefense,"How you get mated","games")
+          +rightStack
+          +adLower;
         const body=panels||`<div class="ipanel">${needData("games")}</div>`;
         // id="dna-attack" is the section; the empty #dna-steady anchor keeps the Defense radar card's jump working
         return `<section class="dna-sec admerge" id="dna-attack"><span id="dna-steady" style="scroll-margin-top:14px"></span><header class="dna-sec-head"><span class="dna-eyebrow">${title}</span></header><div class="dna-mods">${body}</div></section>`;
@@ -9260,7 +9316,8 @@ function computeMateMap(list){
 // in Insights, and flipping the whole tab to White-only just to look at this board was the bug.
 let CMM_COL="all";
 // Returns a full-width .ipanel, or "" when neither side has enough mates (caller falls back).
-function pfMateMap(list){
+// mateStats: {landed, missed, scanned, notWon} from the mate scan, or null if not scanned.
+function pfMateMap(list, mateStats){
   const filtered = CMM_COL==="all" ? list : list.filter(g=>g.color===CMM_COL);
   const d=computeMateMap(filtered), MIN=5;
   const colf=`<div class="fgroup cmm-colf" style="display:inline-flex">
@@ -9289,10 +9346,10 @@ function pfMateMap(list){
   };
   const dot=c=>`<span class="cmm-dot" style="background:${c}"></span>`;
   const side=(grid,n,rgb,cap,note,thin)=> d[thin]>=MIN
-    ? `<div class="cmm-side"><div class="cmm-cap">${dot(`rgb(${rgb})`)}${cap} <b>${n}</b></div>${board(grid,rgb)}<div class="cmm-note">${note}</div></div>`
+    ? `<div class="cmm-side"><div class="cmm-cap">${dot(`rgb(${rgb})`)}${cap}</div>${board(grid,rgb)}<div class="cmm-note">${note}</div></div>`
     : `<div class="cmm-side"><div class="cmm-cap">${dot(`rgb(${rgb})`)}${cap}</div><div class="isub cmm-thin">Only ${n} board checkmate${n===1?"":"s"} so far${thin==="nR"?" — most losses you resign before mate":""}. Not enough to map yet.</div></div>`;
-  const sideD=side(d.deliver,d.nD,GRN,"You deliver","where you land mate — their king","nD");
-  const sideR=side(d.receive,d.nR,COR,"You get mated","where your king falls","nR");
+  const sideD=side(d.deliver,d.nD,GRN,`You've delivered <b>${d.nD}</b> mate${d.nD===1?"":"s"}`,"where you land mate — their king","nD");
+  const sideR=side(d.receive,d.nR,COR,`You've been mated <b>${d.nR}</b> time${d.nR===1?"":"s"}`,"where your king falls","nR");
   // verdict: share of received mates on the mated king's own kingside corner (g/h files, first two ranks)
   let verdict="";
   if(d.nR>=MIN){
@@ -9300,9 +9357,43 @@ function pfMateMap(list){
     const pc=Math.round(100*ks/d.nR);
     if(pc>=40) verdict=`<b>${pc}% of the mates against you land on the kingside corner (g/h files).</b> That's a back-rank / castled-king pattern, not scattered luck — give the king luft.`;
   }
-  return `<div class="ipanel" id="ip-checkmate-map"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap"><h3 style="margin:0">Checkmate map — where kings fall</h3>${colf}</div>`
-    +`<div class="isub">Drawn from your side of the board, just as you'd see it sitting down — you attack up top (their king), you get mated at home (bottom). Shade = how often a king fell there.</div>`
-    +`<div class="cmm">${sideD}${sideR}</div>${verdict?`<div class="isub" style="margin-top:10px">${verdict}</div>`:""}</div>`;
+  let convLine="";
+  if(mateStats){
+    const {landed,missed,scanned,notWon}=mateStats;
+    const chances=landed+missed;
+    if(chances){
+      const rate=Math.round(100*landed/chances);
+      const col=rate>=85?"var(--win)":rate>=60?"var(--ink)":"var(--loss)";
+      const costLine=notWon?` Of those misses, <b class="res loss">${notWon}</b> cost you the game — mate was right there and the full point still got away.`:"";
+      convLine=`<div class="isub" style="margin-top:10px">You convert <b style="color:${col}">${rate}%</b> of forced mates on the board — delivered <b>${landed}</b>, walked past <b>${missed}</b> across ${scanned} scanned games.${costLine}`
+        +(missed?` <a class="evlink" href="#tab=mates">See each one on a board →</a>`:"")+`</div>`;
+    }
+  }
+  let ratioLine="";
+  if(d.nD>=3 && d.nR>=3){
+    const ratio=d.nR/d.nD;
+    if(ratio>=2.5) ratioLine=`<div class="isub" style="margin-top:8px">You get mated <b>${ratio.toFixed(1)}×</b> as often as you deliver mate. Most of your wins come from resignations, flags, or abandoned games — not from finishing the job on the board.</div>`;
+    else if(ratio>=1.5) ratioLine=`<div class="isub" style="margin-top:8px">You get mated <b>${ratio.toFixed(1)}×</b> more than you mate others. Your opponents are more willing to play to checkmate than you are — you tend to win by other means.</div>`;
+    else if(ratio<=0.5) ratioLine=`<div class="isub" style="margin-top:8px">You deliver mate <b>${(1/ratio).toFixed(1)}×</b> more than you receive it. You finish games on the board — your opponents resign or flag more than they checkmate you.</div>`;
+  }
+  let quickLine="";
+  {
+    const mateGames=list.filter(g=>g.how==="checkmate"||resignForcedMate(g));
+    const myMates=mateGames.filter(g=>g.result==="Win"&&typeof g.moves==="number");
+    const thMates=mateGames.filter(g=>g.result==="Loss"&&typeof g.moves==="number");
+    if(myMates.length>=3){
+      const fastest=Math.min(...myMates.map(g=>g.moves));
+      const slowest=Math.max(...myMates.map(g=>g.moves));
+      quickLine=`<div class="isub" style="margin-top:8px">Your fastest checkmate took <b>${fastest} moves</b>`;
+      if(thMates.length>=3){
+        const thFastest=Math.min(...thMates.map(g=>g.moves));
+        quickLine+=` — your fastest loss to mate was <b>${thFastest}</b>`;
+      }
+      quickLine+=`.</div>`;
+    }
+  }
+  return `<div class="ipanel" id="ip-checkmate-map"><div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap"><h3 style="margin:0">Checkmate map</h3>${colf}</div>`
+    +`<div class="cmm" style="border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:2px">${sideD}${sideR}</div>${convLine}${verdict?`<div class="isub" style="margin-top:10px">${verdict}</div>`:""}${ratioLine}${quickLine}</div>`;
 }
 // Checkmate map's local color toggle. Scoped to CMM_COL, not the shared F filter, so flipping
 // it only re-renders this one panel (via renderInsights) instead of re-filtering the whole app.
@@ -9313,6 +9404,86 @@ document.addEventListener("click", e=>{
   CMM_COL=off?"all":b.dataset.cmmcol;
   renderInsights(visibleGames());
 });
+
+// ---------- mating piece: which piece delivers / receives checkmate ----------
+function pfMatingPiece(list){
+  const pieces={Q:0,R:0,N:0,B:0,P:0,K:0};
+  const opp   ={Q:0,R:0,N:0,B:0,P:0,K:0};
+  const pgnPiece=pgn=>{
+    const body=pgn.replace(/\[[^\]]*\]/g," ").replace(/\{[^}]*\}/g," ").replace(/\$\d+/g," ").replace(/\d+\.(\.\.)?/g," ").replace(/(1-0|0-1|1\/2-1\/2|\*)/g," ");
+    const toks=body.trim().split(/\s+/).filter(Boolean);
+    const last=toks[toks.length-1];
+    if(!last) return null;
+    if(last[0]==="O") return "R";
+    if("QRNBK".includes(last[0])) return last[0];
+    return "P";
+  };
+  const forcedMatePiece=g=>{
+    if(typeof Chess==="undefined") return null;
+    try{
+      const c=new Chess();
+      if(!c.load_pgn(g.pgn)) return null;
+      const mvs=c.moves();
+      for(const mv of mvs){
+        const c2=new Chess(c.fen()); c2.move(mv);
+        const replies=c2.moves();
+        for(const r of replies){
+          const c3=new Chess(c2.fen()); c3.move(r);
+          if(c3.in_checkmate()){
+            if(r[0]==="O") return "R";
+            if("QRNBK".includes(r[0])) return r[0];
+            return "P";
+          }
+        }
+      }
+    }catch(e){}
+    return null;
+  };
+  for(const g of list){
+    if(!g.pgn || typeof g.moves!=="number" || g.moves<1) continue;
+    if(g.result!=="Win" && g.result!=="Loss") continue;
+    if(g.how!=="checkmate" && !resignForcedMate(g)) continue;
+    let pc=null;
+    if(g.how==="checkmate") pc=pgnPiece(g.pgn);
+    else pc=forcedMatePiece(g);
+    if(!pc) continue;
+    const bucket=g.result==="Win"?pieces:opp;
+    bucket[pc]++;
+  }
+  const totalD=Object.values(pieces).reduce((a,b)=>a+b,0);
+  const totalR=Object.values(opp).reduce((a,b)=>a+b,0);
+  if(totalD+totalR<5) return "";
+  const max=Math.max(...Object.values(pieces),...Object.values(opp),1);
+  const labels={Q:"Queen",R:"Rook",N:"Knight",B:"Bishop",P:"Pawn",K:"Discovered"};
+  const icons={Q:"♛",R:"♜",N:"♞",B:"♝",P:"♟",K:"♚"};
+  const GRN="#6FA47B",COR="var(--loss)";
+  let bars="";
+  for(const p of ["Q","R","N","B","P","K"]){
+    const dH=Math.max(4,Math.round(120*pieces[p]/max));
+    const rH=Math.max(4,Math.round(120*opp[p]/max));
+    const dSmall=pieces[p]<max*0.2, rSmall=opp[p]<max*0.2;
+    const dLabel=dSmall
+      ?`<span style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:${GRN}">${pieces[p]}</span>`
+      :`<span style="position:absolute;top:3px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:#0E0F10">${pieces[p]}</span>`;
+    const rLabel=rSmall
+      ?`<span style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--loss)">${opp[p]}</span>`
+      :`<span style="position:absolute;top:3px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:#0E0F10">${opp[p]}</span>`;
+    bars+=`<div style="flex:1;text-align:center;min-width:0">
+      <div style="font-size:28px;line-height:1;margin-bottom:6px">${icons[p]}</div>
+      <div style="display:flex;gap:2px;justify-content:center;align-items:flex-end;height:130px">
+        <div style="flex:1;background:${GRN};border-radius:2px;height:${pieces[p]?dH:0}px;position:relative;${pieces[p]?"":"visibility:hidden"}">${pieces[p]?dLabel:""}</div>
+        <div style="flex:1;background:${COR};border-radius:2px;height:${opp[p]?rH:0}px;position:relative;${opp[p]?"":"visibility:hidden"}">${opp[p]?rLabel:""}</div>
+      </div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px">${labels[p]}</div>
+    </div>`;
+  }
+  const legend=`<span style="display:inline-block;width:8px;height:8px;background:${GRN};border-radius:2px;vertical-align:1px"></span> you deliver ${totalD}`
+    +`<span style="margin-left:10px;display:inline-block;width:8px;height:8px;background:var(--loss);border-radius:2px;vertical-align:1px"></span> they deliver ${totalR}`;
+  return `<div class="ipanel" id="ip-mating-piece"><h3>What piece lands mate</h3>`
+    +`<div class="isub" style="margin-bottom:10px">${legend}</div>`
+    +`<div style="display:flex;gap:12px;align-items:flex-end;padding-bottom:4px">${bars}</div>`
+    +`</div>`;
+}
 
 // ---------- volume: how many games you actually play, by hour and by weekday ----------
 // Count, not result — the sample size behind the win-rate charts, so a tall win-rate bar
