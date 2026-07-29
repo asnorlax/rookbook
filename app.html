@@ -2943,6 +2943,14 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <button class="chip" data-val="comeback" title="Wins pulled back from 3+ material down">Comeback ↺</button>
       <button class="chip" data-val="flag" title="Games that deserve a second look: blown 3+ leads, too-early resignations, squandered winning positions">Blown &#9873;</button>
     </div>
+    <span data-key="peak" hidden>
+      <span class="isub" style="margin:0;text-transform:uppercase;letter-spacing:.05em">Peak lead</span>
+      <div class="fgroup" style="display:inline-flex">
+        <button class="chip active" data-bpeak="0" title="All blown leads">Any</button>
+        <button class="chip" data-bpeak="5" title="You were up a whole piece (+5) or more">+5</button>
+        <button class="chip" data-bpeak="9" title="You were up a whole queen (+9) or more">+9</button>
+      </div>
+    </span>
     <span class="fsearch" data-key="opp" hidden><input id="oppSearch" type="text" placeholder="filter: opponent" autocomplete="off" spellcheck="false"><button id="oppSearchX" title="Clear" type="button">✕</button></span>
     <span class="fnote" id="fnote" hidden></span>
   </div>
@@ -7761,19 +7769,21 @@ function iSlot(content, title, kind, extra){ return content || ((typeof DEMO!=="
    Was its own panel buried at the bottom of Insights; it's the most actionable thing in the
    app, so it gets a tab. To revert: move this back into renderInsights and drop "blown".
    ======================================== */
+let BLOWN_PEAK=0;   // Blown Leads "Peak lead" filter: 0 = Any, else minimum peak material (+5, +9)
 function renderBlown(list){
   const box=$("blown");
   const isW=g=>g.result==="Win";
-  let html="";
+  let html="", blownTotal=0, blownElo=0;   // hoisted so the single header subtitle can show the count
   // 13) Games you gave away (engine-verified; only after "Evaluate positions")
   {
     const evald=list.filter(g=>evalScore(g)!==null);
     const tracked=list.filter(g=>typeof g.peakMat==="number");
     const sc=g=>{const v=evalScore(g); return v===null?-999:v;};
-    const gave=list.filter(threwItAway).sort((a,b)=>sc(b)-sc(a));
-    const squand=list.filter(g=>!threwItAway(g) && squandered(g)>=3 && g.peakMat>=3)
+    const pk=g=>!BLOWN_PEAK || (typeof g.peakMat==="number" && g.peakMat>=BLOWN_PEAK);   // "Peak lead" filter
+    const gave=list.filter(threwItAway).filter(pk).sort((a,b)=>sc(b)-sc(a));
+    const squand=list.filter(g=>!threwItAway(g) && squandered(g)>=3 && g.peakMat>=3).filter(pk)
                      .sort((a,b)=>squandered(b)-squandered(a));
-    const early=list.filter(g=>!threwItAway(g) && squandered(g)<3 && resignedTooEarly(g))
+    const early=list.filter(g=>!threwItAway(g) && squandered(g)<3 && resignedTooEarly(g)).filter(pk)
                     .sort((a,b)=>sc(b)-sc(a));
     if(tracked.length>=5){
       const clk=g=>{
@@ -7837,9 +7847,9 @@ function renderBlown(list){
       const rows = all.map(g=>{ const [cls,tag,tip]=verdictOf(g); return row(g,cls,tag,tip); }).join("");
       const eloLost = [...gave,...squand,...early].reduce((a,g)=>a+Math.abs(g.delta||0),0);
       const total=gave.length+squand.length+early.length;
+      blownTotal=total; blownElo=eloLost;
       const body = rows
-        ? `<div class="isub" style="margin-bottom:8px"><b>${total} game${total===1?"":"s"} \u00b7 ${eloLost} rating points handed over.</b></div>
-           <div class="tablewrap" style="border:1px solid var(--rule);max-height:720px;overflow-y:auto">
+        ? `<div class="tablewrap" style="border:1px solid var(--rule);max-height:720px;overflow-y:auto">
              <table><thead><tr>
                <th class="ctr" title="Star games to save them — the \u2605 filter chip shows only starred games">\u2605</th>
                <th class="num">Date</th><th class="ctr">B/W</th><th>Opponent</th><th class="num">Opp Elo</th>
@@ -7863,7 +7873,7 @@ function renderBlown(list){
              <span class="res loss">M\u2717</span> means you were checkmated; <span class="res win">M\u2713</span> means a forced mate was sitting on the board <i>for you</i> when you lost — the cruelest row on this page.<br>
              <b>Peak / Final / Given back:</b> the biggest material lead you held, what you finished with, and the difference.
            </div>`
-        : `<div class="isub">Nothing here — across ${tracked.length} games, you never held a winning position and lost it. That's real discipline.</div>`;
+        : (BLOWN_PEAK ? `<div class="isub">No blown leads where your peak reached <b>+${BLOWN_PEAK} or more</b> — lower the Peak lead filter to see the rest.</div>` : `<div class="isub">Nothing here — across ${tracked.length} games, you never held a winning position and lost it. That's real discipline.</div>`);
       // No inner heading — the tab already has one. Four titles for one table is three too many.
       html+=body;
     }
@@ -7980,11 +7990,14 @@ function renderBlown(list){
   }
   box.innerHTML=`<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px">
       <h3 class="ptitle">Blown leads</h3>
-      <span class="isub" style="margin:0;font-family:var(--sans)">Games where you blew a 3+ material lead.</span>
+      <span class="isub" style="margin:0;font-family:var(--sans);color:var(--dim)">${blownTotal>0?`${blownTotal} game${blownTotal===1?"":"s"} of a 3+ material lead blown, resulting in <span class="res loss">−${blownElo}</span> elo handed over.`:`Games where you blew a 3+ material lead.`}</span>
     </div>${html}`;
 }
 
 
+
+// Blown Leads "Peak lead" chips — global listener so it survives every re-render of the feed.
+document.addEventListener("click", e=>{ const b=e.target.closest("[data-bpeak]"); if(!b) return; BLOWN_PEAK=+b.dataset.bpeak; b.parentElement.querySelectorAll("[data-bpeak]").forEach(x=>x.classList.toggle("active",x===b)); renderBlown(visibleGames()); });
 
 let INS_SCOPE_MAIN=null;   // the class the Insights default is currently scoped to, for the banner's "apply" link
 function renderInsights(list){
@@ -8121,34 +8134,39 @@ function renderInsights(list){
     pGap+=iPanel("Opponent rating gap","Win rate by how much stronger or weaker the opponent was, measured against your rating <em>before</em> the game.",body);
   }
 
-  // 4) Session position (sessions split by 60+ min gaps)
+  // 4) Session fatigue — win-rate BAR per game-position within a sitting (fresh -> deep)
   {
-    // Ranges, not single positions. Counting games 1,2,3,4 separately gave four tiny
-    // buckets (one game per session each) and dumped everything from the fifth game on
-    // into one bar — which is where most chess actually happens, and is exactly where
-    // fatigue would show. Ranges balance the samples and let late sittings be compared.
-    const BUCKETS=[["Games 1\u20132",1,2],["Games 3\u20135",3,5],["Games 6\u201310",6,10],["Games 11+",11,Infinity]];
-    const pos={}; for(const [lab] of BUCKETS) pos[lab]=[0,0];
+    const BUCKETS=[[1,1,"1"],[2,2,"2"],[3,3,"3"],[4,4,"4"],[5,5,"5"],[6,6,"6"],[7,7,"7"],[8,8,"8"],[9,9,"9"],[10,Infinity,"10+"]];
+    const pos=BUCKETS.map(()=>[0,0]);
     const la=asc.filter(g=>g.tc!=="daily");   // a sitting is live games only
     let n=0, sessions=0;
     for(let i=0;i<la.length;i++){
       if(i===0 || la[i].date-la[i-1].date > 60*60*1000){ n=1; sessions++; } else n++;
-      const b=BUCKETS.find(([,lo,hi])=>n>=lo&&n<=hi);
-      if(!b) continue;
-      pos[b[0]][1]++; if(isW(la[i])) pos[b[0]][0]++;
+      const bi=BUCKETS.findIndex(([lo,hi])=>n>=lo&&n<=hi);
+      if(bi<0) continue;
+      pos[bi][1]++; if(isW(la[i])) pos[bi][0]++;
     }
-    let body="";
-    for(const [lab] of BUCKETS) body+=iBarRow(lab,pos[lab][0],pos[lab][1]);
-    const first=pos[BUCKETS[0][0]], last=pos[BUCKETS[BUCKETS.length-1][0]];
-    const fp=first[1]?Math.round(100*first[0]/first[1]):null;
-    const lp=last[1]?Math.round(100*last[0]/last[1]):null;
-    const fatigues = fp!=null && lp!=null && iBarBeats(lp,last[1]) && lp<fp-5;
-    const avgLen = sessions ? (la.length/sessions) : 0;
-    const fSub = "Win rate by position within a session (new session after a 60+ min break)."
-      + (sessions ? ` Your sittings average ${avgLen.toFixed(1)} games.` : "")
-      + (fatigues ? " Later games are measurably worse \u2014 play fewer per sitting."
-                  : " No position in a sitting is measurably worse than another yet.");
-    pFatigue+=iPanel("Session fatigue",fSub,body);
+    const avgLen=sessions?(la.length/sessions):0;
+    const pts=BUCKETS.map((b,i)=>({label:b[2], wr:pos[i][1]>=4?Math.round(100*pos[i][0]/pos[i][1]):null, ng:pos[i][1]}));
+    const shown=pts.filter(p=>p.wr!=null);
+    if(shown.length>=2){
+      const fresh=shown[0], deep=shown[shown.length-1], fatigues=deep.wr<fresh.wr-5;
+      const H=142, W2=440, L2=30, B=30, plotH=H-B-8, N=BUCKETS.length, slot=(W2-L2)/N, bw=Math.min(26, slot-6);
+      let grid=""; [0,50,100].forEach(v=>{ const y=8+plotH*(1-v/100); grid+=`<line x1="${L2}" y1="${y.toFixed(1)}" x2="${W2}" y2="${y.toFixed(1)}" stroke="var(--rule)" opacity="0.35"/><text x="${L2-4}" y="${(y+3).toFixed(1)}" font-size="9" text-anchor="end" fill="var(--dim)" font-family="var(--mono)">${v}%</text>`; });
+      let bars="", xlab="";
+      pts.forEach((p,i)=>{
+        const cx=L2+i*slot+slot/2;
+        xlab+=`<text x="${cx.toFixed(1)}" y="${H-13}" font-size="9" text-anchor="middle" fill="var(--dim)" font-family="var(--sans)">${p.label}</text>`;
+        if(p.wr==null) return;   // slot with too little data stays an empty gap on the axis
+        const h=Math.max(2,plotH*p.wr/100), y=8+plotH-h;
+        const fill=p.wr>=55?"var(--win)":p.wr<45?"var(--loss)":"#8f6b57";
+        bars+=`<rect x="${(cx-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${fill}" opacity="0.9"><title>game ${p.label}: ${p.wr}% over ${p.ng} games</title></rect>`;
+      });
+      const chart=`<svg viewBox="0 0 ${W2+6} ${H}" style="width:100%;display:block" role="img" aria-label="Win rate by game number within a sitting">${grid}${bars}${xlab}<text x="${((L2+W2)/2).toFixed(1)}" y="${H-1}" font-size="8.5" text-anchor="middle" fill="var(--dim)" letter-spacing="0.5">game number within a sitting →</text></svg>`;
+      const hero=`<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;flex-wrap:wrap"><span style="font-family:var(--mono);font-size:26px;line-height:1;color:var(--ink)">${fresh.wr}%</span><span class="isub" style="margin:0;font-size:12.5px">fresh (game ${fresh.label})</span><span class="isub" style="margin:0;color:var(--dim)">&rarr;</span><span style="font-family:var(--mono);font-size:26px;line-height:1;color:${fatigues?"var(--loss)":"var(--ink)"}">${deep.wr}%</span><span class="isub" style="margin:0;font-size:12.5px">deep (game ${deep.label})</span></div>`;
+      const note=fatigues?`<b>Your win rate sags the longer you sit.</b> ${fresh.wr}% early against ${deep.wr}% deep in a sitting${sessions?` (your sittings average ${avgLen.toFixed(1)} games)`:""} — knowing when to log off is its own rating gain.`:`Your win rate holds up across a sitting — no measurable fatigue${sessions?` (sittings average ${avgLen.toFixed(1)} games)`:""}.`;
+      pFatigue=iPanel("Session fatigue",`Win rate by how deep into a sitting you are — a new sitting starts after a 60+ minute break.`,hero+chart+`<div class="isub" style="margin-top:9px">${note}</div>`);
+    }
   }
 
   // 5) Game length buckets
@@ -8164,51 +8182,25 @@ function renderInsights(list){
       body + (wo?`<div class="isub" style="margin-top:9px">${wo} game${wo===1?"":"s"} under ${MIN_REAL_MOVES} moves excluded — instant abandons aren't chess.</div>`:""));
   }
 
-  // 7) Clock war
+  // 7) Clock war — win rate by final time advantage, with the "clock left at the end" read folded in
   {
     const withClk=list.filter(g=>g.clock!=null&&g.oppClock!=null);
     const defs=[["Up 2:00+",120,Infinity],["Up 0–2:00",0,120],["Down 0–2:00",-120,0],["Down 2:00+",-Infinity,-120]];
     let body="";
-    for(const [label,lo,hi] of defs){
-      const grp=withClk.filter(g=>{const d=g.clock-g.oppClock; return d>=lo&&d<hi;});
-      body+=iBarRow(label,grp.filter(isW).length,grp.length);
-    }
-    /* Clock left at the finish, split by result. Expressed as a share of the starting time
-       so blitz and rapid can sit in the same number. Games with no known base time are
-       excluded rather than guessed at, and daily games never had a meaningful clock. */
-    {
-      const usable=list.filter(g=>g.clock!=null && g.tc!=="daily"
-        && g.times && typeof g.times.base==="number" && g.times.base>0);
-      if(usable.length>=12){
-        const share=g=>Math.max(0, Math.min(100, 100*g.clock/g.times.base));
-        const avg=a=>a.length ? Math.round(a.reduce((s,g)=>s+share(g),0)/a.length) : null;
-        const rows=[["Wins",usable.filter(g=>g.result==="Win")],
-                    ["Draws",usable.filter(g=>g.result==="Draw")],
-                    ["Losses",usable.filter(g=>g.result==="Loss")]];
-        let cbody="";
-        for(const [label,grp] of rows){
-          if(!grp.length) continue;
-          const v=avg(grp);
-          cbody+=`<div class="irow">
-            <span class="ilabel">${label}</span>
-            <span class="itrack"><span class="ifill" style="width:${v}%;display:block"></span></span>
-            <span class="ival">${v}% <span>(${grp.length})</span></span>
-          </div>`;
-        }
-        const wv=avg(usable.filter(g=>g.result==="Win")), lv=avg(usable.filter(g=>g.result==="Loss"));
-        const note = (wv!=null && lv!=null)
-          ? (wv-lv>=10
-              ? `You finish wins with ${wv-lv} points more of your clock than losses \u2014 when you're comfortable you're also quick.`
-              : lv-wv>=10
-                ? `You finish losses with ${lv-wv} points more clock than wins \u2014 the games you lose are ending before you've used your time.`
-                : "You finish wins and losses with much the same clock left \u2014 time isn't what separates them.")
-          : "";
-        pClockWar+=iPanel("Clock left at the end",
-          "Average share of your starting time still on the clock when the game finished.",
-          cbody + (note?`<div class="isub" style="margin-top:9px">${note}</div>`:""));
+    for(const [label,lo,hi] of defs){ const grp=withClk.filter(g=>{const d=g.clock-g.oppClock; return d>=lo&&d<hi;}); body+=iBarRow(label,grp.filter(isW).length,grp.length); }
+    let note="";
+    const usable=list.filter(g=>g.clock!=null && g.tc!=="daily" && g.times && typeof g.times.base==="number" && g.times.base>0);
+    if(usable.length>=12){
+      const share=g=>Math.max(0,Math.min(100,100*g.clock/g.times.base));
+      const avg=a=>a.length?Math.round(a.reduce((s,g)=>s+share(g),0)/a.length):null;
+      const wv=avg(usable.filter(g=>g.result==="Win")), lv=avg(usable.filter(g=>g.result==="Loss"));
+      if(wv!=null && lv!=null){
+        note = wv-lv>=10 ? `You finish wins with ${wv-lv} points more of your starting clock than losses — when you're comfortable you're also quick.`
+          : lv-wv>=10 ? `You finish losses with ${lv-wv} points more clock than wins — the games you lose end before you've used your time.`
+          : `You finish wins and losses with about the same clock left (${wv}% vs ${lv}%) — time isn't what separates them.`;
       }
     }
-    pClockWar+=iPanel("Clock war","Win rate by final time advantage. If 'Down 2:00+' is a graveyard, slow starts are costing you games.",body);
+    if(body) pClockWar=iPanel("Clock war","Win rate by how much time you had left versus your opponent at the finish — plus how much of your own clock survives, win or loss.",body+(note?`<div class="isub" style="margin-top:9px">${note}</div>`:""));
   }
 
   // 8) Conversion & swindles — what happens once material tips your way (leads) or against you (deficits)
@@ -8628,31 +8620,28 @@ function renderInsights(list){
     }
   }
 
-  // How often the game turned over, as opposed to how far it went. A blown lead turns once
-  // and hurts; a scrappy game turns five times. Those are different failures, and swing
-  // can't tell them apart because it only ever sees the two extremes.
+  // How often the game turned over — reimagined: clean-vs-scrappy win-rate hero + the gradient below.
   {
     const withT=list.filter(g=>typeof g.turns==="number");
     if(withT.length>=20){
       const defs=[["Never turned (0)",0,0],["Turned once",1,1],["Turned twice",2,2],["Kept turning (3+)",3,Infinity]];
       let body="";
-      for(const [label,lo,hi] of defs){
-        const grp=withT.filter(g=>g.turns>=lo && g.turns<=hi);
-        body+=iBarRow(label,grp.filter(isW).length,grp.length);
-      }
+      for(const [label,lo,hi] of defs){ const grp=withT.filter(g=>g.turns>=lo && g.turns<=hi); body+=iBarRow(label,grp.filter(isW).length,grp.length); }
       const calm=withT.filter(g=>g.turns===0), churn=withT.filter(g=>g.turns>=3);
-      const c1=calm.length?Math.round(100*calm.filter(isW).length/calm.length):0;
-      const c2=churn.length?Math.round(100*churn.filter(isW).length/churn.length):0;
+      const c1=calm.length?Math.round(100*calm.filter(isW).length/calm.length):null;
+      const c2=churn.length?Math.round(100*churn.filter(isW).length/churn.length):null;
       const avg=(withT.reduce((a,g)=>a+g.turns,0)/withT.length).toFixed(1);
+      let hero="";
+      if(c1!=null && c2!=null && calm.length>=10 && churn.length>=10){
+        hero=`<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:9px;flex-wrap:wrap"><span style="font-family:var(--mono);font-size:26px;line-height:1;color:${c1>=c2?"var(--win)":"var(--loss)"}">${c1}%</span><span class="isub" style="margin:0;font-size:12.5px">win when it stays clean</span><span class="isub" style="margin:0;font-size:12.5px;color:var(--dim)">vs</span><span style="font-family:var(--mono);font-size:26px;line-height:1;color:${c2>c1?"var(--win)":"var(--loss)"}">${c2}%</span><span class="isub" style="margin:0;font-size:12.5px">in a 3+ turnover brawl</span></div>`;
+      }
       const tnote=(calm.length>=10 && churn.length>=10)
-        ? (c1-c2>=10
-            ? `<b>You don't win the scrappy ones.</b> ${c1}% when material never turns over vs ${c2}% when it turns three times or more. Once you're ahead, simplify — every turnover is another chance to be the one who blunders.`
-            : c2-c1>=10
-              ? `<b>You're better in a brawl.</b> ${c2}% in games that keep turning over vs ${c1}% in clean ones. Sharp positions suit you.`
-              : "You do about as well whether the game turns over or not.")
+        ? (c1-c2>=10 ? `<b>You don't win the scrappy ones.</b> Once you're ahead, simplify — every turnover is another chance for you to be the one who blunders.`
+           : c2-c1>=10 ? `<b>You're better in a brawl.</b> Sharp, messy positions suit you — steadier players will try to avoid them.`
+           : "You do about as well whether the game turns over or not.")
         : "Not enough games at each extreme to call it yet.";
-      pTurns=iPanel("How often it turns over",`How many times material changed direction by 3 or more. Your games average ${avg} turns. This is separate from swing: a blown lead turns once but turns badly, while a scrap can turn five times and never go far.`,
-        body+`<div class="isub" style="margin-top:9px">${tnote}</div>`);
+      pTurns=iPanel("How often it turns over",`How many times material changed direction by 3+ in a game — your games average ${avg} turns. Separate from swing (how far it went): this counts the lead changing hands.`,
+        hero+body+`<div class="isub" style="margin-top:9px">${tnote}</div>`);
     }
   }
 
@@ -8731,13 +8720,6 @@ function renderInsights(list){
     if(dec.length>=8){ const n=dec.length, b1=dec.filter(g=>g.moves<20).length, b2=dec.filter(g=>g.moves>=20&&g.moves<=40).length, b3=n-b1-b2;
       const note=b1/n>=0.4?`${Math.round(100*b1/n)}% of your decisive losses are over inside 20 moves — one bad move ending you, not being outplayed.`:`Most of your losses are real fights, not opening disasters — you get ground down more than blitzed out.`;
       pShortLoss=iPanel("Short losses","How many of your losses are over before the middlegame is — a game dropped in 18 moves is a blunder, not a battle.",`<div class="autohead"><span>Decisive losses</span><span class="dim">${n}</span></div>`+mkStack([{label:"Blitzed out (<20)",n:b1,color:"var(--loss)"},{label:"Midgame slip (20–40)",n:b2,color:"#8f6b57"},{label:"Ground down (40+)",n:b3,color:"var(--dim)"}],n)+`<div class="isub" style="margin-top:9px">${note}</div>`); }
-  }
-  { // Sharpness — Material see-saw
-    const real=list.filter(g=>typeof g.peakMat==="number" && typeof g.troughMat==="number" && playedOut(g));
-    const see=real.filter(g=>g.peakMat>=2 && g.troughMat<=-2), oneway=real.filter(g=>!(g.peakMat>=2 && g.troughMat<=-2));
-    if(see.length>=8 && oneway.length>=8){ const seePct=Math.round(100*see.length/real.length);
-      const note=`${seePct}% of your games see-saw — the lead crossing from a settled + to a settled −. ${seePct>=40?"That's a lot of mutual blundering; cleaner play would settle more games your way before they get messy.":"You keep most games one-sided — a sign of clean control."}`;
-      pSeesaw=iPanel("Material see-saw","How often the lead actually changes hands inside one game — steady material means you're winning moves, not trading blunders.",iBarRow("See-saw games",see.filter(isW).length,see.length)+iBarRow("One-way games",oneway.filter(isW).length,oneway.length)+`<div class="isub" style="margin-top:9px">${note}</div>`); }
   }
   { // Conversion — by lead size
     const leads=list.filter(g=>typeof g.peakMat==="number" && g.peakMat>=3);
@@ -8927,7 +8909,7 @@ function renderInsights(list){
       }
     }
   }
-  { // Castling — how often, how early, and which side, split by the color you played
+  { // Castling — reimagined: castle-rate hero + king-safety (mate rate castled vs not). Stays in Attack+Defense.
     const rate=gs=>{ const c=gs.filter(g=>g.castled==="yes").length; return gs.length?Math.round(100*c/gs.length):null; };
     const mr=a=>a.length?Math.round(100*a.filter(g=>g.result==="Loss"&&g.how==="checkmate").length/a.length):null;
     const W=list.filter(g=>g.color==="W"), B=list.filter(g=>g.color==="B");
@@ -8935,17 +8917,21 @@ function renderInsights(list){
     const castMoves=castledAll.filter(g=>typeof g.castleMove==="number");
     const avgMv=castMoves.length?castMoves.reduce((s,g)=>s+g.castleMove,0)/castMoves.length:null;
     const sided=castledAll.filter(g=>g.castleSide), kPct=sided.length?Math.round(100*sided.filter(g=>g.castleSide==="K").length/sided.length):null;
-    const rW=rate(W), rB=rate(B), mC=mr(castledAll), mN=mr(neverAll);
+    const rAll=rate(list), rW=rate(W), rB=rate(B), mC=mr(castledAll), mN=mr(neverAll);
+    const whenNote=avgMv!=null?` You usually castle around <b>move ${avgMv.toFixed(1).replace(/\.0$/,"")}</b>${kPct!=null?`, ${kPct>=85?"almost always kingside":kPct<=15?"almost always queenside":`${kPct}% kingside`}`:""}.`:"";
     if(castledAll.length>=6){
-      const b=[];
-      if(rW!=null&&rB!=null) b.push(`You castle in <b>${rW}%</b> of your games as White and <b>${rB}%</b> as Black.`);
-      else if(rW!=null||rB!=null) b.push(`You castle in <b>${rW!=null?rW:rB}%</b> of your games.`);
-      if(mC!=null&&mN!=null&&castledAll.length>=8&&neverAll.length>=8){
-        const v = mN-mC>=6 ? ` — castling clearly keeps the king safer.` : mC-mN>=6 ? ` — oddly, you're mated <i>more</i> when you castle, so the danger's coming from elsewhere.` : ` — castling barely changes your mate rate.`;
-        b.push(`In games you castle you get checkmated <b>${mC}%</b> of the time, versus <b>${mN}%</b> in games you don't${v}`);
+      const heroColor=rAll>=70?"var(--win)":rAll>=45?"var(--ink)":"var(--loss)";
+      let body=`<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:8px"><span style="font-family:var(--mono);font-size:30px;line-height:1;color:${heroColor}">${rAll}%</span><span class="isub" style="margin:0;font-size:12.5px">of games you tuck the king away${rW!=null&&rB!=null?` — <b style="color:var(--ink)">${rW}%</b> as White, <b style="color:var(--ink)">${rB}%</b> as Black`:""}</span></div>`;
+      if(mC!=null && mN!=null && castledAll.length>=8 && neverAll.length>=8){
+        const mx=Math.max(1,mC,mN);
+        const row=(label,v)=>`<div class="irow"><span class="ilabel" style="width:auto;flex:1;white-space:normal">${label}</span><span class="itrack" style="flex:0 0 120px"><span class="ifill" style="width:${Math.round(100*v/mx)}%;background:var(--loss);display:block"></span></span><span class="ival" style="width:auto">${v}%</span></div>`;
+        body+=row("Checkmated when you castle",mC)+row("Checkmated when you don't",mN);
+        const v = mN-mC>=6 ? "Castling clearly keeps your king safer." : mC-mN>=6 ? "Oddly, you're mated <i>more</i> when you castle — the danger's coming from elsewhere." : "Castling barely changes your mate rate.";
+        body+=`<div class="isub" style="margin-top:9px">${v}${whenNote}</div>`;
+      } else {
+        body+=`<div class="isub" style="margin-top:9px">${whenNote.trim()||"Not enough games yet to compare king safety with and without castling."}</div>`;
       }
-      if(avgMv!=null) b.push(`You usually castle around <b>move ${avgMv.toFixed(1).replace(/\.0$/,"")}</b>${kPct!=null?`, ${kPct>=85?"almost always <b>kingside</b>":kPct<=15?"almost always <b>queenside</b>":`<b>${kPct}%</b> of the time kingside`}`:""}.`);
-      pCastleMate=iPanel("Castling","How, when, and which side you tuck the king away.",`<ul class="cast-list">${b.map(x=>`<li>${x}</li>`).join("")}</ul>`);
+      pCastleMate=iPanel("Castling","How safe your king is once it's tucked away — mate rate when you castle versus when you don't.",body);
     }
   }
   { // Defense — which clock gets you mated (only meaningful across formats)
@@ -9026,7 +9012,7 @@ function renderInsights(list){
   const hasAcc=list.some(g=>typeof g.acc==="number");
   const hasClock=list.some(g=>g.times&&g.times.mine&&g.times.mine.length>=6);
   const wipBanner=(()=>{ try{ if(localStorage.getItem("rookbook:wipInsights")==="1") return ""; }catch(e){} return `<div class="wipbar" id="wipInsights"><span class="wiptxt"><b>Insights is being actively rebuilt.</b> <span class="wipdim">Sorry for any rough edges — it's getting better every week.</span></span><button class="wipx" id="wipDismiss" aria-label="Dismiss this notice" title="Dismiss">&times;</button></div>`; })();
-  box.innerHTML=wipBanner+`<div style="grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 0 10px"><h3 class="ptitle">Insights</h3><span class="isub" style="margin:0;font-family:var(--sans)">What your games add up to — where you're strong, where you're weak, and how you hold up.</span></div>`
+  box.innerHTML=wipBanner+`<div style="grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 0 10px"><h3 class="ptitle">Insights</h3><span class="isub" style="margin:0;font-family:var(--sans);color:var(--dim)">What your games add up to — where you're strong, where you're weak, and how you hold up.</span></div>`
     + insScopeNote
     + dnaHeroHTML
     + renderCoach(list)
@@ -9042,7 +9028,7 @@ function renderInsights(list){
         const panels=iSlot(pMateArrive,"When mate is delivered","games")+iSlot(pAutopsy,"Autopsy","games")
           +iSlot(pMissedMate,"Mates: landed vs left","games")+iSlot(pKill,"Do you go for the kill?","games")
           +iSlot(pfMateMap(list)||pDefense,"How you get mated","games")+iSlot(pSwing,"Material swing","games")
-          +iSlot(pCastleMate,"Castling","games")+iSlot(pMateFormat,"Which clock gets you mated","games","Compares time controls — needs games in more than one.");
+          +iSlot(pCastleMate,"Castling","games");
         const body=panels||`<div class="ipanel">${needData("games")}</div>`;
         // id="dna-attack" is the section; the empty #dna-steady anchor keeps the Defense radar card's jump working
         return `<section class="dna-sec admerge" id="dna-attack"><span id="dna-steady" style="scroll-margin-top:14px"></span><header class="dna-sec-head"><span class="dna-eyebrow">${title}</span></header><div class="dna-mods">${body}</div></section>`;
@@ -9052,9 +9038,9 @@ function renderInsights(list){
     + dnaSection("Resilience", "resil",  "How you handle adversity — clawing back in a game, holding steady after a loss, and staying sharp deep into a session.",
         iSlot(pRecovery,"Recovery by deficit","games")+iSlot(pBehindOutcome,"Outcome after you fall behind","games")+iSlot(pComebackEnd,"How your comebacks end","games")+iSlot(pTiltCurve,"Tilt curve","games")+iSlot(pFatigue,"Session fatigue","games"), 4)
     + dnaSection("Sharpness",  "sharp",  "How clean your moves are for your rating.",
-        iSlot(pAcc,"Accuracy split",hasAcc?"games":"acc")+iSlot(pAccLen,"Accuracy by game length",hasAcc?"games":"acc")+iSlot(pDev,"Development discipline","games")+iSlot(pShortLoss,"Short losses","games")+iSlot(pSeesaw,"Material see-saw","games")+iSlot(pTurns,"How often it turns over","games"), 5)
+        iSlot(pAcc,"Accuracy split",hasAcc?"games":"acc")+iSlot(pAccLen,"Accuracy by game length",hasAcc?"games":"acc")+iSlot(pDev,"Development discipline","games")+iSlot(pShortLoss,"Short losses","games")+iSlot(pTurns,"How often it turns over","games"), 5)
     + dnaSection("Clock",      "clock",  "How rarely the clock beats you, and where your time goes.",
-        iSlot(pThinkSig,"Thinking signature",hasClock?"games":"clock")+iSlot(pClockWar,"Clock left at the end",hasClock?"games":"clock")+tempoPanels(list), 6);
+        iSlot(pThinkSig,"Thinking signature",hasClock?"games":"clock")+iSlot(pClockWar,"Clock war",hasClock?"games":"clock")+tempoPanels(list), 6);
     // "Off the board" / Format face-off section removed per request.
   /* Scroll to the panel a finding points at. Deliberately NOT an href="#id": the hash is
      the tab router, so a fragment link would be read as a tab change. */
@@ -9204,10 +9190,11 @@ function computeMateMap(list){
     const isDeliver = g.result==="Win";                       // you won by mate → their king; you lost → yours
     const matedColor = isDeliver ? (mine==="w"?"b":"w") : mine;
     const sq=mateKingSquare(g.pgn, matedColor==="w");
-    const rr=Math.floor(sq/8), ff=sq%8;
-    // Both boards from YOUR seat: your king falls at the bottom (defense), their king up the board (attack).
-    if(isDeliver){ const disp = matedColor==="b" ? sq : (7-rr)*8+ff; deliver[disp]++; nD++; }   // their back rank → top
-    else         { const disp = matedColor==="w" ? sq : (7-rr)*8+ff; receive[disp]++; nR++; }   // your back rank → bottom
+    // From YOUR actual seat: White sees the board as-is; Black is rotated 180° (your back rank at the
+    // bottom, your kingside on the LEFT — exactly what you see sitting down). Your king falls at the
+    // bottom, their king is up the board. Files aren't absolute anymore, so the board drops its a–h labels.
+    const disp = mine==="w" ? sq : 63-sq;
+    if(isDeliver){ deliver[disp]++; nD++; } else { receive[disp]++; nR++; }
   }
   _cmmData={deliver,receive,nD,nR}; _cmmKey=key; return _cmmData;
 }
@@ -9224,7 +9211,7 @@ function pfMateMap(list){
       const bg=c?`rgba(${rgb},${a.toFixed(3)})`:"rgba(255,255,255,.03)";
       cells+=`<div class="cmm-sq" style="background:${bg}">${c?`<span style="color:${dark?"#12110c":"var(--read)"}">${c}</span>`:""}</div>`;
     }
-    return `<div class="cmm-outer"><div class="cmm-board">${cells}</div><div class="cmm-files">${files.map(f=>`<span>${f}</span>`).join("")}</div></div>`;
+    return `<div class="cmm-outer"><div class="cmm-board">${cells}</div></div>`;
   };
   const dot=c=>`<span class="cmm-dot" style="background:${c}"></span>`;
   const side=(grid,n,rgb,cap,note,thin)=> d[thin]>=MIN
@@ -9240,7 +9227,7 @@ function pfMateMap(list){
     if(pc>=40) verdict=`<b>${pc}% of the mates against you land on the kingside corner (g/h files).</b> That's a back-rank / castled-king pattern, not scattered luck — give the king luft.`;
   }
   return `<div class="ipanel" id="ip-checkmate-map"><h3>Checkmate map — where kings fall</h3>`
-    +`<div class="isub">Seen from your side of the board — you attack up top (their king), you get mated at home (bottom); kingside on the right. Shade = how often a king fell there.</div>`
+    +`<div class="isub">Drawn from your side of the board, just as you'd see it sitting down — you attack up top (their king), you get mated at home (bottom). Shade = how often a king fell there.</div>`
     +`<div class="cmm">${sideD}${sideR}</div>${verdict?`<div class="isub" style="margin-top:10px">${verdict}</div>`:""}</div>`;
 }
 
@@ -11810,7 +11797,7 @@ const TAB_FILTERS={
   mates:    ["col","rated","res","tcf"],
   endgames: ["col","rated","how","tcf"],
   tree:     ["rated","tcf","treecol"],
-  blown:    ["col","rated","tcf"],
+  blown:    ["col","rated","tcf","peak"],
   lookup:   [],
   glossary: []
 };
@@ -14264,7 +14251,7 @@ function renderMates(list){
 
   box.innerHTML=`<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px">
       <h3 class="ptitle">Missed mates</h3>
-      <span class="isub" style="margin:0;font-family:var(--sans)">Every position in which you missed delivering a game-ending checkmate.</span>
+      <span class="isub" style="margin:0;font-family:var(--sans);color:var(--dim)">Every position in which you missed delivering a game-ending checkmate.</span>
     </div>
     <div class="isub" style="margin-bottom:12px">
       Scanned ${scanned.length} game${scanned.length===1?"":"s"}${pending && !(typeof DEMO!=="undefined" && DEMO)?` \u00b7 <button id="mateRun" style="font-size:10px;padding:5px 12px;margin:0 2px;vertical-align:1px">Scan ${pending} new game${pending===1?"":"s"}</button>`:""}.
@@ -15228,7 +15215,7 @@ function buildSampleAsync(){
     await idle();
     const rnd=makeSampleRnd();
     const POOL={w:[],b:[]};
-    for(let i=0;i<10;i++){
+    for(let i=0;i<18;i++){   // a deeper pool means more distinct games that happen to end in mate
       POOL.w.push(simGame(10+Math.floor(rnd()*45), rnd, "w"));
       POOL.b.push(simGame(10+Math.floor(rnd()*45), rnd, "b"));
       await idle();
@@ -15288,7 +15275,7 @@ function loadSampleInto(prePool, preRnd, opts={}){
   // practice, and it's ~6x less work.
   const POOL=prePool||{w:[],b:[]};
   if(!prePool){
-    for(let i=0;i<10;i++){
+    for(let i=0;i<18;i++){
       POOL.w.push(simGame(10+Math.floor(rnd()*45), rnd, "w"));
       POOL.b.push(simGame(10+Math.floor(rnd()*45), rnd, "b"));
     }
@@ -15303,7 +15290,8 @@ function loadSampleInto(prePool, preRnd, opts={}){
   for(let day=72; day>=0 && out.length<TARGET; day--){
     if(rnd()<0.30) continue; // rest days
     const d=new Date(end); d.setDate(d.getDate()-day);
-    const nGames=1+Math.floor(rnd()*rnd()*9); // usually short sessions, occasional binge
+    let nGames=1+Math.floor(rnd()*rnd()*9);   // usually short sessions...
+    if(rnd()<0.4) nGames=5+Math.floor(rnd()*6);  // ...but 40% are real sittings (5-10 games), so Session fatigue has a curve
     // session start: mostly evenings, sometimes lunch or late night
     const r=rnd();
     let hour = r<0.6 ? 18+Math.floor(rnd()*4) : r<0.8 ? 12+Math.floor(rnd()*2) : 22+Math.floor(rnd()*2);
@@ -15313,8 +15301,15 @@ function loadSampleInto(prePool, preRnd, opts={}){
       let result = roll<0.51 ? "Win" : roll<0.93 ? "Loss" : "Draw";
       // pick the simulated game first — its length decides how the game plausibly ended
       const myColor = rnd()<0.5 ? "W" : "B";
-      const pool=POOL[myColor==="W"?"w":"b"];
-      const sim=pool[Math.floor(rnd()*pool.length)];
+      const pool=POOL[myColor==="W"?"w":"b"], myc=myColor==="W"?"w":"b";
+      // Bias toward mate-ending sims so the Checkmate map has volume — split so BOTH boards fill:
+      // mW = the final move is yours (you deliver), mL = the opponent's (you get mated).
+      const mW=(pool.__mw||(pool.__mw=pool.filter(s=>s.lastMove&&s.lastMove.san&&s.lastMove.san.includes("#")&&s.lastMove.color===myc)));
+      const mL=(pool.__ml||(pool.__ml=pool.filter(s=>s.lastMove&&s.lastMove.san&&s.lastMove.san.includes("#")&&s.lastMove.color!==myc)));
+      const roll2=rnd();
+      const sim = (roll2<0.15 && mL.length) ? mL[Math.floor(rnd()*mL.length)]
+                : (roll2<0.34 && mW.length) ? mW[Math.floor(rnd()*mW.length)]
+                : pool[Math.floor(rnd()*pool.length)];
       const moves=sim.moves;
       // a movetext that ends in checkmate names its own winner — don't contradict it
       // (the Missed Mates page shows these games up close, so the labels have to be true)
