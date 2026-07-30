@@ -4628,6 +4628,12 @@ const CACHE_V=3;   // v2: quiet-point material sampling (mid-exchange swings no 
                    // v3: the last ply can no longer set a material PEAK — cached peakMat/peakFen
                    //     from v2 are stale (they recorded leads that only existed at checkmate)
 
+// Versions this build can still READ. A stale number is not the same problem as an unreadable
+// shape: v2 and v3 hold identical fields, so a v2 cache loads fine and PARSER_V's reparse then
+// re-derives the peaks from the PGNs already in it. Deleting it instead would cost every
+// returning player a full refetch to fix numbers we can recompute on-device in a blink.
+const CACHE_OK=new Set([2,3]);
+
 // All saved-account caches, oldest first — the eviction order when storage fills up.
 function allCaches(){
   const out=[];
@@ -4716,8 +4722,8 @@ function cacheFetch(){
 // computed by parsePgn. When that logic improves, cached games are stale — and telling
 // people to refetch never worked, because incremental fetches don't re-parse old games.
 // The pgn is already in the cache, so: re-derive locally, no network, automatically.
-const PARSER_V=13;   // bump this whenever parsePgn's derivations change — and update the note
-const PARSER_NOTE="This revision: each game now records the move you castled on and which side, powering the new Castling panel in Insights. Your saved games were re-analyzed on this device, no refetch needed.";
+const PARSER_V=14;   // bump this whenever parsePgn's derivations change — and update the note
+const PARSER_NOTE="This revision: material you pick up on the very last move of a game no longer counts as a lead you held, so some Peak and Swing figures read lower than before. Your saved games were re-analyzed on this device, no refetch needed.";
 function reparseGame(g){
   if(!g.pgn) return false;
   try{
@@ -4770,7 +4776,11 @@ function migrateParses(){
 function loadCache(u){
   const c=LS.get(cacheKey(u));
   if(!c || !Array.isArray(c.games) || !c.games.length) return false;
-  if(c.v!==undefined && c.v!==CACHE_V){ LS.del(cacheKey(u)); return false; }  // written by an incompatible version
+  // A readable-but-older cache stays: migrateParses re-derives whatever went stale. Two cases
+  // still have to go — a version this build doesn't know, and a lite cache, which was written
+  // without PGNs when storage filled up (see slimNoPgn) and so can never be reparsed. Keeping a
+  // lite v2 would leave its peaks wrong forever and silently, which is worse than one refetch.
+  if(c.v!==undefined && (!CACHE_OK.has(c.v) || (c.lite && c.v!==CACHE_V))){ LS.del(cacheKey(u)); return false; }
   // Revive dates, and drop anything a past bug or a hand-edited store left mangled —
   // one Invalid Date would otherwise poison every chart and sort.
   games=c.games.map(g=>({...g, date:new Date(g.date)}))
@@ -5445,7 +5455,7 @@ async function fetchGames(force){
     const cached = LS.get(cacheKey(u));
     const tc = $("tc").value;
     const canTopUp = !force && cached && Array.isArray(cached.games) && cached.games.length
-                     && (cached.v===undefined || cached.v===CACHE_V)   // don't merge into an incompatible shape
+                     && (cached.v===undefined || CACHE_OK.has(cached.v))   // don't merge into an incompatible shape
                      && cached.tc === tc                  // a different time class needs a full pull
                      && cached.range === $("months").value;  // so does a different range: a top-up only pulls
                      // games NEWER than the cache, so widening (25 -> 100, or -> Everything) would never
