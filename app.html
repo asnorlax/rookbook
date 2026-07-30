@@ -100,7 +100,12 @@
          ledger routine already exist, so the series computes lazily at hover time.
          No new analysis or storage needed. Review-tab sparkline remains a later step.
          ================================================================================ -->
-    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.1.0 <span class="cl-tag">now</span></span><span class="cl-date">28 Jul 2026</span></summary><ul>
+    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.1.1 <span class="cl-tag">now</span></span><span class="cl-date">29 Jul 2026</span></summary><ul>
+        <li>Game Log: How column now flags games someone quit with mate on the board — 'abandoned #1' means mate in 1 was unavoidable, green when they walked into your mate, red when you walked into theirs</li>
+        <li>Blown Leads: material picked up on your last move prior to you getting checkmated doesn't count as having had a lead</li>
+      </ul></details>
+
+    <details class="cl"><summary class="cl-v"><span class="cl-t">v1.1.0</span><span class="cl-date">28 Jul 2026</span></summary><ul>
         <li>Added a new checkmate heatmap to the Insights 'Attack + Defense' section</li>
         <li>Continued reworking of the Insights page</li>
       </ul></details>
@@ -717,11 +722,27 @@
   #insights .coach{margin-bottom:24px}
   #insights .ins-dna-h{font-family:var(--sans);font-size:15px;font-weight:600;color:var(--ink);letter-spacing:.02em;display:flex;align-items:center}
   #insights .dna-info-wrap{position:relative;display:inline-block}
-  #insights .dna-info{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--rule);color:var(--dim);font-size:9.5px;font-weight:700;cursor:help;vertical-align:middle;margin-left:7px;font-family:var(--sans)}
+  #insights .dna-info{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--rule);color:var(--dim);font-size:9.5px;font-weight:700;cursor:help;vertical-align:middle;margin-left:7px;font-family:var(--sans);position:relative;top:-1.5px}
   #insights .dna-info:hover,#insights .dna-info:focus{color:var(--ink);border-color:var(--dim);outline:none}
   #insights .dna-info-pop{position:absolute;top:calc(100% + 7px);left:0;z-index:30;width:300px;background:var(--panel2);border:1px solid var(--rule);border-radius:7px;padding:11px 13px;font-family:var(--sans);font-size:12px;color:var(--read);line-height:1.5;opacity:0;visibility:hidden;transform:translateY(-3px);transition:opacity .12s,transform .12s;box-shadow:0 8px 22px rgba(0,0,0,.45)}
   #insights .dna-info-wrap:hover .dna-info-pop,#insights .dna-info:focus + .dna-info-pop{opacity:1;visibility:visible;transform:translateY(0)}
   #insights .dna-info-pop p{margin:0 0 7px} #insights .dna-info-pop p:last-child{margin:0} #insights .dna-info-pop b{color:var(--ink);font-weight:600}
+  /* Section-header tooltips (incl. the merged Attack + Defense) anchor to the (position:relative)
+     header, not the tiny "?" — so the popup always opens aligned under the title and never runs off
+     the right edge, no matter where the "?" sits in the row. */
+  #insights .dna-sec-head .dna-info-wrap{position:static;align-self:center}
+  #insights .dna-sec-head .dna-info-pop{left:18px;right:auto;top:calc(100% + 4px)}
+  #insights .dna-info-pop-dual{width:580px;max-width:calc(100vw - 220px)}
+  #insights .dna-dual{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  #insights .dna-dual-col{min-width:0}
+  #insights .dna-dual-h{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);border-bottom:1px solid var(--rule);padding-bottom:5px;margin-bottom:8px}
+  #insights .dna-dual-h b{color:var(--green);font-family:var(--mono)}
+  #insights .dna-dual-col > p:first-of-type{margin-top:0}
+  #insights .dna-measured{background:var(--panel);border-left:2px solid var(--green);border-radius:3px;padding:6px 10px;margin:0 0 7px}
+  #insights .dna-meas-h{display:block;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+  #insights .dna-measured ul{margin:0;padding-left:15px;list-style:disc}
+  #insights .dna-measured li{margin:0 0 2px;color:var(--ink)}
+  #insights .dna-measured li:last-child{margin-bottom:0}
   #insights .dna-calc-formula{font-family:var(--mono);font-size:11.5px;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:5px;padding:6px 9px;display:block}
   #insights .dna-wts-h{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:2px 0 6px}
   #insights .dna-wts{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
@@ -757,7 +778,7 @@
      that frame; their own borders + header bands + gaps keep the six sections individually readable. */
   #insights .dna-sec{grid-column:1/-1;width:100%;margin:0 0 24px;background:var(--panel);border:1px solid var(--rule);scroll-margin-top:14px}
   #insights .dna-sec-head{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:13px;row-gap:4px;
-    padding:14px 18px;background:var(--panel2);border-bottom:1px solid var(--rule);border-left:4px solid var(--dim)}
+    padding:14px 18px;background:var(--panel2);border-bottom:1px solid var(--rule);border-left:4px solid var(--dim);overflow:visible;position:relative}
   #insights .dna-sec.good .dna-sec-head{border-left-color:var(--win)}
   #insights .dna-sec.bad  .dna-sec-head{border-left-color:var(--loss)}
   #insights .dna-sec.mid  .dna-sec-head{border-left-color:var(--draw)}
@@ -773,7 +794,7 @@
   #insights .dna-eyebrow .dna-inl.good{color:var(--win)} #insights .dna-eyebrow .dna-inl.bad{color:var(--loss)} #insights .dna-eyebrow .dna-inl.mid{color:var(--draw)}
   #insights .dna-mods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:16px 18px}
   #insights .dna-mods > .ipanel{min-width:0;margin:0;border:1px solid var(--rule);background:var(--panel2)}
-  #insights .dna-mods > .ipanel-stack{min-width:0;margin:0}
+  #insights .dna-mods > .ipanel-stack{min-width:0;margin:0;display:flex;flex-direction:column}
   #insights .dna-mods > .ipanel-stack > .ipanel{border:1px solid var(--rule);background:var(--panel2);content-visibility:visible}
   #insights .dna-mods > .ipanel.wide{grid-column:1/-1}
   /* A&D lower block: equal-width columns — the "When mate is delivered" histogram on the left, the
@@ -813,6 +834,8 @@
   #insights #ip-mate-arrive .acc-chart{margin-top:2px}
   /* autopsy compacted (keeps all info) so the top A&D row isn't tall */
   #insights #ip-autopsy{padding:10px 14px}
+  #insights #ip-mating-piece{flex:1;display:flex;flex-direction:column}
+  #insights #ip-mating-piece>.mp-bars{flex:1;min-height:210px}
   #insights #ip-autopsy .stackbar{height:16px;margin-bottom:6px}
   #insights #ip-autopsy .autohead{margin-bottom:3px}
   #insights #ip-autopsy .legend{font-size:10px;gap:7px}
@@ -963,6 +986,9 @@
     max-width:460px;margin-left:auto;margin-right:auto}
   /* a dotted underline plus a help cursor: the only two signals that a value
      hides a board behind it */
+  .mp-pair{display:inline-grid;grid-template-columns:5.5ch auto 5.5ch;gap:0 3px;align-items:baseline}
+  .mp-pair>:first-child{text-align:right} .mp-pair>:last-child{text-align:left}
+  .mp-sep{color:var(--dim)}
   .matpop{border-bottom:1px dotted currentColor;cursor:help}
   .hoverhint{
     display:flex;align-items:baseline;gap:14px;
@@ -1035,6 +1061,16 @@
   .pill.W{background:var(--ink);color:#131813}
   .pill.B{background:transparent;color:var(--ink)}
   .castle-no{color:var(--loss);font-weight:700}
+  /* Blown Leads: a row the engine disowned — you were up material and already losing, so it isn't a
+     blown lead and doesn't count in the tally. Struck on the Peak figure only (that's the claim that
+     was false); striking all 18 cells made the numbers unreadable. */
+  tr.fakelead{opacity:.55}
+  tr.fakelead:hover{opacity:1}
+  tr.fakelead td:nth-child(9){text-decoration:line-through;text-decoration-thickness:1px}
+  /* "abandoned #1" — the mate that was already on the board when they quit */
+  .qmate{font-size:11px;cursor:help;border-bottom:1px dotted currentColor}
+  .qmate.win{color:var(--win)}
+  .qmate.loss{color:var(--loss)}
   th.flagcol, td.flagcol{width:12px;padding-left:4px;padding-right:0;text-align:center}
   th.starcol, td.starcol{width:16px;padding-left:0;padding-right:0;text-align:center}
   th.starcol+th, td.starcol+td{padding-left:3px}
@@ -2817,7 +2853,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <span class="sub">
         <button class="ghostlink" id="aboutBtn">about</button> ·
         <button class="ghostlink" id="logBtn">changelog<span class="log-dot" id="logDot" hidden></span></button> ·
-        <span class="vtag">v1.1.0</span>
+        <span class="vtag">v1.1.1</span>
       </span>
     </div>
   </header>
@@ -3876,6 +3912,12 @@ document.addEventListener("click",e=>{
   COACH_OPEN=c.classList.toggle("open");
   b.innerHTML = COACH_OPEN ? "show less ▴" : `show all ${b.dataset.n} ▾`;
 });
+// Blown Leads' inline "Evaluate positions" prompt — delegated, because the panel rebuilds itself
+// as the pass fills the column in. Same handler as the toolbar button, so the running/stop
+// behavior and the guard against a second run come along for free.
+document.addEventListener("click",e=>{
+  if(e.target.closest("#blownEval")) evalPositions();
+});
 // Same pattern, own ids and own state — Missed Mates' sentence list re-renders independently
 // of Insights, so sharing #coachclip/#coachMore would let one page's toggle click the other's.
 let MT_COACH_OPEN=false;
@@ -4034,7 +4076,13 @@ function parsePgn(pgn, myColor){
     // hung on the last move before a resignation still counts
     const midExchange = !!pending && i<hist.length-1;
     if(!midExchange){
-      if(running>peakMat){ peakMat=running; peakIdx=i; }
+      // ...but the last ply can't create a PEAK. A lead that first appears on the move that
+      // ends the game was never held: the usual shape is you recapture (or grab a loose piece)
+      // and get mated in reply, and the mating move — which always settles — is what finally
+      // records the high. That produced rows like "peak +7" on a game you were checkmated in on
+      // move 8. Trough and the final ledger still settle here, which is what the rule above was
+      // for: a queen hung right before a resignation is real material, genuinely lost.
+      if(running>peakMat && i<hist.length-1){ peakMat=running; peakIdx=i; }
       if(running<troughMat) troughMat=running;
       if(qWaiting){ qPost=running; qWaiting=false; }
       if(egPly===null && pieceTotal<=4){ egPly=i; egMat=running; egFen=fens[i]; egMove={from:m.from,to:m.to,san:m.san}; }
@@ -4480,6 +4528,16 @@ function cellFor(c,g){
           return `<span title="Delivered by ${winner} ${piece} — ${g.lastMove.san}. Hover the Result column to see the final board." style="border-bottom:1px dotted var(--rule)">${g.how}</span>`;
         }
       }
+      // They quit with a forced mate against them — "abandoned #1" means mate in 1 was unavoidable.
+      // No parens: this is the widest cell in the column, and the # already reads as "mate".
+      const qm=quitMateIn(g);
+      if(qm){
+        const won=g.result==="Win";
+        const quitter=won?"They":"You", holder=won?"you":"they", verb=g.how==="abandoned"?"walked away from":"resigned";
+        const tip=`${quitter} ${verb} a position where ${holder} had mate in ${qm} — every legal move `
+          + `${won?"they":"you"} had still ran into mate. Hover the Result column to see the final board.`;
+        return `${g.how} <b class="qmate ${won?"win":"loss"}" title="${tip}">#${qm}</b>`;
+      }
       return g.how;
     }
     case "acc":    return g.acc!=null ? g.acc.toFixed(1) : NEEDS_REVIEW;
@@ -4566,7 +4624,9 @@ function cacheKey(u){ return "rookbook:cache:"+(u||$("user").value.trim().toLowe
 
 // Bump this whenever the shape of a cached game changes in a way old code can't read.
 // A cache written under a different version is discarded rather than half-loaded.
-const CACHE_V=2;   // v2: quiet-point material sampling (mid-exchange swings no longer counted)
+const CACHE_V=3;   // v2: quiet-point material sampling (mid-exchange swings no longer counted)
+                   // v3: the last ply can no longer set a material PEAK — cached peakMat/peakFen
+                   //     from v2 are stale (they recorded leads that only existed at checkmate)
 
 // All saved-account caches, oldest first — the eviction order when storage fills up.
 function allCaches(){
@@ -4890,7 +4950,14 @@ async function evalPositions(){
   }
   applyAnalysisDir();                                   // anything we've already done, reuse
   const todo=games.filter(g=>g.fen && g.evalCp===undefined && g.evalMate===undefined && g.evalMated===undefined);
-  if(!todo.length){ $("status").textContent="Nothing to evaluate."; return; }
+  // Second pass: the position at your material peak, not the final one. Only for games Blown Leads
+  // can show — a lead you held in a game you didn't win — because being up material and dead lost
+  // is invisible to the material ledger, and that's the whole question the panel exists to answer.
+  // Gating it here keeps the pass small: on a heavy month it's roughly a tenth of the games.
+  const peakTodo=games.filter(g=>g.peakFen && g.result==="Loss"
+    && typeof g.peakMat==="number" && g.peakMat>=2
+    && g.peakCp===undefined && g.peakMate===undefined && g.peakMated===undefined);
+  if(!todo.length && !peakTodo.length){ $("status").textContent="Nothing to evaluate."; return; }
   EVAL_RUNNING=true; EVAL_CANCEL=false;
   const btn=$("evalBtn");
   btn.style.minWidth=Math.ceil(btn.getBoundingClientRect().width)+"px";   // "Stop" is shorter — don't let the button shrink
@@ -4898,7 +4965,8 @@ async function evalPositions(){
   btn.title="Stop evaluating — every finished position is saved, and the rest resume next time";
   {const t=$("th-eval"); if(t) t.classList.add("busy");}
   // one shallow search per game: past ~50 that's a coffee, not a click
-  const slow = todo.length>=50 ? ` \u2014 ${todo.length} positions to run, this can take a few minutes. Stop anytime; finished work is saved and the rest resume next run.` : "";
+  const queued = todo.length+peakTodo.length;
+  const slow = queued>=50 ? ` \u2014 ${queued} positions to run, this can take a few minutes. Stop anytime; finished work is saved and the rest resume next run.` : "";
   $("status").textContent="Loading engine\u2026";
   let engineFails=0, doneCount=0;
   try{
@@ -4937,6 +5005,37 @@ async function evalPositions(){
       rememberEval(g);
       if(i%5===4){ saveEvalDir(); render(true); }
     }
+    // ---- pass two: the board at your biggest material lead ----
+    let peakDone=0;
+    for(let i=0;i<peakTodo.length;i++){
+      if(EVAL_CANCEL) break;
+      const g=peakTodo[i];
+      peakDone=i+1;
+      $("status").textContent=`Evaluating peak positions… ${i+1}/${peakTodo.length}`;
+      const sign = g.color==="W" ? 1 : -1;
+      // a peak that IS a mate never returns a bestmove — same guard the final pass needs
+      const term=terminalScore(g.peakFen);
+      if(term){
+        if(term.draw){ g.peakCp=0; g.peakMate=null; g.peakMated=null; }
+        else {
+          const iWasMated = (term.mated === (g.color==="W" ? "w" : "b"));
+          g.peakMated = iWasMated ? "you" : "them";
+          g.peakCp=null; g.peakMate=null;
+        }
+        rememberPeakEval(g);
+        continue;
+      }
+      const r=await engineTask(async()=>{
+        w.postMessage("ucinewgame");
+        await ready(w, 4000);
+        return evalFen(w, g.peakFen);
+      });
+      if(r===null){ engineFails++; g.peakCp=null; g.peakMate=null; g.peakSkipped=true; }
+      else if(r.mate!==undefined){ g.peakMate=r.mate*sign; g.peakCp=null; }
+      else { g.peakCp=r.cp*sign; g.peakMate=null; }
+      rememberPeakEval(g);
+      if(i%5===4){ saveEvalDir(); render(true); }
+    }
     render(true);
     // Sanity check: if the sign were inverted, wins would score worse than losses.
     const ev=games.filter(g=>g.evalCp!=null);
@@ -4952,9 +5051,10 @@ async function evalPositions(){
     }
     saveEvalDir();
     autoSave();                                   // don't lose minutes of engine work on refresh
+    const peakPart = peakTodo.length ? ` and ${EVAL_CANCEL?peakDone:peakTodo.length} peak position${(EVAL_CANCEL?peakDone:peakTodo.length)===1?"":"s"}` : "";
     $("status").textContent = EVAL_CANCEL
-      ? `Stopped — evaluated ${doneCount} of ${todo.length} positions. All of it is saved; click Evaluate again to continue where you left off.`
-      : `Evaluated ${todo.length} final positions.`+(engineFails?` (${engineFails} timed out and were skipped)`:"")+check+"  Saved.";
+      ? `Stopped — evaluated ${doneCount} of ${todo.length} final positions${peakPart}. All of it is saved; click Evaluate again to continue where you left off.`
+      : `Evaluated ${todo.length} final positions${peakPart}.`+(engineFails?` (${engineFails} timed out and were skipped)`:"")+check+"  Saved.";
   }catch(e){
     $("status").textContent="Engine unavailable: "+e.message+" — needs an internet connection, and is blocked in some sandboxes. Try the downloaded file.";
   }
@@ -4973,6 +5073,22 @@ function evalScore(g){
   if(g.evalMate!=null) return g.evalMate>0 ? 100 : -100;
   if(g.evalCp==null) return null;
   return g.evalCp/100;
+}
+// Same scale as evalScore, but for the board at your biggest material lead: null when that
+// position hasn't been evaluated, ±100 for mate. A negative number here is the whole point of
+// the column — you were up material and the engine says you were losing anyway.
+function peakEvalScore(g){
+  if(g.peakMated) return g.peakMated==="them" ? 100 : -100;
+  if(g.peakMate!=null) return g.peakMate>0 ? 100 : -100;
+  if(g.peakCp==null) return null;
+  return g.peakCp/100;
+}
+// A lead that wasn't one: you were up 2+ material at your peak and the engine had you clearly
+// losing at that same moment. −1.5 is the same "not actually lost" line resignedTooEarly uses.
+function fakeLead(g){
+  if(g.result!=="Loss" || typeof g.peakMat!=="number" || g.peakMat<2) return false;
+  const s=peakEvalScore(g);
+  return s!==null && s<-1.5;
 }
 function threwItAway(g){
   const s=evalScore(g);
@@ -5583,7 +5699,17 @@ function saveMateDir(){ if(typeof DEMO!=="undefined" && DEMO) return; LS.set(MAT
 
 function rememberEval(g){
   if(!g.url) return;
-  EVALDIR[g.url]={cp:g.evalCp ?? null, mate:g.evalMate ?? null, mated:g.evalMated ?? null};
+  const e=EVALDIR[g.url]||{};
+  e.cp=g.evalCp ?? null; e.mate=g.evalMate ?? null; e.mated=g.evalMated ?? null;
+  EVALDIR[g.url]=e;
+}
+// The eval at your material PEAK, kept alongside the final one. p-prefixed so an entry written
+// by an older version (final only) still loads — the peak fields just come back undefined.
+function rememberPeakEval(g){
+  if(!g.url) return;
+  const e=EVALDIR[g.url]||{};
+  e.pcp=g.peakCp ?? null; e.pmate=g.peakMate ?? null; e.pmated=g.peakMated ?? null;
+  EVALDIR[g.url]=e;
 }
 function rememberMates(g){
   if(!g.url || !g.mates) return;
@@ -5598,6 +5724,10 @@ function applyAnalysisDir(){
     if(ev && g.evalCp===undefined && g.evalMate===undefined && g.evalMated===undefined){
       g.evalCp=ev.cp; g.evalMate=ev.mate; g.evalMated=ev.mated;
       e++;
+    }
+    // separate guard: entries saved before peak evals existed have the final one and not the peak
+    if(ev && "pcp" in ev && g.peakCp===undefined && g.peakMate===undefined && g.peakMated===undefined){
+      g.peakCp=ev.pcp; g.peakMate=ev.pmate; g.peakMated=ev.pmated;
     }
     const mt=MATEDIR[g.url];
     if(mt && g.mates===undefined){ g.mates=mt; m++; }
@@ -6893,24 +7023,38 @@ function pfDNA(gs, myElo){
   const tightHold=clockSurv.length?Math.min(...clockSurv.map(g=>lowFrac(g.times.mine,g.times.base,g.times.inc||0))):null; // tightest clock you survived
   const axes=[
     {key:"attack",label:"Attack",val:attack,metric:`${yWinMate!=null?pct(yWinMate):0}% of wins by mate${fld(oWinMate)}${yShortWR!=null?` · win ${pct(yShortWR)}% of short games`:""}`,
+      inputs:[
+        `Mate rate among wins — ${yWinMate!=null?pct(yWinMate):0}%${oWinMate!=null?` vs field ${pct(oWinMate)}%`:""}`,
+        yShortWR!=null?`Win rate in games under 25 moves — ${pct(yShortWR)}% (50% = even with field)`:"",
+        (scannedG.length>=8&&missMate>0)?`Penalty — walked past a forced mate in ${missMate} of ${scannedG.length} scanned games`:"",
+      ].filter(Boolean),
       bullets:[
         `${yWinMate!=null?pct(yWinMate):0}% of wins by mate${fldB(oWinMate)}`,
         yShortWR!=null?`won ${pct(yShortWR)}% of games under 25 moves`:"",
         (scannedG.length>=8&&missMate>0)?`missed a forced mate in ${missMate} of ${scannedG.length} reviewed`:"",
       ].filter(Boolean)},
     {key:"resil",label:"Resilience",val:resilience,metric:`save ${yResil!=null?pct(yResil):0}% of games 3+ down${fld(oResil)}`,
+      inputs:[`Save rate when 3+ material down — ${yResil!=null?pct(yResil):0}%${oResil!=null?` vs field ${pct(oResil)}%`:""}`],
       bullets:[
         `saved ${yResil!=null?pct(yResil):0}% of games you fell 3+ down${fldB(oResil)}`,
         (youBehind.length&&(savedW||savedD))?`${[savedW&&`${savedW} won outright`,savedD&&`${savedD} drawn`].filter(Boolean).join(", ")} from 3+ down`:"",
         (deepSave!=null&&deepSave<=-4)?`deepest save: ${Math.abs(deepSave)} down`:"",
       ].filter(Boolean)},
     {key:"conv",label:"Conversion",val:conversion,metric:`convert ${yConv!=null?pct(yConv):0}% of winning positions${fld(oConv)}`,
+      inputs:[`Win rate from a 3+ material lead — ${yConv!=null?pct(yConv):0}%${oConv!=null?` vs field ${pct(oConv)}%`:""}`],
       bullets:[
         `converted ${yConv!=null?pct(yConv):0}% of winning positions${fldB(oConv)}`,
         youAhead.length?(blownLeads>0?`let ${blownLeads} of ${youAhead.length} winning position${youAhead.length===1?"":"s"} slip`:`won all ${youAhead.length} winning positions`):"",
         (worstSlip!=null&&worstSlip>=4&&blownLeads>0)?`biggest lead blown: +${worstSlip}`:"",
       ].filter(Boolean)},
     {key:"sharp",label:"Sharpness",val:sharpness,metric:accs.length>=8?`${Math.round(avgAcc)}% accuracy · ~${Math.round(expAcc)}% typical at ${myElo||"your"} Elo`:(castPct!=null?`castle in ${Math.round(castPct)}% of games${avgUndev!=null?` · ${avgUndev.toFixed(1)} pieces left home`:""}`:`review games for an accuracy read`),
+      inputs:(accs.length>=8
+        ? [`Accuracy vs typical for your Elo — ${Math.round(avgAcc)}% vs ~${Math.round(expAcc)}% expected${devScore!=null?" (82% of the score)":""}`,
+           devScore!=null?`Development — ${[castPct!=null?`castled in ${Math.round(castPct)}%`:"",avgUndev!=null?`${avgUndev.toFixed(1)} pieces left home`:""].filter(Boolean).join(", ")} (18%)`:""]
+        : devScore!=null
+          ? [`Development — ${[castPct!=null?`castled in ${Math.round(castPct)}%`:"",avgUndev!=null?`${avgUndev.toFixed(1)} pieces left home`:""].filter(Boolean).join(", ")}`,
+             `Accuracy — needs Game Review (none run yet)`]
+          : [`Accuracy — needs Game Review (none run yet)`]).filter(Boolean),
       bullets:(accs.length>=8
         ? [`${Math.round(avgAcc)}% average accuracy (~${Math.round(expAcc)}% typical at ${myElo||"your"} Elo)`,
            castPct!=null?`castled in ${Math.round(castPct)}% of games`:"",
@@ -6921,6 +7065,7 @@ function pfDNA(gs, myElo){
              `review games for an accuracy read`]
           : [`review games for an accuracy read`]).filter(Boolean)},
     {key:"clock",label:"Clock",val:clock,metric:clockGames.length?`time trouble in ${yTrouble!=null?pct(yTrouble):0}% of games${fld(oTrouble)}`:`no clock data`,
+      inputs:clockGames.length?[`Time-trouble rate (dip under 20% of clock, or flag) — ${yTrouble!=null?pct(yTrouble):0}%${oTrouble!=null?` vs field ${pct(oTrouble)}%`:""} (lower is better)`]:[`No clock data — needs games with move times`],
       bullets:(clockGames.length
         ? [`time trouble in ${yTrouble!=null?pct(yTrouble):0}% of games${fldB(oTrouble)}`,
            flagLoss>0?`flagged in ${flagLoss} game${flagLoss===1?"":"s"}`:`never lost on the clock`,
@@ -6928,6 +7073,7 @@ function pfDNA(gs, myElo){
              :(flagWin>0?`won ${flagWin} game${flagWin===1?"":"s"} on the clock`:"")]
         : [`no clock data — review games with move times`]).filter(Boolean)},
     {key:"steady",label:"Defense",val:defense,metric:`mated in ${yMated!=null?pct(yMated):0}% of games${fld(oMated)}`,
+      inputs:[`Checkmate-loss rate — ${yMated!=null?pct(yMated):0}%${oMated!=null?` vs field ${pct(oMated)}%`:""} (lower is better)`],
       bullets:[
         `mated in ${yMated!=null?pct(yMated):0}% of games${fldB(oMated)}`,
         losses.length?`${matedLoss} of your ${losses.length} loss${losses.length===1?"":"es"} ended in mate`:"",
@@ -6955,6 +7101,7 @@ function pfDNA(gs, myElo){
   // mostly peer-relative (~25%), but a GM's absolute rating dominates — a 3400 (~100th pct) gets ~90%,
   // so Hikaru reads ~95, not ~50. The high exponent keeps mid-ratings from over-lifting.
   const RW = rpR!=null ? Math.min(0.9, 0.2 + 0.7*Math.pow(rpR/100, 8)) : 0.25;
+  axes.forEach(a=>{ a.peer=a.val; a.w=W_AXIS[a.key]||1; });
   if(rpR!=null) axes.forEach(a=>{ a.val=clamp((1-RW)*a.val + RW*rpR); });
   const overall=rpR!=null ? Math.round((1-RW)*pmR + RW*rpR) : pmR;
   const weights=axes.map(a=>({label:a.label, w:W_AXIS[a.key]||1})).sort((x,y)=>y.w-x.w);
@@ -7028,12 +7175,33 @@ function pfRadarBig(axes){
   }).join("");
   return `<svg class="radar radar-big" viewBox="14 -4 426 350" role="img" aria-label="Chess DNA radar">${grids}${spokes}<polygon class="r-area" points="${poly}"/>${dots}${labels}</svg>`;
 }
-// How games end — separate win/loss bars split by ending, plus a generated verdict.
 // A resignation OR an abandonment is really a checkmate when the side that quit was in a forced
 // mate: for EVERY legal move they had, the other side mates in reply. Same test from either seat —
 // your loss means you were being mated, your win means you were mating them. Walking away from a
-// dead-lost, being-mated position is the same result as resigning it. Cached; the check is heavy
-// but every() bails on the first move that escapes, so non-mates return fast.
+// dead-lost, being-mated position is the same result as resigning it.
+//
+// The pair below is that test on ONE board with move/undo, rather than a fresh Chess per node the
+// way this used to work — same answer, a little quicker. Both halves bail on the first move that
+// escapes, so non-mates return fast. It stops at one move on purpose; see quitMateIn for why.
+function fmMatesNow(c){               // winner to move: is a mate in one there for the taking?
+  for(const mv of c.moves()){
+    c.move(mv);
+    const mate=c.in_checkmate();
+    c.undo();
+    if(mate) return true;
+  }
+  return false;
+}
+function fmLoserLost(c){              // loser to move: does EVERY move still run into mate in reply?
+  if(c.game_over()) return false;     // already decided, or drawn — nothing to walk away from
+  for(const mv of c.moves()){
+    c.move(mv);
+    const escaped=!fmMatesNow(c);
+    c.undo();
+    if(escaped) return false;
+  }
+  return true;
+}
 function resignForcedMate(g){
   if(!g || (g.how!=="resign" && g.how!=="abandoned")) return false;
   if(g._resFM!==undefined) return g._resFM;
@@ -7041,17 +7209,27 @@ function resignForcedMate(g){
   try{
     if(g.pgn && typeof Chess!=="undefined"){
       const c=new Chess();
-      if(c.load_pgn(g.pgn)){
-        const fen=c.fen(), mine=c.moves();
-        if(mine.length) res = mine.every(mv=>{
-          const c2=new Chess(fen); c2.move(mv); const f2=c2.fen();
-          return c2.moves().some(om=>{ const c3=new Chess(f2); c3.move(om); return c3.in_checkmate(); });
-        });
-      }
+      if(c.load_pgn(g.pgn)) res=fmLoserLost(c);
     }
   }catch(e){ res=false; }
   g._resFM=res; return res;
 }
+// How many moves the winner needed when the other player quit — 0 when nothing was forced.
+// Two sources, best first:
+//   1. the engine's mate score, once "Evaluate positions" has run — exact, any distance, free here
+//      because it's already stored on the game;
+//   2. the local mate-in-1 test above, which is all we can afford at render time. chess.js costs
+//      ~1.5ms per position searched (move + legal-move generation + undo), so mate in 1 is ~20ms
+//      per game while a mate-in-2 sweep measured 2+ SECONDS on a single row. Deeper forced mates
+//      therefore read as plain "abandoned" until the engine has been run over the games.
+function quitMateIn(g){
+  if(!g || (g.how!=="resign" && g.how!=="abandoned")) return 0;
+  // evalMate is signed from your seat, measured at the final position — so the winner is the one
+  // mating when its sign matches who actually won.
+  if(g.evalMate!=null && (g.result==="Win" ? g.evalMate>0 : g.evalMate<0)) return Math.abs(g.evalMate);
+  return resignForcedMate(g) ? 1 : 0;      // memoized, so the log and the Insights panels share it
+}
+// How games end — separate win/loss bars split by ending, plus a generated verdict.
 function pfAutopsy(gs){
   const wins=gs.filter(g=>g.result==="Win"), losses=gs.filter(g=>g.result==="Loss");
   // a resignation the loser couldn't have escaped IS a checkmate — don't count it as a plain resign / gift
@@ -7871,7 +8049,7 @@ let BLOWN_PEAK=0;   // Blown Leads "Peak lead" filter: 0 = Any, else minimum pea
 function renderBlown(list){
   const box=$("blown");
   const isW=g=>g.result==="Win";
-  let html="", blownTotal=0, blownElo=0;   // hoisted so the single header subtitle can show the count
+  let html="", blownTotal=0, blownElo=0, blownUnrated=0;   // hoisted so the single header subtitle can show the count
   // 13) Games you gave away (engine-verified; only after "Evaluate positions")
   {
     const evald=list.filter(g=>evalScore(g)!==null);
@@ -7902,6 +8080,18 @@ function renderBlown(list){
                  : Math.abs(s)>=100 ? (s>0 ? "You had mate on the board" : "You were checkmated")
                  : `Engine evaluation of the final position, in pawns, from your side (${s>0?"+":""}${s.toFixed(1)})`;
         const ev = `<span class="${evCls}" title="${evTip}">${evTxt}</span>`;
+        // The same read, taken at your material peak instead of the end. Where this is red the
+        // material lead in the Peak column was already fiction.
+        const ps=peakEvalScore(g);
+        const pevTxt = ps===null ? "—"
+                 : Math.abs(ps)>=100 ? (ps>0 ? "M✓" : "M✗")
+                 : Math.abs(ps)>=20 ? (ps>0?"+20⁺":"−20⁺")
+                 : (ps>0?"+":"")+ps.toFixed(1);
+        const pevTip = ps===null ? "Not evaluated — run the engine"
+                 : Math.abs(ps)>=100 ? (ps>0 ? "You had mate on the board at your biggest material lead" : "You were already checkmated at your biggest material lead")
+                 : `Engine evaluation at your biggest material lead (+${g.peakMat}), in pawns, from your side (${ps>0?"+":""}${ps.toFixed(1)})`
+                   + (ps<-1.5 ? " — up material and losing anyway." : "");
+        const pev = `<span class="${ps===null?"dim":ps>0?"res win":ps<0?"res loss":"dim"}" title="${pevTip}">${pevTxt}</span>`;
         const peakAt = g.peakMove && g.peakMove.move ? ` <span class="dim" style="font-size:10px">mv ${g.peakMove.move}/${g.moves}</span>` : "";
         const peak = typeof g.peakMat==="number" && g.peakMat>0
           ? (g.peakFen
@@ -7917,16 +8107,17 @@ function renderBlown(list){
         const matNow = fmtMat(g);
         const lost = typeof g.peakMat==="number" && typeof g.mat==="number" && g.peakMat>g.mat
           ? `<span class="res loss">\u2212${g.peakMat-g.mat}</span>` : "—";
-        return `<tr>
+        return `<tr class="${fakeLead(g)?"fakelead":""}">
           ${starCell(g)}
           <td class="num" style="white-space:nowrap">${tcDotHTML(g)}${g.url?`<a href="${g.url}" target="_blank" rel="noopener" class="datelink" title="Open this game on chess.com ↗">${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span></a>`:`${fmtDate(g.date)} <span class="dim">${fmtTime(g.date)}</span>`}</td>
           <td><span class="pill ${g.color}">${g.color}</span></td>
           <td class="opp">${fmtOpp(g)}</td>
           <td class="num">${g.oppElo}</td>
           <td class="num">${fmtDelta(g)}</td>
-          <td><span class="${tagCls}" ${tagTip?`title="${tagTip}" style="border-bottom:1px dotted var(--rule)"`:""}>${tag}</span></td>
           <td>${g.how}</td>
+          <td><span class="${tagCls}" ${tagTip?`title="${tagTip}" style="border-bottom:1px dotted var(--rule)"`:""}>${tag}</span></td>
           <td class="num">${peak}</td>
+          <td class="num">${pev}</td>
           <td class="num">${g.peakMove&&g.peakMove.move?momentClockCell(g, myClockAt(g,g.peakMove.move), `Your clock at move ${g.peakMove.move} — your biggest lead`):'<span class="dim">\u2014</span>'}</td>
           <td class="num">${matNow}</td>
           <td class="num">${lost}</td>
@@ -7938,22 +8129,40 @@ function renderBlown(list){
         </tr>`;
       };
       const verdictOf=g=>threwItAway(g) ? ["res loss","was winning","The engine had you at +1.0 or better when the game ended and you still lost — usually a resignation or a flag in a winning position."]
+                       // Checked before "blew a lead": if the engine had you losing at the very moment
+                       // of your biggest material lead, there was no lead to blow.
+                       : fakeLead(g) ? ["res loss",`up ${g.peakMat}, dead lost`,`At your biggest material lead (+${g.peakMat}) the engine already had you at ${(x=>Math.abs(x)>=100?"a forced mate against you":(x>0?"+":"")+x.toFixed(1))(peakEvalScore(g))}. The material was real; the position was not. This isn't a lead you blew — it's a lead you never had.`]
                        : (squandered(g)>=3 && g.peakMat>=3) ? ["squandertxt","blew a lead","You were up 3+ material at some point and lost anyway. No engine needed — the material ledger says so."]
                        : ["res draw","not lost",`You resigned a position the engine didn't score as lost for you — its number here: ${(x=>x==null?"?":(x>0?"+":"")+x.toFixed(1))(evalScore(g))} (anything better than −1.5 counts). The game wasn't over — you just left.`];
-      const all=[...gave,...squand,...early].sort((a,b)=>b.date-a.date);   // most recent first
+      // A "lead" the engine had you losing at isn't a blown lead, so it can't count toward the
+      // headline or the Elo tally — that's the whole point of running the peak pass. The rows stay
+      // visible, struck through and sorted to the bottom: being up material in a lost position is
+      // still a mistake worth seeing, just a different one from letting a win slip.
+      const listed=[...gave,...squand,...early];
+      const fake=listed.filter(fakeLead), real=listed.filter(g=>!fakeLead(g));
+      const all=[...real.sort((a,b)=>b.date-a.date), ...fake.sort((a,b)=>b.date-a.date)];
       const rows = all.map(g=>{ const [cls,tag,tip]=verdictOf(g); return row(g,cls,tag,tip); }).join("");
-      const eloLost = [...gave,...squand,...early].reduce((a,g)=>a+Math.abs(g.delta||0),0);
-      const total=gave.length+squand.length+early.length;
-      blownTotal=total; blownElo=eloLost;
+      const eloLost = real.reduce((a,g)=>a+Math.abs(g.delta||0),0);
+      blownTotal=real.length; blownElo=eloLost;
+      const fakeNote = fake.length
+        ? `<div class="isub" style="margin:0 0 9px"><b>${fake.length} row${fake.length===1?"":"s"} struck through and discounted:</b>
+             you were up material there and the engine had you losing at that same moment, so ${fake.length===1?"it isn't a lead you blew":"they aren't leads you blew"}
+             — ${fake.length===1?"it's":"they're"} left in view but kept out of the count above. Hover a struck row to read it.</div>`
+        : "";
+      // How many listed rows still have no Eval @ peak. The header turns this into an inline
+      // prompt — same shape Openings uses for its engine pass, rather than a button in the panel
+      // body, which nothing else in the app does.
+      blownUnrated = all.filter(g=>peakEvalScore(g)===null && typeof g.peakMat==="number" && g.peakMat>=2).length;
       const body = rows
-        ? `<div class="tablewrap" style="border:1px solid var(--rule);max-height:720px;overflow-y:auto">
+        ? `${fakeNote}<div class="tablewrap" style="border:1px solid var(--rule);max-height:720px;overflow-y:auto">
              <table><thead><tr>
                <th class="starcol" title="Star games to save them — the \u2605 filter chip shows only starred games">\u2605</th>
                <th class="num">Date</th><th class="ctr">B/W</th><th class="opp">Opponent</th><th class="num">Opp Elo</th>
                <th class="num" title="Result and the rating it cost you">Result</th>
+               <th title="How the game ended">How</th>
                <th>Verdict</th>
-               <th>Lost by</th>
                <th class="num" title="Biggest material lead you held at any point — hover a value to see the board at that moment">Peak</th>
+               <th class="num" title="Engine eval at that same moment, from your side. Red here means the material lead in the Peak column was never a winning position — run Evaluate positions to fill this in.">Eval @ peak</th>
                <th class="num" title="Your remaining time at your biggest lead. Being up 5 with eight minutes and up 5 with forty seconds are different games — this column tells them apart.">@ peak</th>
                <th class="num" title="Material when the game ended — hover a value for the final board">Final</th>
                <th class="num" title="How much of your material lead you handed back">Given back</th>
@@ -7969,7 +8178,10 @@ function renderBlown(list){
              <b>Eval:</b> the engine's read on the final position, in pawns, from your side —
              so <span class="res loss">\u22128.6</span> means you were about eight and a half pawns down when it ended.
              <span class="res loss">M\u2717</span> means you were checkmated; <span class="res win">M\u2713</span> means a forced mate was sitting on the board <i>for you</i> when you lost — the cruelest row on this page.<br>
-             <b>Peak / Final / Given back:</b> the biggest material lead you held, what you finished with, and the difference.
+             <b>Peak / Final / Given back:</b> the biggest material lead you held, what you finished with, and the difference.<br>
+             <b>Eval @ peak:</b> the engine at the moment of that biggest lead. Material and the engine don't always agree —
+             a red number here means you were up on the board and losing in the position, so there was never a lead to blow.
+             Those rows read <span class="res loss">up N, dead lost</span> in the Verdict column.
            </div>`
         : (BLOWN_PEAK ? `<div class="isub">No blown leads where your peak reached <b>+${BLOWN_PEAK} or more</b> — lower the Peak lead filter to see the rest.</div>` : `<div class="isub">Nothing here — across ${tracked.length} games, you never held a winning position and lost it. That's real discipline.</div>`);
       // No inner heading — the tab already has one. Four titles for one table is three too many.
@@ -8089,6 +8301,9 @@ function renderBlown(list){
   box.innerHTML=`<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px">
       <h3 class="ptitle">Blown leads</h3>
       <span class="isub" style="margin:0;font-family:var(--sans);color:var(--read);font-size:13px">${blownTotal>0?`${scopeIntro(list.length)} you've blown a ${BLOWN_PEAK||3}+ material lead <b>${blownTotal}</b> time${blownTotal===1?"":"s"}, resulting in <span class="res loss">−${blownElo}</span> elo.`:`${scopeIntro(list.length)}, you've never blown a ${BLOWN_PEAK||3}+ material lead. That's real discipline.`}</span>
+      ${blownUnrated?`<span class="isub" id="blownEvalNote" style="margin:0;font-family:var(--sans);font-size:13px;color:#6A675B">${EVAL_RUNNING
+          ? "Working out the engine's read at each material peak…"
+          : `<b>${blownUnrated}</b> of these ${blownUnrated===1?"has":"have"} no engine read at ${blownUnrated===1?"its":"their"} peak yet — <button class="ghostlink" id="blownEval">work ${blownUnrated===1?"it":"them"} out</button>`}</span>`:""}
     </div>${html}`;
 }
 
@@ -8881,7 +9096,7 @@ function renderInsights(list){
       // the viewBox aspect is set to the aspect that cell actually renders at (~1.7:1 beside the
       // two-panel stack at desktop width) — matching it means the stretch is ~1.0 and the axis
       // numerals stay undistorted. Re-measure if the stack gains or loses a panel.
-      const W=680,Hc=400,mL=26,mR=10,mT=10,mB=26, pW=W-mL-mR, pH=Hc-mT-mB, baseY=mT+pH;
+      const W=680,Hc=320,mL=26,mR=10,mT=10,mB=26, pW=W-mL-mR, pH=Hc-mT-mB, baseY=mT+pH;
       const niceStep=v=>[1,2,5,10,20,25,50].find(x=>x>=v/4)||100;
       const yStep=niceStep(maxC), yMax=Math.max(yStep,Math.ceil(maxC/yStep)*yStep);
       const yA=c=>mT+pH*(1-c/yMax);
@@ -9030,7 +9245,7 @@ function renderInsights(list){
       } else {
         body+=`<div class="isub" style="margin-top:9px">${whenNote||"Not enough games yet to compare castling with and without (needs 8 per side)."}</div>`;
       }
-      pCastleMate=iPanel("Castling","Whether tucking your king away keeps it safer \u2014 and whether you actually win more when you do.",body);
+      pCastleMate=iPanel("Castling","",body);
     }
   }
   { // Defense — which clock gets you mated (only meaningful across formats)
@@ -9076,6 +9291,42 @@ function renderInsights(list){
   // fill in beneath it as the data (and Game Review) accrue.
   const insMyElo=(()=>{ for(let i=asc.length-1;i>=0;i--){ if(typeof asc[i].elo==="number") return asc[i].elo; } return null; })();
   let insDna=null; const dnaBy={}; try{ insDna=pfDNA(list, insMyElo); insDna.axes.forEach(a=>{ dnaBy[a.key]=a; }); }catch(_){}
+  const AXIS_WHAT={
+    attack:"How sharply you finish games — mate rate among wins and win rate in short decisive games, vs your opponents' same numbers.",
+    steady:"How rarely you get mated — your checkmate-loss rate vs your opponents' checkmate-loss rate.",
+    conv:"How well you convert winning positions — win rate when you held a 3+ material lead, vs your opponents' conversion of their leads against you.",
+    resil:"How often you save lost positions — survival rate when 3+ material down, vs your opponents' survival rate when they fell behind against you.",
+    sharp:"How clean your moves are for your rating — accuracy vs the typical accuracy at your Elo, plus development discipline (castling rate, pieces left home).",
+    clock:"How rarely the clock beats you — time-trouble rate (dipping under 20% of your clock, or flagging) vs your opponents' time-trouble rate.",
+  };
+  const ord=n=>{const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);};
+  // Inner content of one axis's breakdown (no wrapper) — reused by the single-axis and the
+  // side-by-side Attack+Defense tooltips.
+  const axisCol=(key)=>{
+    const a=dnaBy[key]; if(!a||!insDna) return "";
+    const rp=insDna.ratingPct, rw=insDna.ratingWeight;
+    const hasLift=rp!=null;
+    const pw=hasLift?100-Math.round(rw*100):100, rwR=hasLift?Math.round(rw*100):0;
+    const inputs=(a.inputs&&a.inputs.length)?a.inputs:(a.metric?[a.metric.replace(/·\s*field/g,"vs field")]:[]);
+    const multi=inputs.length>1;
+    return `<p>${AXIS_WHAT[key]||""}</p>`
+      +(inputs.length?`<div class="dna-measured"><span class="dna-meas-h">What feeds the score${multi?" (all of it)":""}:</span><ul>${inputs.map(s=>`<li>${s}</li>`).join("")}</ul></div>`:"")
+      +`<p>Together those become a <b>peer score</b> of ${a.peer} — where <b>50 = even with your field</b> (the opponents you faced, all near your rating).</p>`
+      +(hasLift?`<p class="dna-calc-formula">${pw}% × ${a.peer} <span class="dim">(peer)</span> + ${rwR}% × ${rp} <span class="dim">(${insDna.myElo||"?"} ${insDna.domTc} ≈ ${ord(rp)} pctl)</span> = <b>${a.val}</b></p>`
+        :`<p class="dna-calc-formula">final score: <b>${a.peer}</b></p>`)
+      +`<p class="dna-calc-note">Overall weight: ${a.w}× (${a.w>=1.2?"above":a.w>=0.9?"standard":"below"} average)</p>`;
+  };
+  const axisTip=(key)=>{
+    const a=dnaBy[key]; if(!a||!insDna) return "";
+    return `<span class="dna-info-wrap"><span class="dna-info" tabindex="0" role="button" aria-label="How ${a.label} is scored">?</span><span class="dna-info-pop">${axisCol(key)}</span></span>`;
+  };
+  // One tooltip covering two axes side by side (used for the merged Attack + Defense header).
+  const dualTip=(keyA,keyB)=>{
+    const A=dnaBy[keyA], B=dnaBy[keyB]; if((!A&&!B)||!insDna) return "";
+    const col=(a)=>a?`<div class="dna-dual-col"><span class="dna-dual-h">${a.label} <b>${a.val}</b></span>${axisCol(a.key)}</div>`:"";
+    return `<span class="dna-info-wrap dna-info-wrap-dual"><span class="dna-info" tabindex="0" role="button" aria-label="How Attack and Defense are scored">?</span>`
+      +`<span class="dna-info-pop dna-info-pop-dual"><div class="dna-dual">${col(A)}${col(B)}</div></span></span>`;
+  };
   // Each axis renders as its own self-contained "chapter" card: a header band (chapter number in
   // radar order, axis name, the one-line metric, and the big 0-100 score with a verdict-colored
   // left rail) above that axis's modules in a 2-up grid. gloss is accepted for call compatibility
@@ -9086,7 +9337,7 @@ function renderInsights(list){
     const body=panels||`<div class="ipanel">${needData("games")}</div>`;
     return `<section class="dna-sec ${cls}" id="dna-${key}">`
       +`<header class="dna-sec-head"><span class="dna-eyebrow">${title}</span>`
-      +`<span class="dna-sec-score">${a.val}</span></header>`
+      +`<span class="dna-sec-score">${a.val}</span>${axisTip(key)}</header>`
       +`<div class="dna-mods">${body}</div></section>`;
   };
   // Enlarged radar + fleshed-out axis breakdown at the top; each row jumps to its section below.
@@ -9126,6 +9377,7 @@ function renderInsights(list){
         const sc=v=>v>=60?"good":v<42?"bad":"mid";
         const scr=a=>a?`<span class="dna-inl ${sc(a.val)}">${a.val}</span>`:`<span class="dna-inl">–</span>`;
         const title=`ATTACK ${scr(atk)} + DEFENSE ${scr(def)}`;
+        const adTips=dualTip("attack","steady");
         // Top row (standard 2-up): the Checkmate map + a stack of "What piece lands mate" and the
         // Autopsy beside it. pLossEnd removed — the Autopsy already breaks down how losses end.
         const pMatingPc=pfMatingPiece(list);
@@ -9145,7 +9397,7 @@ function renderInsights(list){
           +adLower;
         const body=panels||`<div class="ipanel">${needData("games")}</div>`;
         // id="dna-attack" is the section; the empty #dna-steady anchor keeps the Defense radar card's jump working
-        return `<section class="dna-sec admerge" id="dna-attack"><span id="dna-steady" style="scroll-margin-top:14px"></span><header class="dna-sec-head"><span class="dna-eyebrow">${title}</span></header><div class="dna-mods">${body}</div></section>`;
+        return `<section class="dna-sec admerge" id="dna-attack"><span id="dna-steady" style="scroll-margin-top:14px"></span><header class="dna-sec-head"><span class="dna-eyebrow">${title}</span>${adTips}</header><div class="dna-mods">${body}</div></section>`;
       })()
     + dnaSection("Conversion", "conv",   "Turning won positions into won games.",
         iSlot(pConvert,"Conversion & swindles","games")+iSlot(pLeadSize,"Conversion by lead size","games")+iSlot(pConvPhase,"Conversion by game phase","games")+iSlot(pGiveback,"How much of the lead you hand back","games"), 4)
@@ -9459,8 +9711,9 @@ function pfMatingPiece(list){
   const GRN="#6FA47B",COR="var(--loss)";
   let bars="";
   for(const p of ["Q","R","N","B","P","K"]){
-    const dH=Math.max(4,Math.round(120*pieces[p]/max));
-    const rH=Math.max(4,Math.round(120*opp[p]/max));
+    // heights are a % of the tallest bar, so the bars stretch to fill however tall the module grows
+    const dH=Math.max(3,100*pieces[p]/max);
+    const rH=Math.max(3,100*opp[p]/max);
     const dSmall=pieces[p]<max*0.2, rSmall=opp[p]<max*0.2;
     const dLabel=dSmall
       ?`<span style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:${GRN}">${pieces[p]}</span>`
@@ -9468,20 +9721,20 @@ function pfMatingPiece(list){
     const rLabel=rSmall
       ?`<span style="position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--loss)">${opp[p]}</span>`
       :`<span style="position:absolute;top:3px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:#0E0F10">${opp[p]}</span>`;
-    bars+=`<div style="flex:1;text-align:center;min-width:0">
-      <div style="font-size:28px;line-height:1;margin-bottom:6px">${icons[p]}</div>
-      <div style="display:flex;gap:2px;justify-content:center;align-items:flex-end;height:130px">
-        <div style="flex:1;background:${GRN};border-radius:2px;height:${pieces[p]?dH:0}px;position:relative;${pieces[p]?"":"visibility:hidden"}">${pieces[p]?dLabel:""}</div>
-        <div style="flex:1;background:${COR};border-radius:2px;height:${opp[p]?rH:0}px;position:relative;${opp[p]?"":"visibility:hidden"}">${opp[p]?rLabel:""}</div>
+    bars+=`<div style="flex:1;min-width:0;display:flex;flex-direction:column">
+      <div style="font-size:28px;line-height:1;margin-bottom:6px;text-align:center">${icons[p]}</div>
+      <div style="flex:1;min-height:0;display:flex;gap:2px;justify-content:center;align-items:flex-end">
+        <div style="flex:1;background:${GRN};border-radius:2px;height:${pieces[p]?dH:0}%;position:relative;${pieces[p]?"":"visibility:hidden"}">${pieces[p]?dLabel:""}</div>
+        <div style="flex:1;background:${COR};border-radius:2px;height:${opp[p]?rH:0}%;position:relative;${opp[p]?"":"visibility:hidden"}">${opp[p]?rLabel:""}</div>
       </div>
-      <div style="font-size:10px;color:var(--dim);margin-top:4px">${labels[p]}</div>
+      <div style="font-size:10px;color:var(--dim);margin-top:4px;text-align:center">${labels[p]}</div>
     </div>`;
   }
   const legend=`<span style="display:inline-block;width:8px;height:8px;background:${GRN};border-radius:2px;vertical-align:1px"></span> you deliver ${totalD}`
     +`<span style="margin-left:10px;display:inline-block;width:8px;height:8px;background:var(--loss);border-radius:2px;vertical-align:1px"></span> they deliver ${totalR}`;
   return `<div class="ipanel" id="ip-mating-piece"><h3>What piece lands mate</h3>`
     +`<div class="isub" style="margin-bottom:10px">${legend}</div>`
-    +`<div style="display:flex;gap:12px;align-items:flex-end;padding-bottom:4px">${bars}</div>`
+    +`<div class="mp-bars" style="display:flex;gap:12px;align-items:stretch;padding-bottom:4px">${bars}</div>`
     +`</div>`;
 }
 
@@ -14504,8 +14757,7 @@ function renderMates(list){
         <td class="num">${fmtDelta(g)}</td>
         <td class="num" title="First available on move ${m.move} of a ${g.moves}-move game">${m.move}<span class="dim">/${g.moves}</span></td>
         <td class="num" title="${m.walkedPast===1?"You had one chance and didn't take it":`The same mate stayed on the board for ${m.walkedPast} of your moves`}">${m.walkedPast>1?`<span class="res loss">${m.walkedPast}×</span>`:`<span class="dim">1×</span>`}</td>
-        <td class="num"><span ${pop}>${m.mate}</span></td>
-        <td class="num"><span ${popPlayed}>${m.played}</span></td>
+        <td class="num"><span class="mp-pair"><span ${pop}>${m.mate}</span><span class="mp-sep">/</span><span ${popPlayed}>${m.played}</span></span></td>
         <td class="num">${costCell(m)}</td>
         <td class="num">${(t=>t==null?'<span class="dim">—</span>':`<span class="${t<3?"res loss":""}" title="${t<3?"Under 3 seconds — you never looked":"Seconds spent on the move where the mate was available"}">${t.toFixed(1)}s</span>`)(g.times&&g.times.mine&&g.times.mine.length>=m.move?g.times.mine[m.move-1]:null)}</td>
         <td class="num">${momentClockCell(g, myClockBefore(g,m.move), `Your clock going into move ${m.move}, when the mate came available`)}</td>
@@ -14531,8 +14783,7 @@ function renderMates(list){
         <th class="num" title="Result and the rating it cost you">Result</th>
         <th class="num">Move</th>
         <th class="num" title="How many of your moves the same mate stayed available for. More than one means you walked past it repeatedly.">Chances</th>
-        <th class="num" title="The mate you had">Mate available</th>
-        <th class="num" title="What you played instead">You played</th>
+        <th class="num" title="The mate you had / what you played instead">Missed / Played</th>
         <th class="num" title="Stockfish's verdict right after the move you played instead. A big plus (or #) means the miss was harmless — still winning. Near zero or negative means that move threw the win away on the spot.">Cost</th>
         <th class="num" title="Seconds you spent on the move where you missed the mate — under 3s means you never looked">Think</th>
         <th class="num" title="Your remaining time when the mate first appeared. The same miss with eight minutes and with twenty seconds are different mistakes — one is blindness, the other is a scramble.">Clock</th>
@@ -15914,7 +16165,7 @@ document.addEventListener("click",e=>{
 const logEl=$("changelog");
 // The newest changelog version. Bump this whenever a new entry is added at the top, and the
 // changelog button shows an unread dot until the reader opens it once at this version.
-const LATEST_LOG_V="1.1.0";
+const LATEST_LOG_V="1.1.1";
 function refreshLogDot(){
   const dot=$("logDot"); if(!dot) return;
   const seen=LS.get("rookbook:log:seen");
