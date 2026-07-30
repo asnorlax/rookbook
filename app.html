@@ -95,7 +95,12 @@
          ledger routine already exist, so the series computes lazily at hover time.
          No new analysis or storage needed. Review-tab sparkline remains a later step.
          ================================================================================ -->
-    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.1.1 <span class="cl-tag">now</span></span><span class="cl-date">29 Jul 2026</span></summary><ul>
+    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.1.2 <span class="cl-tag">now</span></span><span class="cl-date">30 Jul 2026</span></summary><ul>
+        <li>Overview now opens with a breakdown of your most recent run of games</li>
+        <li>Various updates to improve site performance</li>
+      </ul></details>
+
+    <details class="cl"><summary class="cl-v"><span class="cl-t">v1.1.1</span><span class="cl-date">29 Jul 2026</span></summary><ul>
         <li>Game Log: How column now flags games someone quit with mate on the board — 'abandoned #1' means mate in 1 was unavoidable, green when they walked into your mate, red when you walked into theirs</li>
         <li>Blown Leads: material picked up on your last move prior to you getting checkmated doesn't count as having had a lead</li>
       </ul></details>
@@ -168,6 +173,7 @@
     <h4>Your data</h4>
     <p>Your games, analysis and notes live only in this browser. Nothing is uploaded anywhere. Clearing removes them from this device; your chess.com account is untouched.</p>
     <p id="gcSwitch"></p>
+    <p id="rcSwitch"></p>
     <p id="storageHealth"></p>
     <p><button class="ghostlink" id="resetBtn" style="color:var(--loss)">Clear everything Rookbook has saved</button></p>
 
@@ -577,7 +583,20 @@
   .rc-hi{color:var(--green)}
   .rc-u{font-size:13px;color:var(--dim);font-weight:400}
   .rc-s{font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* same W/L/D dots as the tiles below — but those rules are scoped to .pf-tile-rec, so the
+     colours are restated here rather than widening a selector another panel relies on */
+  .rc-wld{display:flex;gap:10px;align-items:center}
+  .rc-wld .wld{display:inline-flex;align-items:center;gap:4px}
+  .rc-wld .wdot{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
+  .rc-wld .wdot.w{background:var(--win)}
+  .rc-wld .wdot.l{background:var(--loss)}
+  .rc-wld .wdot.d{background:var(--dim)}
+  .rc-wl{opacity:.55;margin-left:2px}
   .pf-rdelta{font-size:11px;font-weight:700}
+  /* the card after the X: one line offering to switch it off for good */
+  .rc.rc-gone{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 12px;
+    border-style:dashed;border-color:var(--rule)}
+  .rc-bye{font-size:11px;color:var(--dim)}
   @media (min-width:560px){
     /* Hug the content instead of stretching the full page width — a full-bleed border around
        three small cells left a large dead area to the right, and pushed the date range so far
@@ -2349,9 +2368,12 @@
   .filters .fgroup{border-radius:0}
 
   /* the summary strip: value first, label quiet */
-  .stat{padding:11px 14px}
+  /* 22px of vertical padding wrapped 39px of content, making the strip exactly twice the height
+     of a table row — heavier than the rows it summarises. Horizontal padding and every font size
+     are unchanged; only the dead vertical space came out. */
+  .stat{padding:6px 14px}
   .stat .k{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
-  .stat .v{font-size:20px;margin-top:4px;letter-spacing:-.01em;white-space:nowrap}
+  .stat .v{font-size:20px;margin-top:1px;letter-spacing:-.01em;white-space:nowrap}
   .stat .v small{font-size:12px;font-weight:400;color:var(--dim);margin-left:3px}
 
   /* the table: the thing people actually read */
@@ -2875,7 +2897,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <span class="sub">
         <button class="ghostlink" id="aboutBtn">about</button> ·
         <button class="ghostlink" id="logBtn">changelog<span class="log-dot" id="logDot" hidden></span></button> ·
-        <span class="vtag">v1.1.1</span>
+        <span class="vtag">v1.1.2</span>
       </span>
     </div>
   </header>
@@ -3736,6 +3758,12 @@ function renderGcSwitch(){
   el.innerHTML = gcIgnored()
     ? `This device is <b style="color:var(--green)">not counted</b> in the anonymous visit tally. <button class="ghostlink" id="gcToggleBtn">count it again</button>`
     : `This device is counted in the anonymous visit tally. <button class="ghostlink" id="gcToggleBtn">don't count this device</button>`;
+  // The "Your recent games" card is the one panel a user can switch off, so the way back lives
+  // here beside the other device-level preference rather than somewhere it has to be hunted for.
+  const rc=document.getElementById("rcSwitch");
+  if(rc) rc.innerHTML = rcHidden()
+    ? `<b style="color:var(--green)">Your recent games</b> is hidden on Overview. <button class="ghostlink" id="rcOnBtn">show it again</button>`
+    : `<b>Your recent games</b> shows on Overview after a session. <button class="ghostlink" id="rcNever">don't show it</button>`;
 }
 document.addEventListener("click",e=>{
   if(e.target && e.target.id==="gcToggleBtn") gcSetIgnored(!gcIgnored());
@@ -3944,13 +3972,51 @@ document.addEventListener("click",e=>{
   b.innerHTML = COACH_OPEN ? "show less ▴" : `show all ${b.dataset.n} ▾`;
 });
 // Dismissing "Your recent games". Delegated because Overview rebuilds its whole body on render.
+// The X hides it until you play again; it then offers to stop showing it altogether rather than
+// making that an irreversible guess. The permanent choice is undoable from About.
+const RC_OFF_KEY="rookbook:rcoff";
+const RC_NAG_KEY="rookbook:rcdismisses";   // how many times the X has been used on this device
+const rcHidden=()=>LS.get(RC_OFF_KEY)===true;
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-rcdismiss]");
-  if(!b) return;
-  const u=(typeof SHOWN_USER==="string" && SHOWN_USER) || $("user").value.trim().toLowerCase();
-  LS.set(rcSeenKey(u), +b.dataset.rcdismiss);
-  const card=b.closest(".rc");
-  if(card) card.remove();          // no re-render: nothing else on the page depends on it
+  if(b){
+    const u=(typeof SHOWN_USER==="string" && SHOWN_USER) || $("user").value.trim().toLowerCase();
+    LS.set(rcSeenKey(u), +b.dataset.rcdismiss);
+    const card=b.closest(".rc");
+    if(!card) return;
+    // Dismissing is a small gesture, so treat it as one: the card just goes. Offering to kill the
+    // feature on the first X advertises the exit to someone who only wanted a tidier page, and
+    // would skew any read on whether people actually want it. After a third dismissal it's a
+    // habit rather than a tidy-up, and the offer is worth making once. About always has the
+    // switch for anyone who goes looking sooner.
+    const n=(LS.get(RC_NAG_KEY)||0)+1;
+    LS.set(RC_NAG_KEY,n);
+    if(n<3){ card.remove(); return; }
+    card.classList.add("rc-gone");
+    card.innerHTML=`<span class="rc-bye">Hidden until you play again.</span>`
+      + `<button type="button" class="ghostlink" id="rcNever">don't show this again</button>`;
+    return;
+  }
+  if(e.target && e.target.id==="rcNever"){
+    LS.set(RC_OFF_KEY,true);
+    const card=e.target.closest(".rc");
+    // Same button in two places: on the card it confirms in place, in About it just repaints
+    // that line. Overview is re-rendered either way so the card is gone when you go back.
+    if(card) card.innerHTML=`<span class="rc-bye">Turned off. Bring it back under <b>about</b>.</span>`;
+    else renderGcSwitch();
+    if(typeof renderSoon==="function") renderSoon();
+    return;
+  }
+  if(e.target && e.target.id==="rcOnBtn"){
+    LS.del(RC_OFF_KEY);
+    // Also clear the "hidden until you play again" mark for this account: someone who just asked
+    // to see it again means now, not after their next session — and the X almost always preceded
+    // switching it off, so leaving that set makes the button look broken.
+    const u=(typeof SHOWN_USER==="string" && SHOWN_USER) || $("user").value.trim().toLowerCase();
+    if(u) LS.del(rcSeenKey(u));
+    renderGcSwitch();                       // repaint the About line
+    if(typeof renderSoon==="function") renderSoon();
+  }
 });
 // Blown Leads' inline "Evaluate positions" prompt — delegated, because the panel rebuilds itself
 // as the pass fills the column in. Same handler as the toolbar button, so the running/stop
@@ -8169,6 +8235,7 @@ function iBarRowAbs(label, wins, total){
 function rcSeenKey(user){ return "rookbook:rcseen:"+String(user||"").toLowerCase(); }
 function recentCardHTML(r, streak, user){
   if(!r || r.games<2) return "";                    // nothing worth a card on a first sitting
+  if(rcHidden()) return "";                         // turned off for good (About can undo it)
   if(LS.get(rcSeenKey(user)) === +r.to) return "";  // dismissed, and nothing newer since
   const day=d=>fmtDate(new Date(d));
   const sameDay=day(r.from)===day(r.to);
@@ -8187,7 +8254,9 @@ function recentCardHTML(r, streak, user){
     <div class="rc-head"><span class="rc-title">Your recent games</span><span class="rc-when">${when}</span>
       <button type="button" class="rc-x" data-rcdismiss="${+r.to}" title="Hide this until you play again" aria-label="Hide your recent games">&times;</button></div>
     <div class="rc-row">
-      <div class="rc-stat"><span class="rc-l">Games</span><b class="rc-v">${r.games}</b><span class="rc-s">${r.w}–${r.l}–${r.d}</span></div>
+      <div class="rc-stat"><span class="rc-l">Games</span><b class="rc-v">${r.games}</b>
+        <span class="rc-s rc-wld">${[["w",r.w,"W"],["l",r.l,"L"],["d",r.d,"D"]].filter(x=>x[1]>0)
+          .map(([k,n,lbl])=>`<span class="wld"><i class="wdot ${k}"></i>${n}<span class="rc-wl">${lbl}</span></span>`).join("")}</span></div>
       ${accCell}
       ${streakCell}
     </div>
@@ -15775,6 +15844,10 @@ function newBannedNames(){
 }
 function markBannedSeen(){ LS.set(bannedSeenKey(), [...closedOppNames()]); }
 
+// Game Log summary strip: true splits the record into Games / Wins / Draws / Losses and drops the
+// White and Black Win % tiles (the colour filter above already recomputes the strip). Set to false
+// to get the previous strip back, unchanged — see the branch inside renderSummary.
+const SUMMARY_WDL = true;
 function renderSummary(list){
   BANNED_NEW = newBannedNames();   // fresh here too — opponent lookup re-renders the summary alone
   const s=$("summary");
@@ -15823,12 +15896,31 @@ function renderSummary(list){
   const avgAcc=accs.length ? (accs.reduce((a,b)=>a+b,0)/accs.length).toFixed(1) : "—";
   const bannedN=(F.banned?visibleGames({ignoreBanned:true}):list).filter(g=>g.oppStatus&&g.oppStatus.startsWith("closed")).length;
   const oppsLookedUp=list.some(g=>g.oppStatus);   // has "Look up opponents" run at all?
+  // ---- record: one win% tile, or wins/draws/losses split three ways ----
+  // Set SUMMARY_WDL=false to restore the previous strip exactly — a single Record tile showing
+  // wins/total, plus the White Win % and Black Win % tiles. Nothing else in the file depends on
+  // which branch runs, so the flag is the whole revert.
+  //
+  // Why the split is the default: wins/total quietly files every draw under "not a win", so a
+  // 49.2% record is really 49.2 W / 3.9 D / 46.8 L. Three figures that sum to 100 can't mislead,
+  // and they save the reader working out what the remainder was.
+  const pctOf=n=>list.length?(100*n/list.length).toFixed(1):"0.0";
+  const recordTiles = SUMMARY_WDL
+    ? `<div class="stat"><div class="k">Games</div><div class="v">${list.length}</div></div>
+    <div class="stat" title="${w} of the ${list.length} games shown"><div class="k">Wins</div><div class="v res win">${pctOf(w)}% <small>${w}</small></div></div>
+    <div class="stat" title="${d} of the ${list.length} games shown — a win rate on its own hides these"><div class="k">Draws</div><div class="v">${pctOf(d)}% <small>${d}</small></div></div>
+    <div class="stat" title="${l} of the ${list.length} games shown"><div class="k">Losses</div><div class="v res loss">${pctOf(l)}% <small>${l}</small></div></div>`
+    : `<div class="stat"><div class="k">Record</div><div class="v">${list.length?(100*w/list.length).toFixed(1):"0.0"}% <small>${w}/${l}/${d}</small></div></div>`;
+  // The colour filter above already recomputes this whole strip, so a White/Black tile only
+  // pre-answers one of its three positions — and only for this one stat.
+  const colourTiles = SUMMARY_WDL ? "" :
+    `<div class="stat"><div class="k">White Win %</div><div class="v">${wr(asW)} <small>${wc(asW)}</small></div></div>
+    <div class="stat"><div class="k">Black Win %</div><div class="v">${wr(asB)} <small>${wc(asB)}</small></div></div>`;
   s.innerHTML=`
-    <div class="stat"><div class="k">Record</div><div class="v">${list.length?(100*w/list.length).toFixed(1):"0.0"}% <small>${w}/${l}/${d}</small></div></div>
+    ${recordTiles}
     <div class="stat"><div class="k">Last 10</div><div class="v">${last10}</div></div>
     <div class="stat elopop" data-elo="${eloData}"><div class="k">Elo (Peak)</div><div class="v">${eloTc?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${TC_COLOR[eloTc]||"var(--dim)"};vertical-align:2px;margin-right:3px"></span>`:""}${cur} <small>(${peak})</small></div></div>
-    <div class="stat"><div class="k">White Win %</div><div class="v">${wr(asW)} <small>${wc(asW)}</small></div></div>
-    <div class="stat"><div class="k">Black Win %</div><div class="v">${wr(asB)} <small>${wc(asB)}</small></div></div>
+    ${colourTiles}
     <div class="stat"><div class="k">Castled Win %</div><div class="v">${wr(cast)} <small>${wc(cast)}</small></div></div>
     <div class="stat"><div class="k">No-castle Win %</div><div class="v">${wr(noCast)} <small>${wc(noCast)}</small></div></div>
     <div class="stat" title="Average game length for games that went at least ${MIN_REAL_MOVES} moves.${skipped?` ${skipped} game${skipped===1?"":"s"} under ${MIN_REAL_MOVES} moves (instant abandons and walkovers) ${skipped===1?"is":"are"} excluded.`:""}"><div class="k">Moves/g</div><div class="v">${avgMoves}</div></div>
@@ -16405,7 +16497,7 @@ document.addEventListener("click",e=>{
 const logEl=$("changelog");
 // The newest changelog version. Bump this whenever a new entry is added at the top, and the
 // changelog button shows an unread dot until the reader opens it once at this version.
-const LATEST_LOG_V="1.1.1";
+const LATEST_LOG_V="1.1.2";
 function refreshLogDot(){
   const dot=$("logDot"); if(!dot) return;
   const seen=LS.get("rookbook:log:seen");
