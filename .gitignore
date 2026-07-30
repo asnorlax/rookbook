@@ -9,3 +9,8 @@ desktop.ini
 
 # Netlify local dev
 .netlify/
+
+# Local test artifacts — never deploy these
+_calib.html
+_tmp-*
+*.bak-*

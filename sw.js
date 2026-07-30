@@ -49,7 +49,13 @@ self.addEventListener("fetch", (e) => {
          index.html with any max-age, this "network first" fetch quietly returns the
          browser's stale copy, we store that, and hand it back — a deploy then never
          reaches anyone on a normal refresh, only on a hard one (which bypasses both the
-         HTTP cache and this worker). `cache: "no-store"` forces a real network trip.
+         HTTP cache and this worker). `cache: "no-cache"` forces a real network trip.
+
+         NOT "no-store": that bypasses the HTTP cache in BOTH directions, so no validator
+         is ever stored and If-None-Match is never sent — a 304 becomes impossible and every
+         visit re-downloads the whole page (~400KB gzipped). "no-cache" still revalidates on
+         every navigation, so a deploy always wins and a stale copy is never served, but an
+         unchanged page costs a ~300-byte 304 instead of the full body.
 
          Only the page needs it. Fonts, icons and chess.js barely change, so letting them
          come from the HTTP cache is free speed.
@@ -58,7 +64,7 @@ self.addEventListener("fetch", (e) => {
          "navigate" cannot be reconstructed with new options, which throws in some
          browsers. Navigations are same-origin GETs, so the URL is enough. */
       const fresh = isPage
-        ? await fetch(url.href, { cache: "no-store", credentials: "same-origin" })
+        ? await fetch(url.href, { cache: "no-cache", credentials: "same-origin" })
         : await fetch(e.request);
 
       // Don't poison the cache with 404s or 500s. Opaque responses (status 0) are the
