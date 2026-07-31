@@ -390,7 +390,8 @@
       <p class="sub">On Chess.com, Game Review is one game a day until you subscribe. rookbook
         reviews <b>any game, move by move</b>, with an engine running in your browser &mdash; the
         blunders, the mistakes, and the checkmates you walked past, each one replayed on the board
-        at the exact position. No daily limit, no account, no paywall.</p>
+        at the exact position. No daily limit, no account, no paywall.
+        <a href="/free-chess-game-review.html">How it compares with Chess.com&rsquo;s Game Review &rarr;</a></p>
       <div class="revcount" id="revCount" hidden></div>
     </div>
     <div class="card">
@@ -537,6 +538,7 @@
       <a href="/how-to-stop-blundering.html">how to stop blundering</a> &middot;
       <a href="/do-you-actually-tilt.html">do you actually tilt?</a> &middot;
       <a href="/why-do-i-lose-on-time.html">why you lose on time</a> &middot;
+      <a href="/free-chess-game-review.html">free chess.com game review</a> &middot;
       <a href="/how-to-review-your-chess-games.html">how to review your games</a> &middot;
       <a href="/glossary.html">glossary</a> &middot;
       <a href="/features.html">all features</a>
@@ -645,42 +647,40 @@
     });
   })();
 
-  // social proof: games run through the free reviewer. Same GoatCounter-counter trick as the
-  // lookup tally below, but gated — the event only started counting on 31 Jul 2026, so it stays
-  // invisible until it clears a floor worth bragging about rather than showing a cold-start number.
-  (function(){
-    var el=document.getElementById("revCount"); if(!el) return;
-    var FLOOR=250;
-    // Peek at the live number before it clears the floor: load the page with ?peek=1 (or #peek).
-    // Shows the real tally with a marker so it can never be mistaken for the public line.
-    var peek=/[?&]peek=1/.test(location.search)||location.hash==="#peek";
-    // GoatCounter answers 404 — with a perfectly good {"count":"0"} body — for an event that has
-    // never fired. r.ok would throw that away, so parse the body regardless of status.
-    // Cache-bust: GoatCounter serves this endpoint Cache-Control:public with no max-age, so a
-    // browser that once read {"count":"0"} keeps serving that copy for hours and the counter
-    // looks permanently stuck. cache:"no-store" alone isn't enough on every browser.
-    fetch("https://rookbookchess.goatcounter.com/counter/event/review-run.json?t=" + Date.now(),
-          { cache: "no-store" })
-      .then(function(r){ return r.text(); })
-      .then(function(t){ var d=null; try{ d=JSON.parse(t); }catch(e){ return; }
-        if(!d||d.count==null) return;
-        var n=parseInt(String(d.count).replace(/,/g,""),10)||0;
-        if(n<FLOOR && !peek) return;
-        el.innerHTML="<b>"+n.toLocaleString()+"</b> chess.com games reviewed for free on rookbook"
-          +(n<FLOOR?' <span style="opacity:.6">(preview — hidden publicly until '+FLOOR+')</span>':"");
-        el.hidden=false; })
-      .catch(function(){});
-  })();
+  /* Both social-proof counters, from ONE first-party request.
 
-  // social proof: total chess.com accounts looked up on Rookbook (reads the app's GoatCounter fetch tally)
+     The lookup tally moved to /api/lookups a while back; this reviewed-games tally was left
+     reading GoatCounter, and the two disagreed wildly — GoatCounter said 1 where the real
+     figure was 20. It dedups per visitor per day, every blocklist eats gc.zgo.at, and it is
+     switched off entirely for the site owner, so it was only ever counting a fraction. Same
+     origin, no dedup, nothing to block.
+
+     One fetch rather than two: it is the same endpoint either way, and Netlify bills per
+     function invocation. */
   (function(){
-    var el=document.getElementById("lookupCount"); if(!el) return;
-    // first-party (see netlify/functions/lookups.mjs) — GoatCounter undercounted this badly
+    var revEl=document.getElementById("revCount");
+    var lookEl=document.getElementById("lookupCount");
+    if(!revEl && !lookEl) return;
+    var FLOOR=250;   // reviewed-games stays private until it is a number worth showing
+    // Peek at the live number before it clears the floor: load with ?peek=1 (or #peek).
+    // Marked, so a preview figure can never be mistaken for the public line.
+    var peek=/[?&]peek=1/.test(location.search)||location.hash==="#peek";
     fetch("/api/lookups")
       .then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(d){ if(!d||d.count==null) return;
-        var n=parseInt(String(d.count).replace(/,/g,""),10)||0; if(n<1) return;
-        el.innerHTML="<b>"+n.toLocaleString()+"</b> chess.com accounts looked up on Rookbook"; })
+      .then(function(d){
+        if(!d) return;
+        if(lookEl && d.count!=null){
+          var l=parseInt(String(d.count).replace(/,/g,""),10)||0;
+          if(l>0) lookEl.innerHTML="<b>"+l.toLocaleString()+"</b> chess.com accounts looked up on Rookbook";
+        }
+        if(revEl && d.reviews!=null){
+          var n=parseInt(String(d.reviews).replace(/,/g,""),10)||0;
+          if(n<FLOOR && !peek) return;
+          revEl.innerHTML="<b>"+n.toLocaleString()+"</b> chess.com games reviewed for free on rookbook"
+            +(n<FLOOR?' <span style="opacity:.6">(preview — hidden publicly until '+FLOOR+')</span>':"");
+          revEl.hidden=false;
+        }
+      })
       .catch(function(){});
   })();
 </script>

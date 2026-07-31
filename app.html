@@ -302,7 +302,7 @@
   header .sub .ghostlink{font-family:"Poppins",var(--sans);font-weight:500;letter-spacing:.05em;text-transform:lowercase}
 
   /* ---------- controls ---------- */
-  .controls[hidden], .tabs[hidden], .filters[hidden]{display:none !important}
+  .controls[hidden], .filters[hidden]{display:none !important}
   /* This bar sits above every page, so its height is a tax on all of them. The label was a
      full line away from the control it names; 1px closes that without the two touching, and
      trimming the block padding takes the rest. */
@@ -402,26 +402,6 @@
   .rowsctl .rlabel{margin-left:auto}
 
   /* ---------- tabs ---------- */
-  .tabs{
-    display:flex;flex-wrap:nowrap;overflow-x:auto;
-    border:2px solid var(--rule);border-top:none;border-bottom:1px solid var(--rule);
-    background:#0A0B0C;
-  }
-  .tabs::-webkit-scrollbar{height:5px}
-  .tabs::-webkit-scrollbar-thumb{background:var(--rule)}
-  .tab{
-    display:inline-block;text-decoration:none;
-    background:transparent;border:none;color:var(--dim);
-    font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
-    padding:11px 14px;cursor:pointer;font-weight:700;
-    border-right:1px solid var(--edge);
-    white-space:nowrap;
-  }
-  .tab:hover{color:var(--ink)}
-  .tab.active{
-    background:var(--panel);color:var(--green);
-    box-shadow:inset 0 -2px 0 var(--green);
-  }
 
   /* ---------- filters ---------- */
   .fsearch{display:inline-flex;align-items:center;border:1px solid var(--rule);background:var(--panel2)}
@@ -1441,11 +1421,6 @@
   }
   .mailto:hover{border-bottom-color:var(--green)}
   .wel-sub .mailto{font-weight:700}
-  .copyright{
-    margin-top:10px;padding-top:9px;
-    border-top:1px solid var(--rule);
-    font-size:10.5px;color:var(--dim);opacity:.75;
-  }
 
   .morewrap{
     border:2px solid var(--rule);border-top:none;
@@ -2212,6 +2187,12 @@
   /* A real cursor drag-selects the grid as text, painting the selection over the whole
      board and eating the click. Synthetic clicks never do this, so it only shows up when
      a person actually uses it. Boards are never worth selecting anyway. */
+  /* The trainer board borrows .bgrid.big from Review, where the rule is width:100% so the board
+     can claim the space freed by moving the eval curve out of that column. Review then pins it
+     with flex inside .revboard — nothing did that here, so the trainer board simply grew to the
+     full width of its card. Capped and centred. 400px sits close to the 8×54px it rendered at
+     before the class was shared, and it stays fluid below that on narrow screens. */
+  #mtBoard{width:100%;max-width:400px;margin:0 auto}
   .mtrain .bwrap, .mtrain .bgrid, .mtrain .bsq{
     user-select:none;-webkit-user-select:none;-ms-user-select:none;
     -webkit-tap-highlight-color:transparent}
@@ -2354,9 +2335,15 @@
   .mvtable{width:100%;border-collapse:collapse;font-size:13.5px;min-width:0}
   .mvtable thead th{
     position:sticky;top:0;background:#0A0B0C;z-index:2;
-    font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+    font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
     padding:7px 8px;text-align:left;border-bottom:1px solid var(--rule);
   }
+  /* The name keeps its own casing and normal tracking. The heading is uppercase with .12em
+     letter-spacing, which is fine for the word WHITE and turns a username into something you
+     have to decode. Ellipsised rather than wrapped — the header is sticky, and a two-line one
+     would shift every row under it. */
+  .mvtable thead th .mvwho{text-transform:none;letter-spacing:0;font-weight:400;
+    font-size:11.5px;color:var(--read);margin-left:5px;white-space:nowrap}
   .mvtable td{padding:5px 5px;border-bottom:1px solid rgba(255,255,255,.04)}
   .mvn{color:var(--dim);width:34px;text-align:right;font-variant-numeric:tabular-nums}
   .mvcell{
@@ -2425,7 +2412,11 @@
     text-transform:none;padding:7px 8px;cursor:pointer;display:flex;align-items:center;
     justify-content:center;gap:6px;transition:background .12s,border-color .12s,color .12s}
   .rsw:hover{color:var(--ink);border-color:var(--ink)}
-  .rsw.on{background:var(--panel);border-color:var(--green);color:var(--green)}
+  /* Selected reads as selected, not as good. Green is this app's usual "active" colour, but
+     these two buttons sit directly under a green ENGINE'S CHOICE tile where green means a move
+     you got right — so the same green ended up decorating a list of blunders. Neutral: brighter
+     text, a solid border and a lifted background carry the state without claiming a verdict. */
+  .rsw.on{background:var(--panel);border-color:var(--ink);color:var(--ink)}
   .rsw-n{font-size:inherit;opacity:.75;font-variant-numeric:tabular-nums}
   /* one bordered box for whichever list is showing, so it reads as a panel rather than as
      loose rows floating under a pair of buttons */
@@ -2434,6 +2425,13 @@
     background:var(--bg);padding:8px 10px;margin:0}
   #panel-review .revmoves{border:1px solid var(--rule);border-radius:6px}
   #panel-review .revempty{color:var(--dim);font-size:11.5px;line-height:1.6}
+  /* Stands in for the whole board/sidebar block when there is no game to review, rather than
+     leaving a skeleton of controls wrapped around nothing. */
+  #revEmpty{border:1px dashed var(--rule);border-radius:8px;background:var(--panel2);
+    padding:30px 24px;margin:18px auto 0;max-width:560px;text-align:center}
+  #revEmpty .ree-h{font-size:14.5px;font-weight:700;color:var(--ink);margin-bottom:8px}
+  #revEmpty .ree-p{font-family:var(--sans);font-size:12.5px;line-height:1.7;color:var(--read);margin:0}
+  #revEmpty .ree-p b{color:var(--ink)}
   #panel-review .rh-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .rh-sub b{color:var(--ink)}
   .revgrid{
@@ -3592,6 +3590,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <button class="chip" id="revNext">Next &#8594;</button>
       <span class="isub" id="revMeta" style="margin:0"></span>
     </div>
+    <div id="revEmpty" hidden></div>
     <div class="reviewwrap">
       <div class="revboard">
         <!-- Name-and-clock bars hug the board the way every chess site arranges them: the
@@ -7407,6 +7406,9 @@ function render(keepTab){
   RENDER_LIST=list;
   for(const t of Object.keys(TAB_RENDER)) TAB_DIRTY.add(t);
   renderTabPanels(CURRENT_TAB);
+  /* A background refresh that finally brings in games with moves should light Review up without
+     the user having to go and poke the picker. */
+  try{ if(typeof syncReviewEmpty==="function") syncReviewEmpty(); }catch(e){}
 }
 
 let RENDER_LIST=null;
@@ -15749,6 +15751,40 @@ function median(a){
 
 // ---------------------------- REVIEW ----------------------------
 let REV={game:null, moves:[], ply:0, chess:null};
+/* Auto-analysis. Picking a game is already the user saying "show me this one", so making them
+   hunt for a second button is friction on the one path the site most wants finished — and
+   reviewGame() has always auto-started when you jump in from a table link, so this only brings
+   the picker and the Prev/Next game buttons in line with that.
+
+   Two things keep it from being rude. The settle delay: Prev/Next steps through games one at a
+   time, and without a pause a walk through five games would kick off five engine runs. And
+   REV_NOAUTO: pressing Stop is the user saying no, so that game stays stopped for the session
+   rather than restarting itself the moment they come back to it. */
+let REV_AUTO_T=null;              // pending auto-start, cancelled by any further navigation
+let REV_AUTO_PENDING=false;       // set just before an auto-start so analyzeGame can tell how it began
+let REV_AUTO_RUN=false;           // true while THIS run is one nobody asked for
+/* Keyed on gid(), not g.url. Plenty of games have no url at all — every game in the sample
+   account, for one — and keying on it meant Stop was quietly forgotten for exactly those. */
+const REV_NOAUTO=new Set();       // gid() of every game the user explicitly stopped
+const REV_AUTO_DELAY=1000;
+function scheduleAutoAnalysis(){
+  clearTimeout(REV_AUTO_T); REV_AUTO_T=null;
+  const g=REV.game;
+  if(!g || !REV.moves.length || REV_RUNNING) return;
+  if(REV_ANALYSIS) return;                       // cached, or a partial worth keeping — restarting would bin it
+  if(REV_NOAUTO.has(gid(g))) return;
+  const panel=$("panel-review");
+  if(panel && panel.hidden) return;              // never spend a phone's battery on a tab nobody is looking at
+  REV_AUTO_T=setTimeout(()=>{
+    REV_AUTO_T=null;
+    // Re-check everything: a second is long enough for the user to have moved on.
+    if(REV_RUNNING || REV_ANALYSIS || REV.game!==g) return;
+    if(REV_NOAUTO.has(gid(g))) return;
+    const pn=$("panel-review"); if(pn && pn.hidden) return;
+    REV_AUTO_PENDING=true;
+    analyzeGame();
+  }, REV_AUTO_DELAY);
+}
 let REV_AUTO=null;        // autoplay interval, when the middle nav button is running
 let REV_AUTO_TICK=false;  // true only while autoplay itself is stepping, so revGo can tell it apart
 function reviewable(){ return games.filter(g=>g.pgn && g.pgn.length>20); }
@@ -15842,7 +15878,7 @@ function fillReviewPicker(){
   pop.innerHTML=list.map((g,i)=>reviewRowHTML(g,i)).join("");
   updateRevPickLabel();
 }
-function loadReview(idx){
+function loadReview(idx, opts={}){
   const list=reviewable();
   const g=list[idx];
   if(!g) return;
@@ -15884,6 +15920,9 @@ function loadReview(idx){
   $("revAnStatus").textContent="";
   updateRevPickLabel();
   renderReview();
+  syncReviewEmpty();   // REV.game is set by now, so this only reveals the board block
+  // opts.auto===false for callers that kick the run off themselves, or deliberately don't
+  if(opts.auto!==false) scheduleAutoAnalysis();
 }
 
 /* ============ EXPERIMENTAL: per-move engine analysis in Review ============
@@ -15902,8 +15941,8 @@ function reviewGame(url, autoAnalyze=true, opts={}){
   showTab("review", opts);
   if(!opts.fromHash) writeHash("review", {game:gameId(url)});
   $("revPick").value=String(idx);
-  loadReview(idx);
-  if(autoAnalyze && !REV_RUNNING) analyzeGame();
+  loadReview(idx, {auto:false});   // this function decides for itself, immediately, just below
+  if(autoAnalyze && !REV_RUNNING){ REV_AUTO_PENDING=true; analyzeGame(); }
 }
 document.addEventListener("click",e=>{
   const a=e.target.closest("[data-review]");
@@ -16012,7 +16051,16 @@ const winPctOf = cp => cp==null ? null
   : cp>=MATE_CP ? 100 : cp<=-MATE_CP ? 0 : winPct(cp);
 
 async function analyzeGame(){
-  if(REV_RUNNING){ REV_CANCEL=true; return; }
+  /* Stop means stop. Without this the game would re-arm itself the next time it was opened,
+     which is the single most annoying thing an auto-starting feature can do. */
+  if(REV_RUNNING){
+    REV_CANCEL=true;
+    if(REV.game) REV_NOAUTO.add(gid(REV.game));
+    REV_AUTO_PENDING=false;
+    return;
+  }
+  clearTimeout(REV_AUTO_T); REV_AUTO_T=null;
+  REV_AUTO_RUN=REV_AUTO_PENDING; REV_AUTO_PENDING=false;
   const g=REV.game;
   if(!g || !REV.moves.length) return;
   REV_RUNNING=true; REV_CANCEL=false; REV_FOLLOW=true; REV_SKIPS=0;
@@ -16140,7 +16188,11 @@ async function analyzeGame(){
       const pct=Math.round(100*(i+1)/REV.moves.length);
       $("revProg").hidden=false;
       $("revProgFill").style.width=pct+"%";
-      $("revAnStatus").textContent=`Analyzing\u2026 ${pct}%`;
+      /* Spelled out for the whole run, not flashed once at the start. An analysis nobody asked
+         for has to explain itself, and the Stop button is the thing they most need to find. */
+      $("revAnStatus").textContent = REV_AUTO_RUN
+        ? `Analyzing automatically\u2026 ${pct}% · press Stop to cancel`
+        : `Analyzing\u2026 ${pct}%`;
       if(REV_FOLLOW){ REV.ply=i+1; revPaintBoard(); }
       // Bank the work periodically. A full analysis is minutes of engine time, and on a phone a
       // backgrounded tab can be evicted mid-run — losing every search paid for. done/total ride
@@ -16185,7 +16237,9 @@ async function analyzeGame(){
   // "Analysis complete." Nothing re-rendered afterwards, so it stayed there for good.
   syncAnalyzeCta();
 }
-$("revAnalyze").addEventListener("click",analyzeGame);
+/* Wrapped, not passed by reference: a direct binding hands the click Event in as the first
+   argument, and any future parameter would silently read it as truthy. */
+$("revAnalyze").addEventListener("click",()=>{ REV_AUTO_PENDING=false; analyzeGame(); });
 // Re-run from the results row. Same handler, so Stop and the guard against a second run come free.
 // The call to action only belongs on screen while there's something to call for. Once a game is
 // fully analyzed the button is a large green box saying "done" in the best spot on the panel, so
@@ -16408,6 +16462,39 @@ function evalCurve(){
 
 /* ========== /EXPERIMENTAL: per-move engine analysis ========== */
 
+/* Review with no game loaded used to render its entire skeleton around one that didn't exist:
+   an empty board frame, an "Analyze this game" button with nothing to analyze, five navigation
+   buttons, and a "run the engine to see the evaluation curve" placeholder — all wrapped around
+   a void. renderReview() returns early when there's no game, so none of it was ever filled in.
+
+   There are two ways to land there, and they need different words. The tab can open before the
+   cache has finished loading, and nothing afterwards ever told Review to try again — so it asks
+   for a game every time this runs, which is what makes that case recover on its own. Or the
+   cache is a "lite" one, written without PGNs when browser storage fills up (see slimNoPgn):
+   those games restore fine and reviewable() correctly rejects every one of them, so there is
+   genuinely nothing to review until a refetch — and the old skeleton gave no hint of that. */
+function syncReviewEmpty(){
+  const panel=$("panel-review"); if(!panel) return;
+  const box=$("revEmpty"); if(!box) return;
+  const list=(typeof reviewable==="function") ? reviewable() : [];
+  if(!REV.game && list.length){ loadReview(0); return; }   // loadReview calls back in here
+  const has=!!REV.game;
+  const wrap=panel.querySelector(".reviewwrap");
+  const top=panel.querySelector(".twin");
+  if(wrap) wrap.hidden=!has;
+  if(top) top.hidden=!has;          // a picker with nothing to pick is just another dead control
+  box.hidden=has;
+  if(has) return;
+  const anyGames=(typeof games!=="undefined" && games && games.length);
+  box.innerHTML = anyGames
+    ? `<div class="ree-h">These saved games don't include their moves</div>
+       <div class="ree-p">Rookbook drops the move lists when your browser's storage fills up, so the
+       rest of your history survives — but Review needs them. <b>Fetch games again</b> to turn it
+       back on. Nothing is lost on chess.com.</div>`
+    : `<div class="ree-h">No games loaded yet</div>
+       <div class="ree-p">Fetch your games and Review opens on your most recent one.</div>`;
+}
+
 function renderReview(){
   const g=REV.game;
   if(!g) return;
@@ -16580,6 +16667,22 @@ function renderReview(){
     `;   // material, think time and the engine number now live on the board bars, the move
          // rows and the eval bar — the three-cell strip under the header restated all three
 
+  /* Carry keyboard focus across the rebuild. Every control in these two strips re-renders the
+     block it lives in, so the button being pressed is destroyed mid-press: focus falls to
+     <body>, a keyboard user is thrown back to the top of the document, and a screen reader
+     announces nothing at all — no confirmation that the toggle they just pressed fired.
+     Captured before, restored after, and only for focus that was ALREADY inside these blocks,
+     so it can never yank focus from somewhere else on the page. */
+  const ae=document.activeElement;
+  let refocusSel=null;
+  if(ae && ($("revCounts").contains(ae) || $("revInfo").contains(ae))){
+    if(ae.dataset && ae.dataset.revfocus)      refocusSel=`[data-revfocus="${ae.dataset.revfocus}"]`;
+    else if(ae.dataset && ae.dataset.revlist)  refocusSel=`[data-revlist="${ae.dataset.revlist}"]`;
+    else if(ae.id==="revHelp")                 refocusSel="#revHelp";
+    // Close removes itself along with the panel; the "?" that opened it is where you came from
+    else if(ae.id==="revHelpClose")            refocusSel="#revHelp";
+  }
+
   $("revCounts").innerHTML = verdictBar;
   // One list, two views. The moves that cost something come first because that is what a review
   // is for; the full move list is a click away for when you want to walk the whole game. They
@@ -16631,6 +16734,13 @@ function renderReview(){
     }
   }
 
+  /* Restored last, after the scroll work above, and with preventScroll — focusing an element
+     normally scrolls it into view, which would undo the offset just restored. */
+  if(refocusSel){
+    const back=$("revCounts").querySelector(refocusSel) || $("revInfo").querySelector(refocusSel);
+    if(back && !back.disabled) try{ back.focus({preventScroll:true}); }catch(e){ back.focus(); }
+  }
+
   // ---- move table: one row per full move, with what it cost and how long you took ----
   const times = revMine(g) || [];
   const cell=(i)=>{
@@ -16673,8 +16783,8 @@ function renderReview(){
     <table class="mvtable">
       <thead><tr>
         <th></th>
-        <th colspan="3">White</th>
-        <th colspan="3">Black</th>
+        <th colspan="3">White${revWho(g.color==="W")}</th>
+        <th colspan="3">Black${revWho(g.color==="B")}</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
@@ -16727,6 +16837,18 @@ function revClockAt(par, ply){
   const g=REV.game;
   return (g && g.times && g.times.base!=null) ? g.times.base : null;
 }
+/* Who was which colour, for the move table's two headings. They sit directly under a board
+   whose bars already name both players, so a bare "White" made you map colour to person on
+   every glance. Same fallback as the bars: "You" only when we genuinely don't know whose
+   account is loaded (demo data, a direct deep link). */
+function revWho(isMe){
+  const g=REV.game; if(!g) return "";
+  const nm = isMe ? ((typeof SHOWN_USER==="string" && SHOWN_USER) ? SHOWN_USER : "You") : g.oppName;
+  if(!nm) return "";
+  const esc=String(nm).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  return ` <span class="mvwho" title="${esc}">(${esc})</span>`;
+}
+
 function revPaintBars(){
   const g=REV.game, top=$("revBarTop"), bot=$("revBarBot");
   if(!top || !bot) return;
@@ -16977,7 +17099,7 @@ function showTab(which, opts={}){
   applyTabActions(which);
   renderTabPanels(which);             // first visit (or stale since last data change) renders now
   syncSidenav(which);
-  if(which==="review" && !REV.game && reviewable().length) loadReview(0);   /* EXPERIMENTAL */
+  if(which==="review") syncReviewEmpty();   /* loads a game if there is one, explains it if not */
   if(which==="compare") compareEmptyState();
   if(which==="lookup" && !SCOUT) scoutEmptyState();
   // demo mode: these two pages need a second player — conjure one so they're not empty

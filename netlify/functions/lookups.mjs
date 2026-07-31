@@ -16,7 +16,7 @@
  * leave your browser" stays literally true.
  *
  * ROUTES
- *   GET  /api/lookups            -> {count}          public, drives the on-site counter
+ *   GET  /api/lookups            -> {count,reviews}  public, drives both on-site counters
  *   GET  /api/stats              -> every counter     private-ish, see STATS_KEY below
  *   POST /api/stats {k,n}        -> increments k by n (n defaults to 1)
  *   POST /api/lookups            -> legacy alias for {k:"lookups"}
@@ -99,9 +99,21 @@ export default async (req) => {
     } catch { return json({ ok: false, degraded: true }); }
   }
 
-  const data = await read(false);
+  /* Strong consistency for the stats dump, eventual for the public counter — deliberately not
+     the same choice. /api/stats is loaded by hand a few times a day to check a number that was
+     just incremented, and reading it stale is the whole complaint; the extra cost is nothing at
+     that volume. /api/lookups is hit by every visitor to the homepage, where the figure is social
+     proof and being a few seconds behind is invisible. Paying for consistency there would add
+     latency to a public page to fix a problem nobody can see. */
+  const data = await read(!isLookupRoute);
 
-  if (isLookupRoute) return json({ count: BASE_LOOKUPS + (Number(data.lookups) || 0) });
+  /* `reviews` rides along on the public route on purpose. The homepage needs it, and pointing a
+     public page at /api/stats would break the moment STATS_KEY is set — and would hand every
+     visitor the whole counter dump to read a single number. One request now serves both figures. */
+  if (isLookupRoute) return json({
+    count: BASE_LOOKUPS + (Number(data.lookups) || 0),
+    reviews: Number(data.reviews) || 0,
+  });
 
   const gate = Netlify.env.get("STATS_KEY");
   if (gate && url.searchParams.get("key") !== gate) return json({ error: "unauthorized" }, 401);
