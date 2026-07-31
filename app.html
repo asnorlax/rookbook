@@ -3785,7 +3785,14 @@ const T = {
   // Review judges in POINTS OF WIN CHANCE, not pawns. Two bands only: at depth 13 on a 2018
   // engine, a third tier ("inaccuracy", ~5 points) is narrower than the engine's own error, so
   // it would be assigned close to at random. 20 is chess.com's published blunder gate.
-  WP_BLUNDER:      20,
+  /* Calibrated against chess.com's own review on four of the user's games (31 Jul 2026).
+     Their mistake band matched ours closely — 22 of ours against 19 of theirs — but we called
+     11 blunders where they called 4. The whole error sat in this one line: everything we flagged
+     between -20% and -25% they classify as a mistake. At 30 the two clean games drop to zero
+     blunders, matching them exactly, and the messy game keeps the genuinely severe ones.
+     WP_MISTAKE stays at 10; that band is already right. Re-derive if the engine or depth
+     changes, since both move the underlying numbers. */
+  WP_BLUNDER:      30,
   WP_MISTAKE:      10,
   WIN_RATE_GOOD:   58,     // percent
   WIN_RATE_BAD:    42
@@ -15878,7 +15885,14 @@ let REV_LIST="issues";   // which view the sidebar list is showing: "issues" | "
 let REV_MISSES={};      // ply -> missed-mate record for the loaded game (from the mate scan)
 // Bump when the meaning of drops[] changes. m:1 was pawns lost; m:2 is points of win chance.
 // A stored analysis without the current stamp is ignored rather than misread.
-const REV_METRIC=2;
+/* 3 (31 Jul 2026): every one of your moves now gets a best-move search, so bests[] is complete.
+   Analyses saved under 2 only searched the flagged moves, leaving bests[] sparse — their blunder
+   and mistake counts would still be right (thresholds are applied at render, not stored) but
+   "engine's choice" would read near-zero forever, which is the exact misleading number this
+   change exists to remove. Bumping rejects them, so a stale review shows as un-analysed and the
+   picker correctly shows no tick until it is re-run. Re-analysis is lazy: it costs ~19s, and
+   only for a game you actually open. */
+const REV_METRIC=3;
 const REVDIR_KEY="rookbook:revdir";
 let REVDIR=LS.get(REVDIR_KEY) || {};
 // keep only the 40 most recent analyses — ~70 numbers per game, so this stays tiny
@@ -16005,16 +16019,27 @@ async function analyzeGame(){
       // without needing a rule to skip it — and throwing away a won game now registers, which the
       // cutoff used to hide.
       if(m.color===me && evals[i]!==null){
-        // SCREEN before paying for the expensive part. The naive swing across your own move is
-        // always at least as large as the true cost against the engine's best: playing the best
-        // move still hands the opponent a tempo, so winPct(after best) <= winPct(before), and
-        // therefore true <= naive. A small naive swing cannot be hiding a real mistake.
-        // Skipping those saves a best-move search AND a second eval on the majority of moves,
-        // which are ordinary. A margin below the mistake line keeps it well clear of eval noise.
+        /* The screen still decides whether the move can have COST anything: the naive swing
+           across your own move is always at least as large as the true cost against the engine's
+           best, since playing the best move still hands the opponent a tempo — so
+           winPct(after best) <= winPct(before) and therefore true <= naive. A small naive swing
+           cannot be hiding a real mistake, and those moves get drops[i]=0 without a second eval.
+
+           But it no longer skips the best-move SEARCH. Knowing a move cost nothing is not the
+           same as knowing it was the engine's choice, and that search is the only way to tell.
+           Skipping it left bests[i] null on ~75% of moves, so the "engine's choice" count could
+           never rise above a handful — it read 0 or 1 against chess.com's 7 to 19 "Best" on the
+           same games. The screen was written when the engine was asm.js and seven times slower;
+           on the WASM build this costs about three seconds a game, which is worth paying for a
+           number that is otherwise a lie. */
         const naive = winPctOf(evals[i]) - winPctOf(evals[i+1]);
-        if(naive < T_MISTAKE*0.8){
+        const cheap = naive < T_MISTAKE*0.8;
+        if(cheap){
           drops[i]=0;
           REV_SKIPS++;
+          // still ask what the engine would have played, purely to credit a match
+          const rq=await engineTask(()=>bestMoveFor(w, fenBefore, JUDGE_DEPTH, 8000));
+          if(rq && rq.san) bests[i]=rq.san;
         } else {
         const r=await engineTask(()=>bestMoveFor(w, fenBefore, JUDGE_DEPTH, 8000));
         if(r && r.san){
@@ -16077,6 +16102,17 @@ async function analyzeGame(){
     // Keyed off the game captured at entry, never REV.game, which may have moved on.
     rememberReview(g.url, REV_ANALYSIS);
     renderReview();
+    /* The picker's reviewed ticks are built from REVDIR, which only just gained this game — so
+       without a rebuild the game you literally just analysed is the one row in the list still
+       showing no tick. Rebuilt once here, on completion, NOT on the periodic banking above:
+       that fires every 24 plies and would blow away the dropdown's scroll position mid-run.
+       Scroll is preserved so a rebuild while the list is open doesn't jump it. */
+    try{
+      const pop=$("revPickPop");
+      const keepScroll = pop && !pop.hidden ? pop.scrollTop : null;
+      fillReviewPicker();
+      if(keepScroll!=null) pop.scrollTop = keepScroll;
+    }catch(e){}
   }catch(e){
     $("revAnStatus").textContent="Engine unavailable: "+e.message;
   }
@@ -16221,8 +16257,8 @@ function evalCurve(){
   const area=`
     <clipPath id="egClipW"><rect x="0" y="0" width="${W}" height="${mid}"/></clipPath>
     <clipPath id="egClipB"><rect x="0" y="${mid}" width="${W}" height="${H-mid}"/></clipPath>
-    <path d="${areaD}" fill="#D6DAD2" opacity="0.88" clip-path="url(#egClipW)"/>
-    <path d="${areaD}" fill="#0A0B0C" opacity="0.92" clip-path="url(#egClipB)"/>`;
+    <path d="${areaD}" fill="#EDEFEA" clip-path="url(#egClipW)"/>
+    <path d="${areaD}" fill="#08090A" clip-path="url(#egClipB)"/>`;
 
   // one hoverable, clickable segment per ply
   const segW=(W-2*padX)/Math.max(1,n-1);
@@ -16277,9 +16313,9 @@ function evalCurve(){
   // letterboxing it at the viewBox's aspect; the corner labels went with it — the eval bar
   // beside the board already says which way is White.
   return `<svg viewBox="0 0 ${W} ${H}" class="egsvg" preserveAspectRatio="none">
-    <rect x="0" y="0" width="${W}" height="${mid}" fill="rgba(255,255,255,.02)"/>
-    <line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="var(--rule)"/>
-    ${area}<path d="${d}" fill="none" stroke="rgba(214,218,210,.55)" stroke-width="1.2"/>
+    <rect x="0" y="0" width="${W}" height="${H}" fill="#1A1C1D"/>
+    <line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="rgba(255,255,255,.18)" stroke-dasharray="3 4"/>
+    ${area}
     ${marks}${cur}${segs}
   </svg>`;
 }
