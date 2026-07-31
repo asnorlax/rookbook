@@ -3890,14 +3890,22 @@ function track(name){
       window.goatcounter.count({ path:"event/"+name, title:name, event:true });
   }catch(e){}
 }
-// Profile-lookup counter: shows the running GoatCounter event/fetch tally on the welcome screen as
-// social proof. Read-only — the tally itself is racked up by track("fetch") on every lookup. Silent on fail.
+// Bump the first-party lookup tally. A bare POST — no username, no hash, no body — so nothing
+// identifying leaves the device. keepalive lets it survive the tab closing mid-fetch. Silent on
+// fail: a counter must never be able to break a lookup.
+function bumpLookups(){
+  try{ fetch("/api/lookups",{method:"POST",keepalive:true}).catch(()=>{}); }catch(e){}
+}
+// Profile-lookup counter on the welcome screen, as social proof.
+// Reads /api/lookups, not GoatCounter: gc.zgo.at is on every blocklist, and GoatCounter dedups
+// per visitor per day, so the old tally sat near 22 through the week the site was posted on
+// chess.com. Same-origin and undeduped, this counts what actually happened.
 (function lookupCounter(){
   const anchor=document.querySelector(".welcome .wel-sub");
   if(!anchor) return;
   const el=document.createElement("div"); el.className="lookup-count";
   anchor.insertAdjacentElement("afterend", el);
-  fetch("https://rookbookchess.goatcounter.com/counter/event/fetch.json")
+  fetch("/api/lookups")
     .then(r=>r.ok?r.json():null)
     .then(d=>{ if(!d||!d.count) return; const n=parseInt(String(d.count).replace(/[^0-9]/g,""),10);
       if(n>0) el.innerHTML=`<b>${n.toLocaleString()}</b> chess.com accounts looked up on Rookbook`; })
@@ -5890,6 +5898,7 @@ async function fetchGames(force){
     pushRecent(u, games);
     SHOWN_USER=u;                                 // remember whose games are on screen now
     track("fetch");                               // anonymous tally: an account was loaded (never which one)
+    bumpLookups();                                // same tally, first-party so ad blockers can't eat it
     enterApp();                                   // (deliberately does NOT change tabs)
     DEMO=false; $("demoBar").hidden=true; document.body.classList.remove("demo");
     // Point the address at whoever we just loaded. Only showTab and reviewGame used to

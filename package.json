@@ -1,0 +1,8 @@
+{
+  "name": "rookbook",
+  "private": true,
+  "description": "Static site — this package.json exists only so Netlify installs @netlify/blobs for netlify/functions/lookups.mjs. The site itself has no build step and no runtime dependencies.",
+  "dependencies": {
+    "@netlify/blobs": "^10.7.11"
+  }
+}

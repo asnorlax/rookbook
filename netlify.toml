@@ -10,6 +10,13 @@
   publish = "."
   command = ""
 
+# Node functions. netlify/functions is Netlify's default, but name it explicitly: this
+# directory holds lookups.mjs, which imports @netlify/blobs from package.json. Blobs must
+# NOT be imported from an edge function — the specifier doesn't resolve in the Deno edge
+# runtime and a bundling error there fails the whole build (see netlify/functions/lookups.mjs).
+[functions]
+  directory = "netlify/functions"
+
 [[edge_functions]]
   path = "/player/*"
   function = "player"

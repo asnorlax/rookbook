@@ -1,3 +1,8 @@
+# publish="." means the repo root is the served directory. Netlify installs node_modules there
+# to build netlify/functions/lookups.mjs, so slam the door on it explicitly rather than trusting
+# the file scanner to skip it.
+/node_modules/*   /   404
+
 # Clean, shareable player URLs: /player/<chess.com-username> serves the app (URL stays put),
 # and the app reads the username from the path and auto-loads it — no manual fetch.
 /player/*   /app.html   200

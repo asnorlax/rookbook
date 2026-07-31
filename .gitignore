@@ -10,6 +10,11 @@ desktop.ini
 # Netlify local dev
 .netlify/
 
+# Installed by Netlify so netlify/functions can use @netlify/blobs. publish="." means the
+# repo root IS the served directory, so this must never be committed — see _redirects for the
+# belt-and-braces 404 in case the build host leaves a copy behind.
+node_modules/
+
 # Local test artifacts — never deploy these
 _calib.html
 _tmp-*
