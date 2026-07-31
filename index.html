@@ -242,20 +242,33 @@
   .revcount{margin-top:16px;font-family:var(--mono);font-size:12.5px;color:var(--dim);
     border-left:2px solid var(--green);padding-left:11px}
   .revcount b{color:var(--win);font-size:15px}
-  /* banned-opponents card: strike-styled rows with the fair-play chip */
-  .bnlist{font-size:12.5px}
-  .bn-row{display:flex;align-items:center;gap:10px;padding:9px 11px;margin-bottom:6px;
-    border:1px solid var(--rule);border-left:3px solid #E0776C;border-radius:6px;
-    background:rgba(255,255,255,.015)}
-  .bn-name{font-family:var(--mono);font-weight:600;color:var(--ink);min-width:0;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .bn-chip{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
-    text-transform:uppercase;color:#E0776C;border:1px solid rgba(224,119,108,.45);
-    background:rgba(224,119,108,.08);border-radius:4px;padding:3px 7px;margin-left:auto}
-  .bn-n{flex:0 0 52px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--dim)}
-  .bn-sum{padding:8px 11px;margin-top:2px;font-size:12px;color:var(--dim);
+  .alsoline{font-size:15px;line-height:1.75;color:var(--dim);margin:0;
+    border-left:2px solid var(--rule);padding-left:16px}
+  .alsoline b{color:var(--read);font-weight:500}
+  .alsoline a{color:var(--green);text-decoration:none;border-bottom:1px solid rgba(111,164,123,.4);white-space:nowrap}
+  .alsoline a:hover{border-bottom-color:var(--green)}
+  /* Rows lifted from the Game Log itself, ban marker and all — the point of the card is that
+     this is a column in a table you already have, not a separate report. */
+  .bnfeed{font-family:var(--mono);font-size:12px}
+  .bn-head,.bn-row{display:grid;grid-template-columns:46px 18px minmax(0,1fr) 68px 66px;
+    gap:10px;align-items:center;padding:7px 10px}
+  .bn-head{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#6A675B;
+    border-bottom:1px solid var(--rule);padding-bottom:6px}
+  .bn-row{border-bottom:1px solid rgba(255,255,255,.04)}
+  .bn-row:last-of-type{border-bottom:none}
+  .bn-d{color:var(--dim)}
+  .bn-c{width:15px;height:15px;border-radius:2px;font-size:9px;font-weight:700;
+    display:flex;align-items:center;justify-content:center}
+  .bn-c.w{background:#E9E0C4;color:#0E0F10}
+  .bn-c.b{background:#202224;color:#9A947C;border:1px solid var(--dim)}
+  .bn-o{color:#E0776C;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bn-x{font-style:normal;margin-right:5px;font-size:10px}
+  .bn-r{font-weight:700}
+  .bn-r.l{color:#E0776C}
+  .bn-h{color:var(--dim);font-size:11px}
+  .bn-sum{margin-top:10px;padding:8px 10px;font-size:12px;color:var(--dim);
     border:1px dashed rgba(224,119,108,.4);border-radius:6px}
-  .bn-sum b{color:var(--ink)}
+  .bn-sum b{color:#E0776C}
   /* openings card: the repertoire tree itself — branches, results, and the one that bleeds */
   .optree{font-family:var(--mono);font-size:12.5px}
   .ot-row{display:flex;align-items:center;gap:10px;padding:7px 10px;margin-bottom:5px;
@@ -347,7 +360,7 @@
       <div class="lookup-count" id="lookupCount"></div>
     </div>
     <div class="card">
-      <div class="card-head"><span class="card-res bad">Resigned · move 41</span></div>
+      <div class="card-head"><span class="card-res bad">Resigned &middot; move 41</span></div>
       <figure>
         <svg viewBox="0 0 520 280" role="img" aria-label="Material through one game: a lead of +5 that collapses to a resignation.">
           <line class="grid" x1="130" y1="30" x2="130" y2="250"/>
@@ -401,14 +414,11 @@
   <section class="scene" id="mate">
     <div class="copy">
       <h2>The mates you <span class="em">never saw.</span></h2>
-      <p class="sub">A forced mate was on the board and you played something else. It happens far
-        more than anyone thinks &mdash; and you never find out, because the game moves on and nobody
-        tells you. rookbook scans <b>every game in your history</b>, finds the ones where a mate was
-        available, and replays each to the exact position with the move you missed and the move you
-        played instead.</p>
-      <p class="sub">Including the games you <b>won</b>. Those are the instructive ones: a mate in two
-        you walked past on move 20 is the same blind spot that will cost you a winning position next
-        week, whether or not you got away with it this time.</p>
+      <p class="sub">A forced mate was on the board and you played something else &mdash; and you
+        never found out, because the game moved on and nobody tells you. rookbook scans
+        <b>every game in your history</b> and replays each miss to the exact position.</p>
+      <p class="sub">Including the games you <b>won</b>. A mate you walked past on move 20 is the
+        same blind spot that costs you a winning position next week.</p>
     </div>
     <div class="card">
       <div class="card-head"><span class="card-res bad">Bh3#</span></div>
@@ -429,13 +439,14 @@
         happened.</p>
     </div>
     <div class="card">
-      <div class="card-head"><span class="card-res bad">3 accounts &middot; 4 losses</span></div>
       <figure>
-        <div class="bnlist" role="img" aria-label="Three past opponents whose accounts were later closed for cheating, and the four games lost to them.">
-          <div class="bn-row"><span class="bn-name">kn1ght_r1der77</span><span class="bn-chip">closed: fair play</span><span class="bn-n">2 losses</span></div>
-          <div class="bn-row reveal" style="transition-delay:.3s"><span class="bn-name">pawnstorm_pro</span><span class="bn-chip">closed: fair play</span><span class="bn-n">1 loss</span></div>
-          <div class="bn-row reveal" style="transition-delay:.55s"><span class="bn-name">quietmover88</span><span class="bn-chip">closed: fair play</span><span class="bn-n">1 loss</span></div>
-          <div class="bn-sum reveal t2">4 rated losses to accounts later banned &mdash; <b>the games worth asking Chess.com about</b></div>
+        <div class="bnfeed" role="img" aria-label="Rows from the game log: four games against opponents whose accounts were later closed for cheating, each marked with a ban icon.">
+          <div class="bn-head"><span>date</span><span></span><span>opponent</span><span>result</span><span>how</span></div>
+          <div class="bn-row"><span class="bn-d">22 Jul</span><span class="bn-c w">W</span><span class="bn-o"><i class="bn-x">&#9940;</i>THORINI691975</span><span class="bn-r l">L (&minus;15)</span><span class="bn-h">checkmate</span></div>
+          <div class="bn-row reveal" style="transition-delay:.25s"><span class="bn-d">20 Jul</span><span class="bn-c w">W</span><span class="bn-o"><i class="bn-x">&#9940;</i>LOF-Souza</span><span class="bn-r l">L (&minus;8)</span><span class="bn-h">checkmate</span></div>
+          <div class="bn-row reveal" style="transition-delay:.45s"><span class="bn-d">19 Jul</span><span class="bn-c b">B</span><span class="bn-o"><i class="bn-x">&#9940;</i>alreadyblessed</span><span class="bn-r l">L (&minus;8)</span><span class="bn-h">resign</span></div>
+          <div class="bn-row reveal" style="transition-delay:.65s"><span class="bn-d">16 Jul</span><span class="bn-c b">B</span><span class="bn-o"><i class="bn-x">&#9940;</i>THORINI691975</span><span class="bn-r l">L (&minus;12)</span><span class="bn-h">time</span></div>
+          <div class="bn-sum reveal" style="transition-delay:.85s"><b>4 rated losses</b> to accounts Chess.com later closed &mdash; the ones they often refund</div>
         </div>
         <figcaption><b>Checked automatically, every visit.</b> No digging through old games wondering &mdash; the list is just there, with what each account took.</figcaption>
       </figure>
@@ -443,21 +454,20 @@
   </section>
 
 <!-- ===================== EVERYTHING IT MEASURES ===================== -->
+    <!-- ===================== EVERYTHING ELSE, IN ONE LINE ===================== -->
+  <!-- This was a six-cell grid of feature names: 447px, 13% of the page, and not one link out
+       of it. The four scenes above already SHOW the best of it; a list that only tells is the
+       weakest thing on a landing page. One sentence keeps the breadth signal and the search
+       terms, and turns a dead end into the strongest internal link to /features.html. -->
   <section class="scene wide" id="measures">
-    <div class="copy">
-      <h2>What does your game history <span class="em">say about you?</span></h2>
-      <div class="mgrid">
-        <!-- The six most distinctive things the app measures. Anything with a full scene above
-             (game review, missed mates, openings, blown leads) doesn't get a second card here. -->
-        <div class="mcell"><h3>Playing style</h3><p>What kind of player you actually are &mdash; how sharp, how solid, where your games are won &mdash; measured from the moves themselves, not a quiz.</p></div>
-        <div class="mcell"><h3>Checkmate heatmap</h3><p>Every mate you've delivered and every one you've walked into, plotted on the board. The squares where you finish games, and the ones where yours keep ending.</p></div>
-        <div class="mcell"><h3>Openings</h3><p>Every line you play often enough to matter, walked as a repertoire tree &mdash; and the one where your results fall off a cliff, with the engine's way out.</p></div>
-        <div class="mcell"><h3>Trends</h3><p>Your rating over time, your win rate by day and hour, and whether you actually tilt &mdash; your real score in the games straight after a loss.</p></div>
-        <div class="mcell"><h3>Sessions</h3><p>Whether your win rate falls the longer you sit there, and where your own limit actually is.</p></div>
-        <div class="mcell"><h3>The clock</h3><p>Seconds per move, your longest single think, what you had left at the end, and how it compares with your opponent.</p></div>
-      </div>
+    <div class="copy" style="max-width:760px">
+      <p class="alsoline">rookbook also reads your <b>playing style</b>, a <b>checkmate heatmap</b> of
+        where games end, your <b>openings</b> as a repertoire tree, <b>rating trends</b> and tilt,
+        <b>session</b> fatigue, and where your <b>clock</b> goes.
+        <a href="/features.html">See every feature &rarr;</a></p>
     </div>
   </section>
+
 
   <!-- ===================== THE REAL THING ===================== -->
   <section class="scene" id="real">

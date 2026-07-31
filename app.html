@@ -2081,7 +2081,7 @@
   }
   .revpick-row{
     display:grid;
-    grid-template-columns:11px 42px 38px 108px 48px 62px 66px 82px minmax(34px,1fr);
+    grid-template-columns:11px 11px 42px 38px 108px 48px 62px 66px 82px minmax(34px,1fr);
     align-items:center;gap:6px;width:100%;
     padding:4px 10px;border:none;border-bottom:1px solid var(--rule);
     background:none;color:var(--ink);font-family:var(--mono);font-size:11.5px;
@@ -2101,6 +2101,9 @@
      contrast of anything inside the row. */
   .revpick-row.on{background:rgba(255,255,255,.07);box-shadow:inset 2px 0 0 var(--green)}
   .rp-dot{width:9px;height:9px;border-radius:2px;border:1px solid var(--rule)}
+  .rp-rev{font-size:11px;line-height:1;text-align:center}
+  .rp-rev.on{color:var(--win)}
+  .rp-rev.part{color:var(--dim)}
   /* black = dark fill with a light rim so it reads as a piece, not a hole in the panel */
   .rp-dot.w{background:#E9E0C4;border-color:#c9c0a2}
   .rp-dot.b{background:#202224;border-color:var(--dim)}
@@ -2170,7 +2173,16 @@
      --rev-side-h with no scrollbar: past the cap the eval curve and the whole Start/Prev/
      Play/Next/End row were clipped and simply unreachable. The cap is what stops "All moves"
      pushing the page down; scrolling is what keeps the clipped part usable. Both are needed. */
-  #panel-review .revside{overflow-y:auto;overflow-x:hidden;max-height:var(--rev-side-h,none)}
+  #panel-review .revside{overflow-y:auto;overflow-x:hidden;max-height:var(--rev-side-h,none);
+    /* Reserve the scrollbar's width at ALL times, exactly as html does for the page. Without it
+       the bar appears the moment content passes the cap and vanishes when it fits again, so the
+       whole column jumped ~15px wider and back as you stepped through plies — read as the page
+       resizing on every Next. overflow-y:scroll is the fallback where scrollbar-gutter isn't
+       supported; where it is, auto plus a stable gutter avoids drawing an empty track. */
+    scrollbar-gutter:stable}
+  @supports not (scrollbar-gutter: stable){
+    #panel-review .revside{overflow-y:scroll}
+  }
     #revGraph svg{max-height:130px}
   }
   /* Standing by, before any analysis: level, and quiet enough not to look like a reading of 0.00 */
@@ -2290,8 +2302,14 @@
   .revnav #revPlay.on{background:var(--panel);border-color:var(--green)}
   .revnav #revPlay.on .nv-i{font-size:14px}
   /* name + clock bars around the board */
+  /* Fixed height, deliberately. The captured-piece icons are taller than the bare text, so the
+     bar grew 24px -> 26px as pieces came off — which grew the board COLUMN, which feeds
+     --rev-side-h, which resized the whole right-hand column. Stepping through a game made the
+     page twitch every few plies. Pinning the bar breaks that chain at its source. */
   .revplayer{display:flex;align-items:center;gap:8px;
-    padding:0 0 6px;font-size:13.5px}
+    min-height:26px;padding:0 0 6px;font-size:13.5px}
+  /* the icon strip gets its own box so 19px glyphs can't push the row taller than the text does */
+  .revplayer .rvp-taken{height:20px}
   .revplayer[hidden]{display:none}
   .boardrow + .revplayer{padding:6px 0 0}
   .rvp-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
@@ -2427,8 +2445,11 @@
     font-size:clamp(14px,1.5vw,18px);font-weight:700;display:flex;flex-direction:column;gap:0;
     line-height:1.1;
   }
-  .rv small{font-size:clamp(7px,.72vw,8.5px);letter-spacing:.05em;text-transform:uppercase;
-    font-weight:400;color:var(--dim);line-height:1.2;overflow-wrap:anywhere}
+  /* Size, not contrast: at --dim these already clear 5.5:1 against every tile fill, but 7-8.5px
+     uppercase with tracking is below comfortable reading regardless of how bright it is. Bigger,
+     less tracking (which hurts at small sizes), and --read for a little more presence. */
+  .rv small{font-size:clamp(9px,.85vw,10.5px);letter-spacing:.02em;text-transform:uppercase;
+    font-weight:400;color:var(--read);line-height:1.25;overflow-wrap:anywhere}
   .rv.blunder{color:var(--v-blunder);border-color:rgba(224,119,108,.45);background:rgba(224,119,108,.09)}
   .rv.mistake{color:var(--v-mistake);border-color:rgba(227,166,60,.45);background:rgba(227,166,60,.09)}
   .rv.inacc{color:var(--draw);border-color:rgba(211,178,90,.35);background:rgba(211,178,90,.07)}
@@ -2468,7 +2489,12 @@
   /* The row for the position currently on the board. A ring rather than a fill: these rows are
      already colour-coded by verdict, and painting the background would fight that — this says
      "you are here" without overwriting "this was a blunder". */
-  .revmoment.on{background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(111,164,123,.6)}
+  .revmoment.on{background:rgba(255,255,255,.11);box-shadow:inset 0 0 0 1.5px var(--green);
+    border-left-width:5px}
+  /* the move itself goes full-brightness on the active row — the verdict colour still owns the
+     left stripe and the word, so nothing about "which kind of error" is lost */
+  .revmoment.on .rm-san{color:var(--ink)}
+  .revmoment.on .rm-n,.revmoment.on .rm-t{color:var(--ink)}
   .revmoment.blunder{border-left-color:var(--v-blunder)}
   .revmoment.mistake{border-left-color:var(--v-mistake)}
   .rm-n{color:var(--read);width:26px;text-align:right}
@@ -6879,7 +6905,7 @@ function piecePaths(ch){
        + (p.d2?`<path d="${p.d2}" fill="none" stroke="${line}" stroke-width="1.5" stroke-linecap="round"/>`:"");
 }
 function pieceSVG(ch){ return `<svg class="pc" viewBox="0 0 45 45" aria-hidden="true">${piecePaths(ch)}</svg>`; }
-function boardHTML(fen, flip, last, arrow){
+function boardHTML(fen, flip, last, arrow, mark){
   const FILES=["a","b","c","d","e","f","g","h"];
   const rows=fen.split(" ")[0].split("/");
   let cells=[];
@@ -6906,7 +6932,7 @@ function boardHTML(fen, flip, last, arrow){
   // Accepts one arrow or an array of them: a fork points at two targets at once.
   const arrows=(Array.isArray(arrow)?arrow:[arrow]).filter(a=>a && a.from && a.to);
   let overlay="";
-  if(arrows.length){
+  if(arrows.length || (mark && mark.sq)){
     const S=48, SIZE=S*8;                              // must match .bgrid in CSS
     const pt=name=>{
       const f=FILES.indexOf(name[0]), r=8-parseInt(name[1],10);
@@ -6917,15 +6943,48 @@ function boardHTML(fen, flip, last, arrow){
       const col = a.color || "#7CC287";
       const id = "bmk"+Math.random().toString(36).slice(2,7);
       const [x1,y1]=pt(a.from), [x2,y2]=pt(a.to);
-      const ang=Math.atan2(y2-y1,x2-x1);
-      const back=S*0.34;
-      const ex=x2-Math.cos(ang)*back, ey=y2-Math.sin(ang)*back;
       defs+=`<marker id="${id}" markerWidth="3.2" markerHeight="3.2" refX="1.7" refY="1.6" orient="auto">
         <path d="M0,0 L3.2,1.6 L0,3.2 z" fill="${col}"/></marker>`;
-      lines+=`<line x1="${x1}" y1="${y1}" x2="${ex}" y2="${ey}" stroke="#0E0F10" stroke-width="9" stroke-linecap="round" opacity="0.35"/>
-      <line x1="${x1}" y1="${y1}" x2="${ex}" y2="${ey}" stroke="${col}" stroke-width="6" stroke-linecap="round" opacity="0.95" marker-end="url(#${id})"/>`;
+
+      /* A knight is drawn as the L it actually travels, not as the diagonal between the two
+         squares — a straight line from b1 to c3 passes over squares the piece never touches and
+         reads as a bishop move. Long leg first, then the turn, which is how every chess site
+         draws it. Everything else stays a straight arrow. */
+      const df=Math.abs(FILES.indexOf(a.to[0])-FILES.indexOf(a.from[0]));
+      const dr=Math.abs(parseInt(a.to[1],10)-parseInt(a.from[1],10));
+      const knight=(df===1&&dr===2)||(df===2&&dr===1);
+
+      let d, ang;
+      if(knight){
+        // corner = travel the TWO-square leg first, then turn for the last square
+        const cx = df===2 ? x2 : x1;
+        const cy = df===2 ? y1 : y2;
+        ang=Math.atan2(y2-cy, x2-cx);
+        const back=S*0.34;
+        const ex=x2-Math.cos(ang)*back, ey=y2-Math.sin(ang)*back;
+        d=`M${x1},${y1} L${cx},${cy} L${ex},${ey}`;
+      } else {
+        ang=Math.atan2(y2-y1,x2-x1);
+        const back=S*0.34;
+        const ex=x2-Math.cos(ang)*back, ey=y2-Math.sin(ang)*back;
+        d=`M${x1},${y1} L${ex},${ey}`;
+      }
+      lines+=`<path d="${d}" fill="none" stroke="#0E0F10" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+      <path d="${d}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.95" marker-end="url(#${id})"/>`;
     }
-    overlay=`<svg class="bovl" viewBox="0 0 ${SIZE} ${SIZE}" preserveAspectRatio="xMinYMin meet"><defs>${defs}</defs>${lines}</svg>`;
+    /* The verdict badge, on the square the move landed on — the same place chess.com puts it,
+       because that is where your eye already is. Top-right of the square and slightly outside
+       it, so it never hides the piece it is judging. */
+    let badge="";
+    if(mark && mark.sq){
+      const [mx,my]=pt(mark.sq);
+      const cx=mx+S*0.36, cy=my-S*0.36, r=S*0.165;
+      badge=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${mark.color}" stroke="#0E0F10" stroke-width="1.3"/>
+        <text x="${cx}" y="${cy}" fill="#0E0F10" font-size="${S*0.195}" font-weight="700"
+          font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif"
+          text-anchor="middle" dominant-baseline="central">${mark.txt}</text>`;
+    }
+    overlay=`<svg class="bovl" viewBox="0 0 ${SIZE} ${SIZE}" preserveAspectRatio="xMinYMin meet"><defs>${defs}</defs>${lines}${badge}</svg>`;
   }
   return `<div class="bwrap">${`<div class="bgrid">${sq}</div>`}${overlay}</div>`;
 }
@@ -8315,20 +8374,28 @@ function renderHourly(list){
   const totAll=byHour.reduce((a,c)=>a+c.w+c.l+c.d,0);
   const avg=totAll?100*totW/totAll:0;
   const barSpace=170;
+  /* Scaled between the best and worst value, not from zero — the same treatment the accuracy
+     chart already uses, and for the same reason its comment gives: on a 0-based axis a 47-vs-56
+     spread is 9% of the height and every bar looks identical. The average line uses this same
+     mapping, so the dashed line still lands exactly on your average. */
+  const wrs=byHour.filter(c=>c.w+c.l+c.d).map(c=>100*c.w/(c.w+c.l+c.d));
+  const wlo=wrs.length?Math.min(...wrs,avg):0, whi=wrs.length?Math.max(...wrs,avg):100;
+  const wspan=Math.max(1,whi-wlo);
+  const wpx=v=>12+(170-12)*(v-wlo)/wspan;
   const lbl=h=>{ const ampm=h>=12?"P":"A"; let x=h%12; if(x===0)x=12; return x+ampm; };
   bars.innerHTML=byHour.map((c,h)=>{
     const tot=c.w+c.l+c.d;
     if(!tot) return `<div class="hbar" title="${lbl(h)}: no games">
       <div class="cnt">\u00b7</div><div class="hr">${lbl(h)}</div></div>`;
     const wr=100*c.w/tot;
-    const hpx=Math.max(3,Math.round(barSpace*wr/100));
+    const hpx=Math.max(3,Math.round(wpx(wr)));
     const cls = wr>=avg+3 ? "w" : wr<=avg-3 ? "l" : "d";
     return `<div class="hbar" title="${lbl(h)}: ${Math.round(100*c.w/tot)}% win rate \u00b7 ${c.w}W ${c.l}L ${c.d}D \u00b7 ${tot} game${tot===1?"":"s"}">
       <div class="cnt">${Math.round(wr)}</div>
       <div class="seg ${cls}" style="height:${hpx}px"></div>
       <div class="hr">${lbl(h)}</div>
     </div>`;
-  }).join("") + (totAll?avgLine(barSpace*avg/100,"","Your overall win rate"):"");
+  }).join("") + (totAll?avgLine(wpx(avg),"","Your overall win rate"):"");
   setChartAvg("hourlyBars", totAll?` · avg ${Math.round(avg)}%`:"");
 }
 
@@ -10116,19 +10183,27 @@ function renderDow(list){
   const totAll=byDay.reduce((a,c)=>a+c.w+c.l+c.d,0);
   const avg=totAll?100*totW/totAll:0;
   const barSpace=150;
+  /* Scaled between the best and worst value, not from zero — the same treatment the accuracy
+     chart already uses, and for the same reason its comment gives: on a 0-based axis a 47-vs-56
+     spread is 9% of the height and every bar looks identical. The average line uses this same
+     mapping, so the dashed line still lands exactly on your average. */
+  const wrs=byDay.filter(c=>c.w+c.l+c.d).map(c=>100*c.w/(c.w+c.l+c.d));
+  const wlo=wrs.length?Math.min(...wrs,avg):0, whi=wrs.length?Math.max(...wrs,avg):100;
+  const wspan=Math.max(1,whi-wlo);
+  const wpx=v=>12+(150-12)*(v-wlo)/wspan;
   $("dowBars").innerHTML=byDay.map((c,i)=>{
     const tot=c.w+c.l+c.d;
     if(!tot) return `<div class="hbar" title="${names[i]}: no games">
       <div class="cnt">\u00b7</div><div class="hr">${names[i]}</div></div>`;
     const wr=100*c.w/tot;
-    const hpx=Math.max(3,Math.round(barSpace*wr/100));
+    const hpx=Math.max(3,Math.round(wpx(wr)));
     const cls = wr>=avg+3 ? "w" : wr<=avg-3 ? "l" : "d";
     return `<div class="hbar" title="${names[i]}: ${Math.round(100*c.w/tot)}% win rate \u00b7 ${c.w}W ${c.l}L ${c.d}D \u00b7 ${tot} game${tot===1?"":"s"}">
       <div class="cnt">${Math.round(wr)}%</div>
       <div class="seg ${cls}" style="height:${hpx}px"></div>
       <div class="hr">${names[i]}</div>
     </div>`;
-  }).join("") + (totAll?avgLine(barSpace*avg/100,"","Your overall win rate"):"");
+  }).join("") + (totAll?avgLine(wpx(avg),"","Your overall win rate"):"");
   setChartAvg("dowBars", totAll?` · avg ${Math.round(avg)}%`:"");
 }
 
@@ -15645,6 +15720,23 @@ function revRowBits(g){
   const score = `<span class="res ${R[0]}">${R[1]} (${inner})</span>`;
   return {R, score};
 }
+/* Has this game been analysed already? REVDIR keeps done/total per game, so a run that was
+   stopped part-way is shown as partial rather than claimed as finished — otherwise you would
+   trust a half-analysed game's counts. Nothing renders for an untouched game: an empty column
+   is what makes the marked ones findable. */
+function revMark(g){
+  const r = g.url ? REVDIR[g.url] : null;
+  /* Must apply the SAME acceptance test loadReview does, not merely "a record exists".
+     loadReview rejects an analysis judged by an older metric — pawn-scale numbers read as win
+     chance would downgrade every blunder in it — so a game saved under the old scoring still
+     has a record but will NOT restore. Marking those as reviewed promised something the tab
+     then refused to deliver, and the only visible result was being asked to analyse again. */
+  if(!r || r.m !== REV_METRIC) return '<span class="rp-rev"></span>';
+  const done = r.total ? (r.done||0) >= r.total : true;
+  return done
+    ? '<span class="rp-rev on" title="Reviewed — engine analysis saved">✓</span>'
+    : '<span class="rp-rev part" title="Partly reviewed — the run was stopped before the end">·</span>';
+}
 function reviewRowHTML(g,i){
   const {score}=revRowBits(g);
   /* Both players' accuracy. One number alone says nothing about whether 74% was a good game —
@@ -15655,6 +15747,7 @@ function reviewRowHTML(g,i){
   const flag = (typeof g.peakMat==="number" && g.result==="Loss" && g.peakMat>=3) ? " ⚑" : "";
   return `<button type="button" class="revpick-row" data-idx="${i}" role="option">
     <span class="rp-dot ${g.color==="W"?"w":"b"}" title="${g.color==="W"?"White":"Black"}"></span>
+    ${revMark(g)}
     <span class="rp-date">${fmtDate(g.date)}</span>
     <span class="rp-tc dim">${tcCap(g.tc)}</span>
     <span class="rp-opp">${g.oppName}</span>
@@ -15767,7 +15860,13 @@ document.addEventListener("click",e=>{
   if(!a) return;
   if(e.button===1 || e.metaKey || e.ctrlKey || e.shiftKey) return;   // open in a new tab, then
   e.preventDefault();
-  reviewGame(a.dataset.review);
+  /* Only start the engine when the click actually asked for analysis. A link whose text says
+     "review" is an unambiguous request. A Notable Games card is not — those are clicked to look
+     at the game, and firing a ~12s engine run (plus a 640KB engine download on a first visit)
+     because someone was curious about "Biggest upset" is a cost they never opted into. The card
+     still opens the game with Analyze one button away. */
+  const asked = a.classList.contains("revlink");
+  reviewGame(a.dataset.review, asked);
 });
 
 let REV_ANALYSIS=null;
@@ -16216,7 +16315,21 @@ function renderReview(){
   // Rebuilding the board on every analysis tick made it flicker and shift. Only redraw it
   // when the position on it has actually changed — the arrow is part of that, or it would
   // stay stuck on whatever the previous ply suggested.
-  const boardKey = fen + "|" + (last ? last.san : "") + "|" + (arrow ? arrow.from+arrow.to : "");
+  /* The verdict of the move that was just played, badged on the square it landed on. Only at
+     the position AFTER the move — same rule the suggestion arrow follows, so the board shows
+     your move, what it cost, and what to play instead all at once. */
+  let mark=null;
+  if(ply>0 && last && REV_ANALYSIS){
+    const v=moveVerdict(ply-1);
+    if(v){
+      mark = v.miss  ? {sq:last.to, txt:"M",  color:"var(--v-miss)"}
+           : v.cls==="blunder" ? {sq:last.to, txt:"??", color:"var(--v-blunder)"}
+           : v.cls==="mistake" ? {sq:last.to, txt:"?!", color:"var(--v-mistake)"}
+           : null;
+    }
+  }
+  const boardKey = fen + "|" + (last ? last.san : "") + "|" + (arrow ? arrow.from+arrow.to : "")
+                 + "|" + (mark ? mark.sq+mark.txt : "");
   if(boardKey !== REV_BOARD_KEY){
     REV_BOARD_KEY = boardKey;
     // Replace the WRAPPER, not the grid inside it. boardHTML returns
@@ -16225,7 +16338,7 @@ function renderReview(){
     // harmless while no arrows were drawn, but it would have stacked every suggestion on top of
     // the last one and never cleared them.
     const host=$("revBoard"), wrap=host.closest(".bwrap")||host;
-    wrap.outerHTML = boardHTML(fen, flip, last, arrow).replace('class="bgrid"','class="bgrid big" id="revBoard"');
+    wrap.outerHTML = boardHTML(fen, flip, last, arrow, mark).replace('class="bgrid"','class="bgrid big" id="revBoard"');
   }
 
   const me = g.color==="W" ? "w" : "b";   // the player's piece color; the move table reads it
@@ -16285,8 +16398,7 @@ function renderReview(){
     </div>${REV_HELP_OPEN?revHelpHTML():""}`;
     badCount=bad.length;
     moments = bad.length
-      ? `<div class="revsec">
-          <div class="revsech">Where it went wrong \u00b7 click to jump</div>
+      ? `<div class="revsec" title="Click any row to jump to that move">
           ${bad.map(({i,v})=>{
             const num=Math.ceil((i+1)/2);
             const tt=revMine(g)?revMine(g)[Math.floor(i/2)]:null;
@@ -17587,7 +17699,10 @@ function applyHash(){
   if(hashTab && hashTab!==pathFeatureTab()) writeHash(tab, {}, true);
   if(tab==="review" && q.game){
     const g=gameByIdInList(q.game);
-    if(g) reviewGame(g.url, true, {fromHash:true});
+    /* A shared review link must NOT auto-analyse. This is a stranger's first paint: they get an
+       engine download and a running search before deciding they want one. Land them on the game
+       with the button waiting. */
+    if(g) reviewGame(g.url, false, {fromHash:true});
   }
   // #tab=X&goto=id lands on a section within the page — the glossary's Session entry
   // uses it to jump straight to the sessions table on Trends. showTab scrolls to the
