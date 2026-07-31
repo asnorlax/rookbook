@@ -2464,6 +2464,18 @@
   .rv.inacc{color:var(--draw);border-color:rgba(211,178,90,.35);background:rgba(211,178,90,.07)}
   .rv.miss{color:var(--v-miss);border-color:rgba(177,139,208,.45);background:rgba(177,139,208,.10)}
   .rv.best{color:var(--win);border-color:rgba(124,194,135,.45);background:rgba(124,194,135,.08)}
+  /* The tiles are <button> now, so they inherit the global rule's solid green, mono, uppercase,
+     18px padding treatment — all of which has to come back off. Same opt-out .rv-help makes. */
+  .rv[data-revfocus]{font-family:inherit;text-transform:none;letter-spacing:normal;
+    border-radius:0;cursor:pointer;appearance:none;-webkit-appearance:none}
+  .rv[data-revfocus]:hover:not(:disabled){filter:brightness(1.35)}
+  .rv[data-revfocus]:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+  /* A tile with nothing behind it stays readable — the zero is information — but stops
+     pretending to be a control. */
+  .rv[data-revfocus]:disabled{cursor:default;opacity:.5}
+  /* The pressed tile. An inset ring plus a solid border, because the tiles are already colour-
+     coded and a background swap would fight the colour that says which category it is. */
+  .rv[data-revfocus].on{box-shadow:inset 0 0 0 2px currentColor;filter:brightness(1.2)}
   /* The global button rule paints every button solid green, uppercase and mono, and .rv makes its
      children equal-width panels — so this came out as a full-size green tile with an off-centre
      "?" in it. It's a small icon button, so it opts out of both. */
@@ -2486,6 +2498,7 @@
   .revhelp .rv-c.blunder{color:var(--v-blunder)}
   .revhelp .rv-c.mistake{color:var(--v-mistake)}
   .revhelp .rv-c.miss{color:var(--v-miss)}
+  .revhelp .rv-c.best{color:var(--win)}
   .revsec{margin-top:12px;padding-top:10px;border-top:1px solid var(--rule)}
   .revsech{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--read);margin-bottom:8px}
   .revmoment{
@@ -2506,12 +2519,14 @@
   .revmoment.on .rm-n,.revmoment.on .rm-t{color:var(--ink)}
   .revmoment.blunder{border-left-color:var(--v-blunder)}
   .revmoment.mistake{border-left-color:var(--v-mistake)}
+  .revmoment.best{border-left-color:var(--win)}
   .rm-n{color:var(--read);width:26px;text-align:right}
   .rm-san{font-weight:700;color:var(--ink);width:46px}
   .rm-w{font-weight:700}
   .rm-w.blunder{color:var(--v-blunder)}
   .rm-w.mistake{color:var(--v-mistake)}
   .rm-w.miss{color:var(--v-miss)}
+  .rm-w.best{color:var(--win)}
   .rm-v{flex:1;color:var(--read);font-size:12px}
   .rm-t{font-size:12px;color:var(--read)}
   .wibar{height:16px;display:flex;border:1px solid var(--rule);margin-bottom:8px}
@@ -4390,7 +4405,15 @@ document.addEventListener("click",e=>{
 // re-renders every few plies while an analysis runs and would otherwise snap the panel shut.
 document.addEventListener("click",e=>{
   const sw=e.target.closest("[data-revlist]");
-  if(sw){ REV_LIST=sw.dataset.revlist; renderReview(); return; }
+  /* Either tab clears the tile filter. "All moves" has no room for one, and going back to the
+     issues tab is how you say "show me everything again" without hunting for the lit tile. */
+  if(sw){ REV_LIST=sw.dataset.revlist; REV_FOCUS=null; renderReview(); return; }
+  const tf=e.target.closest("[data-revfocus]");
+  if(tf && !tf.disabled){
+    REV_FOCUS = REV_FOCUS===tf.dataset.revfocus ? null : tf.dataset.revfocus;
+    REV_LIST="issues";   // filtering is a property of the list, so bring the list back with it
+    renderReview(); return;
+  }
   if(e.target.closest("#revHelp")){ REV_HELP_OPEN=!REV_HELP_OPEN; renderReview(); return; }
   if(e.target.closest("#revHelpClose")){ REV_HELP_OPEN=false; renderReview(); }
 });
@@ -15818,6 +15841,7 @@ function loadReview(idx){
   // the new game's moves through the old game's sign — then saved that mess under the NEW url,
   // where it was restored as real analysis forever after.
   if(REV_RUNNING) REV_CANCEL=true;
+  REV_FOCUS=null;   // a filter left on from the last game would open this one already narrowed
   const body=g.pgn.replace(/\[[^\]]*\]/g," ").replace(/\{[^}]*\}/g," ")
                   .replace(/\$\d+/g," ").replace(/\d+\.(\.\.)?/g," ")
                   .replace(/(1-0|0-1|1\/2-1\/2|\*)/g," ");
@@ -15891,6 +15915,16 @@ let REV_ANALYSIS=null;
 let REV_FOLLOW=false;
 let REV_SKIPS=0;         // how many moves the screen spared a full engine comparison
 let REV_LIST="issues";   // which view the sidebar list is showing: "issues" | "all"
+/* Which verdict tile the list is narrowed to: null | "blunder" | "mistake" | "miss" | "best".
+   The four tiles counted moves you had no way to reach — engine's choice worst of all, since
+   nothing in the list has ever carried it, so a game could report 32 of them and show none.
+   The tiles already looked pressable, so they became the filter rather than growing a
+   separate control. Reset per game in loadReview: a filter left on from the last game opens
+   the next one narrowed to a category that game may not even have. */
+let REV_FOCUS=null;
+/* What the list tab calls itself while a tile is active. Leaving it on "What went wrong" while
+   the list showed engine's choice would have the heading contradict its own contents. */
+const REV_FOCUS_LBL={blunder:"Blunders",mistake:"Mistakes",miss:"Missed mates",best:"Engine's choice"};
 let REV_MISSES={};      // ply -> missed-mate record for the loaded game (from the mate scan)
 // Bump when the meaning of drops[] changes. m:1 was pawns lost; m:2 is points of win chance.
 // A stored analysis without the current stamp is ignored rather than misread.
@@ -16181,7 +16215,12 @@ function revHelpHTML(){
       <li><b class="rv-c blunder">Blunder</b> — cost ${T_BLUNDER}% or more of your chance of winning</li>
       <li><b class="rv-c mistake">Mistake</b> — cost ${T_MISTAKE}% to ${T_BLUNDER}%</li>
       <li><b class="rv-c miss">Missed mate</b> — forced mate was on the board and you played something else</li>
+      <li><b class="rv-c best">Engine's choice</b> — you played the move the engine would have played</li>
     </ul>
+    <p><b>Engine's choice is the one that counts up, not down.</b> Every one of your moves is
+    checked against what the engine would have played there, so this is a straight count of the
+    times you found it. It only counts an exact match: a move that gave nothing away but wasn't
+    the engine's pick isn't in here, so treat it as a floor rather than a score.</p>
     <p><b>Why missed mates are counted separately.</b> When mate is available you're normally
     winning by a mile already, so skipping it barely moves your chance of winning — around two
     points. The engine's own numbers can't see it. These come from the same scan behind
@@ -16234,7 +16273,9 @@ function moveVerdict(i){
   // "\u221218% win chance" \u2014 a unit people already understand, and the same one the tooltip explains.
   if(d>=T_BLUNDER) return {cls:"blunder", txt:`<b class="rm-w blunder">blunder</b> \u00b7 \u2212${Math.round(d)}% win chance${arc(kept,after)}${alt}`};
   if(d>=T_MISTAKE) return {cls:"mistake", txt:`<b class="rm-w mistake">mistake</b> \u00b7 \u2212${Math.round(d)}% win chance${arc(kept,after)}${alt}`};
-  if(d<=1 && best===REV.moves[i].san) return {cls:"best", txt:"engine's choice"};
+  // Wrapped like the other three so it renders as a list row rather than a bare phrase. Every
+  // other consumer either strips the markup for a title attribute or wants it, so this is safe.
+  if(d<=1 && best===REV.moves[i].san) return {cls:"best", txt:`<b class="rm-w best">engine's choice</b>`};
   return null;
 }
 
@@ -16262,12 +16303,23 @@ function evalCurve(){
   // The area between curve and level, painted by who holds the edge: buff like the white
   // pieces above the line, near-black below — the way chess.com shades its chart. One area
   // path drawn twice through two clips, so the crossover points need no math at all.
+  //
+  // Then the curve itself is stroked, and that stroke is load-bearing rather than decorative.
+  // Black's region is bounded above by the dashed level line and below by the curve, with the
+  // panel behind it — and the panel is #1A1C1D against a #08090A fill, so that lower edge was
+  // invisible and Black's territory had no readable depth. Lightening the fill can't fix it:
+  // any colour dark enough to still read as "black" is nowhere near the 3:1 a boundary needs
+  // against a panel that dark. An outline is the only move that works, so the curve carries it.
+  // Over White's fill the stroke is the same buff and simply disappears, which is fine — that
+  // edge is already the loudest thing on the chart.
   const areaD=`${d} L${x(lastI).toFixed(1)},${mid} L${x(0).toFixed(1)},${mid} Z`;
   const area=`
     <clipPath id="egClipW"><rect x="0" y="0" width="${W}" height="${mid}"/></clipPath>
     <clipPath id="egClipB"><rect x="0" y="${mid}" width="${W}" height="${H-mid}"/></clipPath>
     <path d="${areaD}" fill="#EDEFEA" clip-path="url(#egClipW)"/>
-    <path d="${areaD}" fill="#08090A" clip-path="url(#egClipB)"/>`;
+    <path d="${areaD}" fill="#08090A" clip-path="url(#egClipB)"/>
+    <path d="${d}" fill="none" stroke="#EDEFEA" stroke-width="1.5" stroke-linejoin="round"
+      stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
 
   // one hoverable, clickable segment per ply
   const segW=(W-2*padX)/Math.max(1,n-1);
@@ -16438,28 +16490,47 @@ function renderReview(){
                   ? REV_ANALYSIS.done>=REV_ANALYSIS.total : true;
     const revPct = REV_ANALYSIS.total ? Math.round(100*(REV_ANALYSIS.done||0)/REV_ANALYSIS.total) : 0;
     const counts={blunder:0,mistake:0,miss:0,best:0};
-    const bad=[];   // filled below; count hoisted into badCount for the toggle label
+    /* Every judged move, tagged with the tile it belongs to. A missed mate carries cls
+       "blunder" so the eval chart keeps treating it as one, but it counts and filters as its
+       own category — hence a bucket stored alongside the class rather than read from it. */
+    const all=[];
     for(let i=0;i<REV.moves.length;i++){
       const v=moveVerdict(i);
       if(!v) continue;
-      if(v.miss) counts.miss++;
-      else if(counts[v.cls]!==undefined) counts[v.cls]++;
-      if(v.cls==="blunder"||v.cls==="mistake") bad.push({i,v});
+      const bucket = v.miss ? "miss" : v.cls;
+      if(counts[bucket]!==undefined) counts[bucket]++;
+      all.push({i,v,bucket});
     }
+    /* Unfocused, the list is the three things that cost you something — unchanged, and still
+       the default, because that is what a review is for. Engine's choice is left out of that
+       default on purpose: a game can hold 32 of them against 3 mistakes, and merging the two
+       buries the rows somebody opened Review to find. It gets in through its own tile. */
+    const bad = all.filter(o => REV_FOCUS ? o.bucket===REV_FOCUS : o.bucket!=="best");
+    /* A tile with a count behind it is a filter; a tile reading 0 is just a number and says so
+       rather than looking pressable and doing nothing. aria-pressed because these are toggles,
+       not tabs — more than one is never active at a time, but each one un-presses itself. */
+    const tile=(k,label,about)=>{
+      const c=counts[k], on=REV_FOCUS===k;
+      const tip = !c   ? `No ${label} in this game`
+                : on   ? `Showing only these — click again to clear`
+                       : `${about} — click to show only these`;
+      return `<button type="button" class="rv ${k}${on?" on":""}" data-revfocus="${k}"
+        ${c?"":"disabled"} aria-pressed="${on}" title="${tip}">${c}<small>${label}</small></button>`;
+    };
     verdictBar=`<div class="revverdict${revDone?"":" provisional"}"${revDone?"":' title="Still analyzing — these counts are only for the moves judged so far"'}>
-      <span class="rv blunder" title="Moves that cost ${T_BLUNDER}% or more of your chance of winning">${counts.blunder}<small>blunders</small></span>
-      <span class="rv mistake" title="Moves that cost ${T_MISTAKE}–${T_BLUNDER}% of your chance of winning">${counts.mistake}<small>mistakes</small></span>
-      <span class="rv miss" title="Forced mates that were on the board and went unplayed. Found by the mate scan, not the engine — see Missed Mates.">${counts.miss}<small>missed mates</small></span>
-      <span class="rv best" title="Moves where you found the engine's own choice">${counts.best}<small>engine's choice</small></span>
+      ${tile("blunder","blunders",`Moves that cost ${T_BLUNDER}% or more of your chance of winning`)}
+      ${tile("mistake","mistakes",`Moves that cost ${T_MISTAKE}–${T_BLUNDER}% of your chance of winning`)}
+      ${tile("miss","missed mates","Forced mates that were on the board and went unplayed")}
+      ${tile("best","engine's choice","Moves where you found the engine's own choice")}
       <button type="button" class="rv rv-help" id="revHelp" aria-label="How these are judged">?</button>
     </div>${REV_HELP_OPEN?revHelpHTML():""}`;
     badCount=bad.length;
     moments = bad.length
-      ? `<div class="revsec" title="Click any row to jump to that move">
-          ${bad.map(({i,v})=>{
+      ? `<div class="revsec">
+          ${bad.map(o=>{ const {i,v}=o;
             const num=Math.ceil((i+1)/2);
             const tt=revMine(g)?revMine(g)[Math.floor(i/2)]:null;
-            return `<div class="revmoment ${v.cls}${i+1===REV.ply?" on":""}" data-jump="${i+1}">
+            return `<div class="revmoment ${o.bucket}${i+1===REV.ply?" on":""}" data-jump="${i+1}">
               <span class="rm-n">${num}.</span>
               <span class="rm-san">${REV.moves[i].san}</span>
               <span class="rm-v">${v.txt}</span>
@@ -16467,6 +16538,8 @@ function renderReview(){
             </div>`;
           }).join("")}
         </div>`
+      : REV_FOCUS
+        ? `<div class="revsec"><div class="isub">Nothing in this category${revDone?"":" yet"}.</div></div>`
       : revDone
         ? `<div class="revsec"><div class="isub">No blunders or mistakes \u2014 a clean game.</div></div>`
         : `<div class="revsec"><div class="isub">Nothing found in the first ${REV_ANALYSIS.done||0} of ${REV_ANALYSIS.total} moves \u2014 still analyzing.</div></div>`;
@@ -16489,7 +16562,7 @@ function renderReview(){
   // used to sit stacked, which pushed the eval curve off the bottom of the sidebar.
   $("revInfo").innerHTML = `<div class="revswitch" role="tablist">
       <button type="button" class="rsw ${REV_LIST==="issues"?"on":""}" data-revlist="issues" role="tab"
-        aria-selected="${REV_LIST==="issues"}">What went wrong${badCount?` <span class="rsw-n">${badCount}</span>`:""}</button>
+        aria-selected="${REV_LIST==="issues"}">${REV_FOCUS?REV_FOCUS_LBL[REV_FOCUS]:"What went wrong"}${badCount?` <span class="rsw-n">${badCount}</span>`:""}</button>
       <button type="button" class="rsw ${REV_LIST==="all"?"on":""}" data-revlist="all" role="tab"
         aria-selected="${REV_LIST==="all"}">All moves <span class="rsw-n">${REV.moves.length}</span></button>
     </div>` + (REV_LIST!=="issues" ? "" :
