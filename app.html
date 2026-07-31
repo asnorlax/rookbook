@@ -95,7 +95,12 @@
          ledger routine already exist, so the series computes lazily at hover time.
          No new analysis or storage needed. Review-tab sparkline remains a later step.
          ================================================================================ -->
-    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.1.2 <span class="cl-tag">now</span></span><span class="cl-date">30 Jul 2026</span></summary><ul>
+    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.2.0 <span class="cl-tag">now</span></span><span class="cl-date">31 Jul 2026</span></summary><ul>
+        <li>Review has been rebuilt. Analyze any chess.com game move by move with an engine in your browser. Free. No daily limit. No chess.com membership required.</li>
+        <li>Review returns mistakes (moves that dropped your chances of winning by 10&ndash;20%), blunders (moves that dropped your chances of winning by 20% or more), missed checkmates, and the number of 'best moves' you played.</li>
+      </ul></details>
+
+    <details class="cl"><summary class="cl-v"><span class="cl-t">v1.1.2</span><span class="cl-date">30 Jul 2026</span></summary><ul>
         <li>Overview now opens with a breakdown of your most recent run of games</li>
         <li>Various updates to improve site performance</li>
       </ul></details>
@@ -207,6 +212,11 @@
     --win:#7CC287;
     --loss:#E0776C;
     --draw:#D3B25A;
+    /* Review verdicts. Red / orange / gold sat within ~19 degrees of hue of each other and read
+       as three shades of one warning. Blunder keeps the app's loss red; mistake moves to a clear
+       amber; a missed mate is a different KIND of finding — spotted by the mate scan, not the
+       eval — so it gets a hue that appears nowhere else in the app. */
+    --v-blunder:#E0776C; --v-mistake:#E3A63C; --v-miss:#B18BD0;
     --mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
     /* Poppins falls back to this, not to --mono: a monospace fallback made the first
        frame look like an entirely different design. A sans fallback is within 4% on width. */
@@ -1010,16 +1020,18 @@
   .bsq{display:flex;align-items:center;justify-content:center;font-size:42px;line-height:1}
   .bsq.l{background:#B9BCB0}
   .bsq.d{background:#6E7A68}
-  .bsq.from{box-shadow:inset 0 0 0 2px rgba(211,178,90,.9)}
-  .bsq.to{box-shadow:inset 0 0 0 3px var(--draw)}
-  .bsq.from, .bsq.to{position:relative}
+  /* Last-move squares carry a strong solid wash and no outline, the way chess.com paints
+     them — the old 2px inset + faint tint was easy to lose on the green squares.
+     isolation + z-index:-1 keeps the wash above the square color but UNDER the piece,
+     so pieces don't come out tinted mustard. */
+  .bsq.from, .bsq.to{position:relative;isolation:isolate}
   .bsq.to::after{
-    content:"";position:absolute;inset:0;
-    background:rgba(211,178,90,.22);
+    content:"";position:absolute;inset:0;z-index:-1;
+    background:rgba(211,178,90,.55);
   }
   .bsq.from::after{
-    content:"";position:absolute;inset:0;
-    background:rgba(211,178,90,.12);
+    content:"";position:absolute;inset:0;z-index:-1;
+    background:rgba(211,178,90,.45);
   }
   .bsq span{position:relative;z-index:1}
   .bsq svg.pc{width:88%;height:88%;display:block;position:relative;z-index:2}  /* …but beneath the pieces, so an arrow never hides its own knight */
@@ -2001,7 +2013,25 @@
 
   @media(max-width:760px){ .pf-midrow{grid-template-columns:1fr} .pf-counts{grid-template-columns:1fr} }
 
-  .revpick{position:relative;display:inline-block;min-width:min(360px,60vw);vertical-align:middle}
+  /* Wider than it was: the closed label now carries format, rating change, ending, accuracy and
+     length, which is the point of it — at 360px all of that ellipsed away. */
+  .revpick{position:relative;display:inline-block;min-width:min(620px,64vw);vertical-align:middle}
+  /* Prev / Next step between games, which is the second most-used control on the page after the
+     move buttons — so they match those rather than the small filter chips they used to be. */
+  #revPrev,#revNext{background:var(--panel2);border:1.5px solid var(--rule);border-radius:6px;
+    color:var(--ink);font-family:var(--sans);font-size:12.5px;font-weight:600;letter-spacing:.02em;
+    text-transform:none;padding:9px 16px;height:auto;cursor:pointer;
+    transition:background .12s,border-color .12s,color .12s}
+  #revPrev:hover,#revNext:hover,#revPrev:focus-visible,#revNext:focus-visible{
+    background:var(--panel);border-color:var(--green);color:var(--green);outline:none}
+  #revPrev:active,#revNext:active{transform:translateY(1px)}
+  #revPrev[disabled],#revNext[disabled]{opacity:.4;cursor:default}
+  .rp-tc{font-size:10px}
+  /* Review is a workspace — board, moves and curve all want to be on screen at once. The footer's
+     three lines of contact links are the least urgent thing on the page, so here they collapse to
+     one quiet line. Every other tab keeps the full footer. */
+  body[data-tab="review"] footer{margin-top:10px;padding:8px 0 0 8px;font-size:11px;line-height:1.5}
+  body[data-tab="review"] footer > *:not(:first-child){display:none}
   .revpick-btn{
     width:100%;display:flex;align-items:center;gap:8px;justify-content:space-between;
     background:var(--panel2);border:1px solid var(--rule);color:var(--ink);
@@ -2013,14 +2043,14 @@
   .revpick-car{flex:0 0 auto;color:var(--dim);font-size:10px}
   .revpick-pop{
     position:absolute;top:calc(100% + 4px);left:0;z-index:50;
-    min-width:100%;width:max-content;max-width:min(560px,90vw);max-height:340px;overflow-y:auto;
+    min-width:100%;width:max-content;max-width:min(700px,92vw);max-height:340px;overflow-y:auto;
     background:var(--panel2);border:1px solid var(--rule);box-shadow:0 10px 28px rgba(0,0,0,.45);
   }
   .revpick-row{
     display:grid;
-    grid-template-columns:11px 44px 15px 42px minmax(84px,1fr) 34px 40px 72px;
-    align-items:center;gap:8px;width:100%;
-    padding:7px 12px;border:none;border-bottom:1px solid var(--rule);
+    grid-template-columns:11px 42px 38px minmax(66px,1fr) 50px 56px 70px 56px 34px;
+    align-items:center;gap:6px;width:100%;
+    padding:4px 10px;border:none;border-bottom:1px solid var(--rule);
     background:none;color:var(--ink);font-family:var(--mono);font-size:11.5px;
     cursor:pointer;text-align:left;white-space:nowrap;
     text-transform:none;letter-spacing:normal;
@@ -2034,20 +2064,69 @@
   .rp-dot.b{background:#202224;border-color:var(--dim)}
   .rp-date{color:var(--dim)}
   .rp-res{font-weight:700}
-  .rp-delta{color:var(--dim);text-align:right}
-  .rp-opp{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .rp-score{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
+  .rp-delta{font-weight:700}
+  .rp-oppelo{text-align:left;font-size:10.5px;white-space:nowrap}
+  .rp-u{font-size:9px;margin-left:1px}
+  .rpl-sep{opacity:.35;margin:0 1px}
+  .rp-delta.up{color:var(--win)}
+  .rp-delta.down{color:var(--loss)}
+  .rp-delta.flat{color:var(--dim)}
+  /* hard cap, not just the column width: long handles cut off sooner so the eye lands on the elo */
+  .rp-opp{min-width:0;max-width:104px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .rp-opp .dim{color:var(--dim)}
   .rp-acc{color:var(--dim);text-align:right}
   .rp-moves{color:var(--dim);text-align:right}
-  .rp-how{color:var(--dim);font-size:10.5px;overflow:hidden;text-overflow:ellipsis}
+  .rp-how{color:var(--dim);font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
   .reviewwrap{
     display:flex;gap:18px;flex-wrap:wrap;
     border-left:2px solid var(--rule);border-right:2px solid var(--rule);border-bottom:2px solid var(--rule);
     background:var(--panel);padding:18px 20px;
   }
-  .revboard{flex:0 0 auto;width:min(560px,100%)}
-  .bgrid.big{grid-template-columns:repeat(8,64px);grid-template-rows:repeat(8,64px)}
+  /* The board took 560px while the eval curve sat beneath it. With the curve moved into the
+     sidebar the board is free to grow, so it flexes instead of being pinned. */
+  .revboard{flex:1 1 480px;min-width:0;max-width:min(660px,100%)}
+  /* Fluid rather than 8×64px: with the eval curve gone from this column the board should take
+     the width that frees up, and squares stay square via aspect-ratio instead of a fixed size. */
+  .bgrid.big{width:100%;aspect-ratio:1;
+    grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr)}
+  /* boardHTML wraps the grid in .bwrap (the arrow overlay is its sibling), so the flex child of
+     the row is the wrapper, not the board. Size the wrapper. Both selectors are needed: the
+     static markup ships an unwrapped .bgrid, and the first render replaces it with a .bwrap. */
+  .revboard .boardrow > .bwrap,
+  .revboard .boardrow > .bgrid.big{flex:1 1 0;min-width:0;align-self:flex-start}
+  .revboard .evalbar{align-self:stretch}
+
+  /* ---- the board sets the size ----
+     An earlier version capped this panel to the viewport and sized the board from whatever height
+     was left. Everything fit on one screen, but the board came out ~360px — and the board is the
+     thing you are actually looking at. So the board takes its width, and the sidebar matches that
+     height and scrolls inside itself rather than squeezing anything. */
+  @media (min-width:900px){
+    .reviewwrap{flex-wrap:nowrap;align-items:stretch;justify-content:center}
+    .revboard{display:flex;flex-direction:column;flex:0 0 auto;min-height:0;
+      width:clamp(400px,40vw,700px);max-width:none}
+    .revboard .boardrow{flex:0 0 auto}
+    /* width-driven again: the square follows the column, and its height follows the square */
+    .revboard .boardrow > .bwrap,
+    .revboard .boardrow > .bgrid.big{flex:1 1 0;min-width:0;align-self:flex-start;width:auto;height:auto}
+    .revboard .boardrow > .bwrap > .bgrid.big{width:100%;height:auto}
+    /* Stretched to the board column and scrolling as ONE column. It used to be a fixed-height flex
+       box whose children could shrink, which squeezed the counts strip and the game info to zero
+       height — in the DOM, invisible on screen. Nothing shrinks now. */
+    .revside{min-height:0;overflow-y:auto;overflow-x:hidden;flex:1 1 420px;max-width:660px}
+    .revside > *{flex:0 0 auto}
+    /* the open list absorbs the slack and scrolls internally, so switching views cannot change
+     the height of the panel underneath you */
+  #panel-review #revMoves{flex:1 1 auto;min-height:120px;max-height:none;overflow-y:auto}
+  #panel-review #revInfo{flex:0 0 auto;overflow:visible}
+  #panel-review .revside{overflow:hidden;max-height:var(--rev-side-h,none)}
+    #revGraph svg{max-height:130px}
+  }
+  /* Standing by, before any analysis: level, and quiet enough not to look like a reading of 0.00 */
+  .evalbar.idle{opacity:.4}
+  .evalbar.idle .evalfill{background:var(--rule)}
   .bgrid.big .bsq{font-size:48px}
   /* missed-mates trainer — the only clickable board in the app. .pick marks the from
      square while a move is half-entered; the verdict rings the whole grid rather than one
@@ -2101,10 +2180,11 @@
     text-shadow:0 0 3px #000;letter-spacing:-.02em;
   }
   .revanalyze{
-    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-    margin:12px 0;padding:12px 0;
-    border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    margin:0 0 8px;padding:0;border:0;
   }
+  /* [hidden] is a UA rule; the display:flex above outranks it, so say it explicitly */
+  .revanalyze[hidden]{display:none}
   /* .chip has border:none — it only looks like a button inside a filter group.
      The analyze button needs to look like a button on its own. */
   .analyze-btn{
@@ -2126,7 +2206,10 @@
   .revprog[hidden]{display:none}
   .revprog-fill{display:block;height:100%;width:0;background:var(--green);transition:width .2s linear}
   /* fixed heights: the panel must not resize while the engine is thinking */
-  .revgraph{min-height:110px;margin-top:12px}
+  /* Now the last thing in the sidebar rather than a full-width block under the board, so it has
+     to survive a narrower column: the svg scales, and the box no longer reserves board-sized height. */
+  .revgraph{min-height:96px;margin-top:12px}
+  .revgraph svg{width:100%;height:auto;display:block}
   .revgraph:empty{
     border:1px dashed var(--rule);
     display:flex;align-items:center;justify-content:center;
@@ -2138,20 +2221,51 @@
   #revInfo{min-height:0}
   #revCounts{min-height:0}
   .revsec{max-height:260px;overflow-y:auto}
-  .revctl{display:flex;align-items:center;gap:6px;margin-top:8px}
-  #revSlider{width:100%;margin-top:10px;accent-color:var(--green)}
+  /* The five stepping buttons live at the sidebar's foot, chess.com-style: start, back, play,
+     forward, end. Icon-only so five fit where four labels used to. */
+  .revnav{display:flex;align-items:stretch;gap:6px;margin-top:8px;flex:0 0 auto}
+  .revnav button{flex:1 1 0;background:var(--panel2);border:1.5px solid var(--rule);border-radius:6px;
+    font-family:var(--sans);font-size:19px;font-weight:700;line-height:1;padding:8px 0;text-transform:none;
+    color:var(--ink);cursor:pointer;transition:background .12s,border-color .12s,color .12s}
+  .revnav button:hover,.revnav button:focus-visible{background:var(--panel);border-color:var(--green);
+    color:var(--green);outline:none}
+  .revnav button:active{transform:translateY(1px)}
+  .revnav #revPlay{color:var(--green);border-color:rgba(111,164,123,.5);font-size:21px}
+  .revnav #revPlay.on{background:var(--panel);border-color:var(--green);font-size:14px}
+  /* name + clock bars around the board */
+  .revplayer{display:flex;align-items:center;gap:8px;
+    padding:0 0 6px;font-size:13.5px}
+  .revplayer[hidden]{display:none}
+  .boardrow + .revplayer{padding:6px 0 0}
+  .rvp-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    color:var(--ink);font-weight:600}
+  .rvp-name .dim{font-weight:400}
+  /* captured pieces ride the name line, chess.com-style, lightly shingled */
+  .rvp-taken{display:inline-flex;align-items:center;min-width:0;overflow:hidden}
+  .rvp-taken svg{width:19px;height:19px;flex:0 0 auto;display:block;margin-left:-6px}
+  .rvp-taken svg:first-child{margin-left:0}
+  /* black pieces melt into the dark bar — lift their outline here only; on the board the
+     squares are light enough that the original near-black stroke is the right one */
+  .rvp-taken svg path[stroke="#1B1C1E"]{stroke:#9BA0A3}
+  .rvp-lead{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--dim);margin-left:4px}
+  .rvp-clock{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-size:15px;font-weight:700;
+    color:var(--dim);border:1px solid var(--rule);background:var(--bg);border-radius:4px;
+    padding:2px 8px;font-variant-numeric:tabular-nums}
+  .rvp-clock.on{color:var(--ink);border-color:#3a3d40}
+  .rvp-clock.low{color:var(--loss)}
+  .rvp-clock:empty{display:none}
   .revside{flex:1;min-width:320px;max-width:600px;display:flex;flex-direction:column;gap:0}
   .revmoves{
     max-height:340px;overflow-y:auto;margin-top:12px;
     border:1px solid var(--rule);background:var(--bg);
   }
-  .mvtable{width:100%;border-collapse:collapse;font-size:12px}
+  .mvtable{width:100%;border-collapse:collapse;font-size:13.5px;min-width:0}
   .mvtable thead th{
     position:sticky;top:0;background:#0A0B0C;z-index:2;
     font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
     padding:7px 8px;text-align:left;border-bottom:1px solid var(--rule);
   }
-  .mvtable td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.04)}
+  .mvtable td{padding:5px 5px;border-bottom:1px solid rgba(255,255,255,.04)}
   .mvn{color:var(--dim);width:34px;text-align:right;font-variant-numeric:tabular-nums}
   .mvcell{
     font-weight:700;color:var(--ink);cursor:pointer;width:66px;
@@ -2159,21 +2273,23 @@
   }
   .mvcell:hover{background:rgba(111,164,123,.12)}
   .mvcell.on{background:var(--green);color:#0E0F10}
-  .mvcell.blunder{color:var(--loss);border-left-color:var(--loss);background:rgba(224,119,108,.10)}
-  .mvcell.mistake{color:#D98A4A;border-left-color:#D98A4A;background:rgba(217,138,74,.10)}
-  .mvcell.inacc{color:var(--draw);border-left-color:var(--draw);background:rgba(211,178,90,.08)}
+  .mvcell.blunder{color:var(--v-blunder);border-left-color:var(--v-blunder);background:rgba(224,119,108,.12)}
+  .mvcell.mistake{color:var(--v-mistake);border-left-color:var(--v-mistake);background:rgba(227,166,60,.10)}
+  .mvcell.miss{color:var(--v-miss);border-left-color:var(--v-miss);background:rgba(177,139,208,.12)}
   .mvcell.best{color:var(--win)}
-  .mvcell.blitzed{color:var(--loss)}
-  .mvt{color:var(--dim);font-size:10.5px;width:44px;cursor:pointer;font-variant-numeric:tabular-nums}
-  .mve{font-size:10.5px;width:44px;cursor:pointer;text-align:right;font-variant-numeric:tabular-nums}
+  .mvt{color:var(--dim);font-size:12px;width:42px;cursor:pointer;text-align:right;font-variant-numeric:tabular-nums}
+  .mve{font-size:12px;width:42px;cursor:pointer;text-align:right;font-variant-numeric:tabular-nums}
+  /* piece icons in the SAN cells; black pieces get the same outline lift as the capture bars */
+  .mvcell svg{width:19px;height:19px;vertical-align:-5px;margin-right:2px}
+  .mvcell svg path[stroke="#1B1C1E"]{stroke:#9BA0A3}
   .mv{cursor:pointer;padding:1px 4px;border-radius:2px}
   .mv:hover{background:rgba(111,164,123,.15)}
   .mv.on{background:var(--green);color:#0E0F10;font-weight:700}
   .mv.slow{color:var(--draw)}
   .mv.blitzed{color:var(--loss)}
-  .mv.inacc{background:rgba(211,178,90,.18);color:var(--draw)}
-  .mv.mistake{background:rgba(217,138,74,.22);color:#D98A4A}
-  .mv.blunder{background:rgba(224,119,108,.25);color:var(--loss);font-weight:700}
+  .mv.miss{background:rgba(177,139,208,.22);color:var(--v-miss)}
+  .mv.mistake{background:rgba(227,166,60,.22);color:var(--v-mistake)}
+  .mv.blunder{background:rgba(224,119,108,.25);color:var(--v-blunder);font-weight:700}
   .mv.best{color:var(--win)}
   .egdot{cursor:pointer}
   .egsvg{width:100%;display:block;border:1px solid var(--rule);background:var(--bg)}
@@ -2181,46 +2297,115 @@
   .egseg:hover{fill:rgba(111,164,123,.14)}
   .egseg.on{fill:rgba(111,164,123,.08)}
   .mvnum{color:var(--dim);margin-right:2px}
+  /* One row: star · date/players · result · link out. The old two-line title block ("Win by
+     checkmate" over a subtitle, with a stacked right column) spent three rows of chrome before
+     the numbers started. */
   .revhead{
-    display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
-    padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--rule);
+    display:flex;align-items:baseline;gap:10px;font-size:12px;
+    border:1px solid var(--rule);border-radius:6px;background:var(--bg);
+    padding:7px 10px;margin-bottom:8px;
   }
-  .rh-title{font-size:17px;font-weight:700;line-height:1.2}
-  .rh-sub{font-size:11.5px;color:var(--dim);margin-top:4px}
+  .rh-sub{flex:0 1 auto;min-width:0;font-size:inherit;color:var(--dim)}
+  .rh-res{flex:0 0 auto;font-size:inherit;font-weight:700;white-space:nowrap}
+  .rh-link{flex:0 0 auto;margin-left:auto;font-size:inherit;white-space:nowrap}
+  .rh-star{flex:0 0 auto;font-size:15px;line-height:1;cursor:pointer;align-self:center}
+  /* Reserve the space the findings will occupy. Without this the sidebar grew a row at a time
+     as the engine worked, and the page height moved with it — the curve and controls crept down
+     the screen while you were trying to read them. */
+  #panel-review #revInfo{min-height:190px}
+  #panel-review #revInfo.slim{min-height:0}
+  /* The curve is the sidebar's floor. Without this it rode up and down with whatever the list
+     above it happened to contain — one line while analysing, seven when it finished. */
+  #panel-review #revGraph{margin-top:auto;flex:0 0 auto}
+  .revverdict.provisional .rv{opacity:.75}
+  /* the toggle row was riding right against the blunder/mistake tiles above it */
+  .revswitch{display:flex;gap:10px;margin:14px 0 8px}
+  .rsw{flex:1 1 0;background:var(--panel2);border:1.5px solid var(--rule);border-radius:6px;
+    color:var(--dim);font-family:var(--sans);font-size:11.5px;font-weight:600;letter-spacing:.02em;
+    text-transform:none;padding:7px 8px;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;gap:6px;transition:background .12s,border-color .12s,color .12s}
+  .rsw:hover{color:var(--ink);border-color:var(--ink)}
+  .rsw.on{background:var(--panel);border-color:var(--green);color:var(--green)}
+  .rsw-n{font-size:inherit;opacity:.75;font-variant-numeric:tabular-nums}
+  /* one bordered box for whichever list is showing, so it reads as a panel rather than as
+     loose rows floating under a pair of buttons */
+  #panel-review #revInfo .revsec,
+  #panel-review #revInfo .revlistbox{border:1px solid var(--rule);border-radius:6px;
+    background:var(--bg);padding:8px 10px;margin:0}
+  #panel-review .revmoves{border:1px solid var(--rule);border-radius:6px}
+  #panel-review .revempty{color:var(--dim);font-size:11.5px;line-height:1.6}
+  #panel-review .rh-sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .rh-sub b{color:var(--ink)}
-  .rh-elo{font-size:22px;font-weight:700;flex:0 0 auto}
   .revgrid{
-    display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
-    background:var(--rule);border:1px solid var(--rule);margin-bottom:10px;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+    background:var(--rule);border:1px solid var(--rule);margin-bottom:7px;
   }
-  .revgrid > div{background:var(--panel);padding:7px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+  .revgrid > div{background:var(--panel);padding:5px 9px;display:flex;flex-direction:column;gap:0;min-width:0}
   @media (max-width:1250px){ .revgrid{grid-template-columns:repeat(2,1fr)} }
-  .rg-k{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
-  .rg-v{font-size:14px;font-weight:700;color:var(--ink)}
-  .revverdict{display:flex;gap:8px;margin-top:10px}
+  .rg-k{font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);line-height:1.5}
+  .rg-v{font-size:13px;font-weight:700;color:var(--ink);line-height:1.3}
+  /* Label beside the value rather than stacked over it. Four stacked cells took 82px of sidebar —
+     more than the move list — to show four short readings. */
+  #panel-review .revgrid > div{flex-direction:row;align-items:baseline;gap:6px;padding:4px 9px}
+  #panel-review .rg-k{flex:0 0 auto;line-height:1.4}
+  #panel-review .rg-v{margin-left:auto;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Review reads as prose — verdicts, explanations, a move list you scan — so it uses the reading
+     face throughout instead of the mono the data tables want. Move SAN and clock figures keep mono
+     below, where column alignment is the point. */
+  #panel-review, #panel-review button, #panel-review input, #panel-review select{font-family:var(--sans)}
+  #panel-review .revmoves .mvsan, #panel-review .mvcell, #panel-review .evalnum{font-family:var(--mono)}
+  .revverdict{display:flex;gap:8px;margin-top:10px;align-items:stretch}
   .rv{
     flex:1;text-align:center;padding:8px 4px;border:1px solid var(--rule);
     font-size:19px;font-weight:700;display:flex;flex-direction:column;gap:2px;
   }
   .rv small{font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:400;color:var(--dim)}
-  .rv.blunder{color:var(--loss);border-color:rgba(224,119,108,.4);background:rgba(224,119,108,.08)}
-  .rv.mistake{color:#D98A4A;border-color:rgba(217,138,74,.4);background:rgba(217,138,74,.08)}
+  .rv.blunder{color:var(--v-blunder);border-color:rgba(224,119,108,.45);background:rgba(224,119,108,.09)}
+  .rv.mistake{color:var(--v-mistake);border-color:rgba(227,166,60,.45);background:rgba(227,166,60,.09)}
   .rv.inacc{color:var(--draw);border-color:rgba(211,178,90,.35);background:rgba(211,178,90,.07)}
+  .rv.miss{color:var(--v-miss);border-color:rgba(177,139,208,.45);background:rgba(177,139,208,.10)}
+  .rv.best{color:var(--win);border-color:rgba(124,194,135,.45);background:rgba(124,194,135,.08)}
+  /* The global button rule paints every button solid green, uppercase and mono, and .rv makes its
+     children equal-width panels — so this came out as a full-size green tile with an off-centre
+     "?" in it. It's a small icon button, so it opts out of both. */
+  .rv-help{flex:0 0 auto;align-self:center;width:26px;height:26px;min-width:0;padding:0;
+    display:flex;align-items:center;justify-content:center;
+    background:transparent;color:var(--dim);border:1px solid var(--rule);border-radius:50%;
+    font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:0;text-transform:none;
+    line-height:1;cursor:pointer}
+  .rv-help:hover,.rv-help:focus-visible{color:var(--ink);border-color:var(--ink);background:transparent;outline:none}
+  .rv-help:hover,.rv-help:focus-visible{color:var(--ink);border-color:var(--ink);outline:none}
+  /* the "how is this judged" panel under the counts */
+  .revhelp{border:1.5px solid var(--rule);border-radius:8px;background:var(--panel2);
+    padding:13px 15px;margin:10px 0 4px;max-width:640px}
+  .revhelp .rh-h{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--green);
+    font-weight:700;margin-bottom:9px}
+  .revhelp p{font-size:12.5px;line-height:1.68;color:var(--read);margin:0 0 9px;font-family:var(--sans)}
+  .revhelp b{color:var(--ink)}
+  .revhelp .rh-l{margin:0 0 10px;padding-left:16px;font-family:var(--sans)}
+  .revhelp .rh-l li{font-size:12.5px;line-height:1.75;color:var(--read)}
+  .revhelp .rv-c.blunder{color:var(--v-blunder)}
+  .revhelp .rv-c.mistake{color:var(--v-mistake)}
+  .revhelp .rv-c.miss{color:var(--v-miss)}
   .revsec{margin-top:12px;padding-top:10px;border-top:1px solid var(--rule)}
-  .revsech{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+  .revsech{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--read);margin-bottom:8px}
   .revmoment{
     display:flex;align-items:center;gap:9px;
     padding:6px 8px;margin-bottom:4px;cursor:pointer;
-    border-left:3px solid transparent;font-size:12px;
+    border-left:3px solid transparent;font-size:13px;
     background:rgba(255,255,255,.02);
   }
   .revmoment:hover{background:rgba(111,164,123,.10)}
-  .revmoment.blunder{border-left-color:var(--loss)}
-  .revmoment.mistake{border-left-color:#D98A4A}
-  .rm-n{color:var(--dim);width:26px;text-align:right}
-  .rm-san{font-weight:700;color:var(--ink);width:58px}
-  .rm-v{flex:1;color:var(--dim);font-size:11px}
-  .rm-t{font-size:11px;color:var(--dim)}
+  .revmoment.blunder{border-left-color:var(--v-blunder)}
+  .revmoment.mistake{border-left-color:var(--v-mistake)}
+  .rm-n{color:var(--read);width:26px;text-align:right}
+  .rm-san{font-weight:700;color:var(--ink);width:46px}
+  .rm-w{font-weight:700}
+  .rm-w.blunder{color:var(--v-blunder)}
+  .rm-w.mistake{color:var(--v-mistake)}
+  .rm-w.miss{color:var(--v-miss)}
+  .rm-v{flex:1;color:var(--read);font-size:12px}
+  .rm-t{font-size:12px;color:var(--read)}
   .wibar{height:16px;display:flex;border:1px solid var(--rule);margin-bottom:8px}
   /* =================== /EXPERIMENTAL STYLES ==================== */
 
@@ -2436,7 +2621,7 @@
   /* "work in progress" banner for tabs still being built (Compare, Review, Repertoire) */
   .wip-note{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--rule);border-left:3px solid var(--draw);border-radius:7px;padding:8px 14px;margin:0 0 14px;font-size:12.5px;line-height:1.45}
   .wip-note b{color:var(--ink);font-weight:600}
-  .wip-note span{color:var(--dim)}
+  .wip-note span{color:var(--ink)}
 
   @media (max-width:760px){
     .controls{padding:12px}
@@ -2705,6 +2890,11 @@
 
 
   html.nav-collapsed .sidenav{width:54px}
+  /* the gold "new" tag on freshly shipped tabs; it lives inside .sn-l so every collapse rule
+     that hides labels hides it too */
+  .sn-new{font-style:normal;font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--draw);border:1px solid rgba(211,178,90,.55);border-radius:3px;padding:1px 4px;
+    margin-left:5px;vertical-align:1px}
   html.nav-collapsed .sidenav .sn-l{display:none}
   html.nav-collapsed .sidenav .sn-locked{display:none}
   html.nav-collapsed .sidenav .sn-item{justify-content:center;padding:8px 0;gap:0}
@@ -2853,6 +3043,9 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
 
     <div class="sn-group">
       <a class="sn-item" data-tab="overview"  href="#tab=overview"><span class="sn-i">⌂</span><span class="sn-l">Overview</span></a>
+      <!-- The flagship rides shotgun: free unlimited game review is the thing no other
+           tracker gives away, so it sits where every visitor's eye lands first. -->
+      <a class="sn-item" data-tab="review"   href="#tab=review"><span class="sn-i">◎</span><span class="sn-l">Review <em class="sn-new">new</em></span></a>
     </div>
 
     <div class="sn-group">
@@ -2871,10 +3064,6 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <a class="sn-item" data-tab="openings" href="#tab=openings"><span class="sn-i">♟</span><span class="sn-l">Openings</span></a>
       <a class="sn-item" data-tab="tree"     href="#tab=tree"><span class="sn-i">⑂</span><span class="sn-l">Repertoire</span></a>
       <a class="sn-item" data-tab="endgames" href="#tab=endgames"><span class="sn-i">♚</span><span class="sn-l">Endgames</span></a>
-    </div>
-
-    <div class="sn-group">
-      <a class="sn-item" data-tab="review"   href="#tab=review"><span class="sn-i">◎</span><span class="sn-l">Review</span></a>
     </div>
 
     <div class="sn-group">
@@ -2897,7 +3086,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <span class="sub">
         <button class="ghostlink" id="aboutBtn">about</button> ·
         <button class="ghostlink" id="logBtn">changelog<span class="log-dot" id="logDot" hidden></span></button> ·
-        <span class="vtag">v1.1.2</span>
+        <span class="vtag">v1.2.0</span>
       </span>
     </div>
   </header>
@@ -3241,7 +3430,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
   </div>
 
   <div id="panel-review" hidden>
-    <div class="wip-note"><b>Work in progress.</b> <span>The Review tab is still being built — expect rough edges.</span></div>
+    <div class="wip-note"><b>Review has a new look</b> <span>(still working on touch ups). Unlimited reviews. No chess.com membership required.</span></div>
     <div class="twin">
       <span class="isub" style="margin:0">Game</span>
       <div class="revpick" id="revPick">
@@ -3257,21 +3446,18 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
     </div>
     <div class="reviewwrap">
       <div class="revboard">
+        <!-- Name-and-clock bars hug the board the way every chess site arranges them: the
+             opponent above, you below, each clock reading what the PGN's [%clk] stamps say
+             at the ply on screen. -->
+        <div class="revplayer" id="revBarTop" hidden><span class="rvp-name" id="revNameTop"></span><span class="rvp-taken" id="revTakenTop"></span><span class="rvp-clock" id="revClkTop"></span></div>
         <div class="boardrow">
           <div class="evalbar" id="evalBar" hidden><div class="evalfill" id="evalFill"></div><span class="evalnum" id="evalNum"></span></div>
           <div class="bgrid big" id="revBoard"></div>
         </div>
-        <input type="range" id="revSlider" min="0" max="0" value="0">
-        <div class="revctl">
-          <button class="chip" id="revStart" title="Jump to the starting position">&#8676; Start</button>
-          <button class="chip" id="revBack" title="One move back">&#8592; Back</button>
-          <button class="chip" id="revFwd" title="One move forward">Fwd &#8594;</button>
-          <button class="chip" id="revEnd" title="Jump to the final position">End &#8677;</button>
-          <span class="isub" id="revPly" style="margin:0"></span>
-        </div>
-        <div id="revGraph" class="revgraph"></div>
-        <div id="revCounts"></div>
+        <div class="revplayer" id="revBarBot" hidden><span class="rvp-name" id="revNameBot"></span><span class="rvp-taken" id="revTakenBot"></span><span class="rvp-clock" id="revClkBot"></span></div>
       </div>
+      <!-- Everything you act on lives in one column: the verdict, the move list, then the curve.
+           The board keeps only its own navigation, so it can take the height the graph used to. -->
       <div class="revside">
         <div id="revHead"></div>
         <div class="revanalyze">
@@ -3279,8 +3465,20 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
           <span class="isub" id="revAnStatus" style="margin:0"></span>
           <span class="revprog" id="revProg" hidden><span class="revprog-fill" id="revProgFill"></span></span>
         </div>
+        <div id="revCounts"></div>
         <div id="revInfo"></div>
         <div id="revMoves" class="revmoves"></div>
+        <div id="revGraph" class="revgraph"></div>
+        <!-- chess.com puts these five under the sidebar and it's the right call — the hand rests
+             where the reading happens. The middle one plays the game forward and pulls up at the
+             next move the engine flagged. -->
+        <div class="revnav">
+          <button id="revStart" title="Jump to the starting position">&#8676;</button>
+          <button id="revBack" title="One move back">&#8592;</button>
+          <button id="revPlay" title="Play through the game &mdash; stops at the next blunder, mistake, or missed mate">&#9656;</button>
+          <button id="revFwd" title="One move forward">&#8594;</button>
+          <button id="revEnd" title="Jump to the final position">&#8677;</button>
+        </div>
       </div>
     </div>
   </div>
@@ -3464,11 +3662,16 @@ const T = {
   LONG_THINK:      30,     // seconds: a real calculation
   TILT_GAP:        90,     // seconds between games: re-queuing this fast is tilt
   FRESH_ACCOUNT:   50,     // career games: below this a rating means little
-  BLUNDER:         2.5,    // pawns lost vs the engine's move
+  BLUNDER:         2.5,    // pawns lost vs the engine's move (material/Insights use, not Review)
   MISTAKE:         1.5,
   INACCURACY:      0.7,
   DECIDED:         5.0,    // pawns: past this the game is over; stop judging
   EVAL_CLAMP:      5.0,    // pawns: cap evals before measuring a drop
+  // Review judges in POINTS OF WIN CHANCE, not pawns. Two bands only: at depth 13 on a 2018
+  // engine, a third tier ("inaccuracy", ~5 points) is narrower than the engine's own error, so
+  // it would be assigned close to at random. 20 is chess.com's published blunder gate.
+  WP_BLUNDER:      20,
+  WP_MISTAKE:      10,
   WIN_RATE_GOOD:   58,     // percent
   WIN_RATE_BAD:    42
 };
@@ -4023,6 +4226,14 @@ document.addEventListener("click",e=>{
 // behavior and the guard against a second run come along for free.
 document.addEventListener("click",e=>{
   if(e.target.closest("#blownEval")) evalPositions();
+});
+// Review's "how is this judged" panel. Delegated and state-backed, because the Review body
+// re-renders every few plies while an analysis runs and would otherwise snap the panel shut.
+document.addEventListener("click",e=>{
+  const sw=e.target.closest("[data-revlist]");
+  if(sw){ REV_LIST=sw.dataset.revlist; renderReview(); return; }
+  if(e.target.closest("#revHelp")){ REV_HELP_OPEN=!REV_HELP_OPEN; renderReview(); return; }
+  if(e.target.closest("#revHelpClose")){ REV_HELP_OPEN=false; renderReview(); }
 });
 // Same pattern, own ids and own state — Missed Mates' sentence list re-renders independently
 // of Insights, so sharing #coachclip/#coachMore would let one page's toggle click the other's.
@@ -14954,18 +15165,19 @@ function renderMates(list){
   const verdict = missed===0
     ? `<span class="res win"><b>You never missed a forced mate</b> across ${scanned.length} games. Ruthless.</span>`
     : lostAfterMiss>0
-      ? `<b class="res loss">${lostAfterMiss} game${lostAfterMiss===1?"":"s"} you failed to win with mate on the board.</b> That's not strategy, not openings, not tilt — you just didn't look.`
+      ? `<b class="res loss">${lostAfterMiss} game${lostAfterMiss===1?"":"s"} you failed to win with mate on the board</b> — ${Math.round(100*lostAfterMiss/gamesMissed.length)}% of your missed-mate games. That's not strategy, not openings, not tilt — you just didn't look.`
       : bledOut>0
         ? `You won every one of your missed-mate games anyway, but in <b class="res loss">${bledOut}</b> of them you still gave up 3+ material after walking past the mate${worstSwing!=null?` — the worst bled <b class="res loss">${worstSwing}</b>`:""}. You didn't lose the game, you just made it harder than it had to be.`
         : `You missed ${missed} mate${missed===1?"":"s"}, but won every one of those games anyway. Sloppy, not fatal.`;
 
   const mtLines=[];
-  mtLines.push(["good",`You found and played <b>${found}</b> forced mate${found===1?"":"s"} the moment ${found===1?"it":"they"} appeared${tookLater?`, plus <b>${tookLater}</b> more you got to a move or two late — those still count among your misses below, since the first chance got away`:""}.`]);
+  // The "you found N mates" line lived here. Removed: the conversion line below says the same
+  // thing as a rate (found / found+missed), which is the more useful way to read it.
   if(missed) mtLines.push(["bad",`You missed <b>${missed}</b> distinct forced mate${missed===1?"":"s"} — a mate that stays on the board for several moves in a row counts once, not once per move it survived.`]);
   if(chances) mtLines.push([chances>missed?"bad":"warn",`Across those misses, you played <b>${chances}</b> move${chances===1?"":"s"} total while a forced mate was sitting on the board${chances>missed?`, including <b>${chances-missed}</b> second (or third) chances on a mate you'd already walked past once`:""}.`]);
   mtLines.push([conv>=80?"good":conv>=50?"warn":"bad",`When a forced mate is actually on the board, you play it <b>${found}/${found+missed}</b> (<b>${conv}%</b>) of the time — ${conv>=80?"sharp, you rarely leave the point on the table.":conv>=50?"close to a coin flip: about as often as not, you make some other move instead and the chance is gone.":"most of the time you play something else instead, and the chance is gone."}`]);
   if(gamesMissed.length) mtLines.push(["warn",`<b>${gamesMissed.length}</b> of your ${scanned.length} scanned games had at least one missed mate in them (${Math.round(100*gamesMissed.length/scanned.length)}%).`]);
-  if(lostAfterMiss) mtLines.push(["bad",`In <b>${lostAfterMiss}</b> of your <b>${gamesMissed.length}</b> games with a missed mate (${Math.round(100*lostAfterMiss/gamesMissed.length)}%), you failed to win outright — the point got away after mate was already on the board.`]);
+  // This said exactly what the verdict below says. The verdict keeps it, with the rate folded in.
   mtLines.push([missed===0?"good":(lostAfterMiss>0||bledOut>0)?"bad":"good", verdict]);
   if(thrown) mtLines.push(["bad",`In <b>${thrown}</b> of your <b>${missed}</b> missed mates (${Math.round(100*thrown/missed)}%), the move you played instead threw the win away on the spot right then — see the Cost column below. Those are the ones worth reviewing.`]);
   if(escaped) mtLines.push(["warn",`Your opponents missed a forced mate against you <b>${escaped}</b> time${escaped===1?"":"s"} — lucky, not earned.`]);
@@ -15215,28 +15427,55 @@ function median(a){
 
 // ---------------------------- REVIEW ----------------------------
 let REV={game:null, moves:[], ply:0, chess:null};
+let REV_AUTO=null;        // autoplay interval, when the middle nav button is running
+let REV_AUTO_TICK=false;  // true only while autoplay itself is stepping, so revGo can tell it apart
 function reviewable(){ return games.filter(g=>g.pgn && g.pgn.length>20); }
-function reviewRowHTML(g,i){
+// One line per game. Result and rating change sit together as a single unit — they answer the
+// same question — with the ending next to them. The opponent's name is the only elastic column,
+// so their rating, accuracy and length stay in vertical alignment down the whole list.
+function revRowBits(g){
   const R={Win:["win","W"],Loss:["loss","L"],Draw:["draw","D"]}[g.result]||["draw","·"];
-  const d = g.delta!=null ? `(${g.delta>0?"+":""}${g.delta})` : "";
-  const acc = g.acc!=null ? `${Math.round(g.acc)}%` : "—";
+  const d = g.delta!=null ? `${g.delta>0?"+":""}${g.delta}` : "";
+  const dCls = g.delta==null ? "flat" : g.delta>0 ? "up" : g.delta<0 ? "down" : "flat";
+  return {R, d, dCls};
+}
+function reviewRowHTML(g,i){
+  const {R,d,dCls}=revRowBits(g);
+  const acc = g.acc!=null ? `${Math.round(g.acc)}<span class="rp-u">% acc</span>` : "<span class=\"dim\">—</span>";
   const flag = (typeof g.peakMat==="number" && g.result==="Loss" && g.peakMat>=3) ? " ⚑" : "";
   return `<button type="button" class="revpick-row" data-idx="${i}" role="option">
     <span class="rp-dot ${g.color==="W"?"w":"b"}" title="${g.color==="W"?"White":"Black"}"></span>
     <span class="rp-date">${fmtDate(g.date)}</span>
-    <span class="res ${R[0]} rp-res">${R[1]}</span>
-    <span class="rp-delta">${d}</span>
-    <span class="rp-opp">${g.oppName} <span class="dim">(${g.oppElo})</span></span>
+    <span class="rp-tc dim">${tcCap(g.tc)}</span>
+    <span class="rp-opp">${g.oppName}</span>
+    <span class="rp-oppelo dim">${g.oppElo!=null?`(${g.oppElo})`:""}</span>
+    <span class="rp-score"><b class="res ${R[0]}">${R[1]}</b><span class="rp-delta ${dCls}">${d}</span></span>
+    <span class="rp-how" title="${g.how||""}">${g.how||""}${flag}</span>
     <span class="rp-acc">${acc}</span>
     <span class="rp-moves">${g.moves}m</span>
-    <span class="rp-how">${g.how||""}${flag}</span>
   </button>`;
 }
 function updateRevPickLabel(){
   const cur=$("revPickCur"), g=REV.game;
   if(g){
-    const R={Win:"W",Loss:"L",Draw:"D"}[g.result]||"·";
-    cur.textContent = `${fmtDate(g.date)} · ${R} vs ${g.oppName} (${g.oppElo}) · ${g.moves}m`;
+    // The closed button is what you read while stepping through — it should say enough to know
+    // which game you're in without opening the list: when, what format, how it went and by how
+    // much, who against, how it finished, how clean it was, how long.
+    // Same colours as the list below it, so the closed button reads as the row you picked.
+    // Switched from textContent to markup, so the opponent name is escaped on the way in.
+    const esc=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const {R,d,dCls}=revRowBits(g);
+    const acc = g.acc!=null
+      ? `${Math.round(g.acc)}% acc${g.oppAcc!=null?` vs ${Math.round(g.oppAcc)}%`:""}`
+      : "";
+    const sep = ' <span class="rpl-sep">·</span> ';
+    const parts=[
+      esc(fmtDate(g.date)), esc(tcCap(g.tc)),
+      `vs <b>${esc(g.oppName)}</b>${g.oppElo!=null?` (${g.oppElo})`:""}`,
+      `<b class="res ${R[0]}">${R[1]}</b>${d?` <span class="rp-delta ${dCls}">${d}</span>`:""}`,
+      esc(g.how||""), esc(acc), `${g.moves} moves`
+    ].filter(Boolean);
+    cur.innerHTML = parts.join(sep);
   }
   const pop=$("revPickPop");
   if(pop) pop.querySelectorAll(".revpick-row").forEach(r=>r.classList.toggle("on", +r.dataset.idx===REV.idx));
@@ -15272,12 +15511,24 @@ function loadReview(idx){
     moves.push({san:m.san, from:m.from, to:m.to, color:m.color, fen:c.fen(), captured:m.captured});
   }
   REV={game:g, moves, ply:moves.length, idx};
+  REV.clks=myClockStamps(g);   // per-ply remaining clocks, both colors interleaved; null for daily
+  revAutoStop();
   // a game analyzed on a previous visit gets its bar, marks and graph back instantly
-  REV_ANALYSIS = (g.url && REVDIR[g.url]) ? REVDIR[g.url] : null;
+  // Only reuse an analysis judged by the CURRENT metric. Anything stored before moves were scored
+  // in win chance holds pawn-scale numbers, and reading a 2.6 as "2.6% of your win chance" would
+  // quietly downgrade every blunder in it to nothing.
+  const cached = g.url ? REVDIR[g.url] : null;
+  REV_ANALYSIS = (cached && cached.m===REV_METRIC) ? cached : null;
   REV_BOARD_KEY=null;
+  REV_HELP_OPEN=false;
+  // Missed mates are a local move-replay, not an engine pass — about half a second for one game,
+  // then cached forever. Doing it here means Review is never silently reporting "0 missed mates"
+  // just because the Missed Mates tab hasn't been visited.
+  if(g.pgn && g.mates===undefined){
+    try{ g.mates=scanMates(g); rememberMates(g); }catch(e){ warn("mate scan failed for this game", e); }
+  }
+  REV_MISSES=missedMatePlies();
   $("revAnStatus").textContent="";
-  $("revSlider").max=moves.length;
-  $("revSlider").value=moves.length;
   updateRevPickLabel();
   renderReview();
 }
@@ -15310,12 +15561,21 @@ document.addEventListener("click",e=>{
 });
 
 let REV_ANALYSIS=null;
+// While an analysis runs the board walks the game with the engine, so you can watch it work
+// rather than watch a percentage. Any manual navigation hands control straight back.
+let REV_FOLLOW=false;
+let REV_SKIPS=0;         // how many moves the screen spared a full engine comparison
+let REV_LIST="issues";   // which view the sidebar list is showing: "issues" | "all"
+let REV_MISSES={};      // ply -> missed-mate record for the loaded game (from the mate scan)
+// Bump when the meaning of drops[] changes. m:1 was pawns lost; m:2 is points of win chance.
+// A stored analysis without the current stamp is ignored rather than misread.
+const REV_METRIC=2;
 const REVDIR_KEY="rookbook:revdir";
 let REVDIR=LS.get(REVDIR_KEY) || {};
 // keep only the 40 most recent analyses — ~70 numbers per game, so this stays tiny
 function rememberReview(url, an){
   if(!url || !an) return;
-  REVDIR[url]={evals:an.evals, drops:an.drops, bests:an.bests, done:an.done, total:an.total, when:Date.now()};
+  REVDIR[url]={evals:an.evals, drops:an.drops, bests:an.bests, done:an.done, total:an.total, when:Date.now(), m:REV_METRIC};
   const keys=Object.keys(REVDIR);
   if(keys.length>40){
     keys.sort((a,b)=>(REVDIR[a].when||0)-(REVDIR[b].when||0));
@@ -15341,20 +15601,29 @@ let REV_CANCEL=false, REV_RUNNING=false;
 // The right comparison is between the position after YOUR move and the position after the
 // ENGINE'S move. Same side to move, same depth, directly comparable.
 const JUDGE_DEPTH = 13;                                   // deeper = far less noise
-const T_INACC = T.INACCURACY, T_MISTAKE = T.MISTAKE, T_BLUNDER = T.BLUNDER;
-// Evaluations are CLAMPED before a move is judged. Without this, going from −7 to −11 reads
-// as a 4-pawn "blunder" — but the game was already lost, and you can't lose it twice. Clamping
-// means once a position is beyond winning or losing, further slippage doesn't count.
-const CLAMP = T.EVAL_CLAMP;
-const clampEval = cp => Math.max(-CLAMP*100, Math.min(CLAMP*100, cp));
-// And don't judge at all once the game is decided — there's nothing left to throw away.
-const DECIDED = T.DECIDED;
+const T_BLUNDER = T.WP_BLUNDER, T_MISTAKE = T.WP_MISTAKE;   // points of win chance
+// A move costs you WIN CHANCE, not pawns. Pawns had to be clamped at ±5 — otherwise −7 to −11
+// read as a 4-pawn blunder in a game already lost — and clamping flattened everything above +5
+// into one number, so throwing away a completely won position registered as zero. Win% solves
+// both without a cutoff: it compresses naturally at the extremes (+8 and +20 are both ~95%, so
+// slippage between them is correctly worth nothing) while staying sensitive near equality, where
+// games are actually decided. Lichess's published conversion, so the numbers are checkable.
+const winPct = cp => {
+  const c = Math.max(-1000, Math.min(1000, cp));
+  return 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * c)) - 1);
+};
+// toMe() encodes mate as ±1200, so treat that as the game being over rather than a big number.
+// Without this, being up 11 pawns would score HIGHER than having mate on the board: the curve's
+// own ceiling sits below what +1100 converts to.
+const MATE_CP = 1200;
+const winPctOf = cp => cp==null ? null
+  : cp>=MATE_CP ? 100 : cp<=-MATE_CP ? 0 : winPct(cp);
 
 async function analyzeGame(){
   if(REV_RUNNING){ REV_CANCEL=true; return; }
   const g=REV.game;
   if(!g || !REV.moves.length) return;
-  REV_RUNNING=true; REV_CANCEL=false;
+  REV_RUNNING=true; REV_CANCEL=false; REV_FOLLOW=true; REV_SKIPS=0;
   const btn=$("revAnalyze");
   btn.textContent="Stop analysis";
   btn.classList.add("running");
@@ -15410,9 +15679,22 @@ async function analyzeGame(){
 
       evals[i+1] = await evalOf(fenAfter);
 
-      // only judge my own moves, and don't bother once the game is decided
-      // only judge my own moves, and only while the game is still live
-      if(m.color===me && evals[i]!==null && Math.abs(evals[i])/100 < DECIDED){
+      // Only my own moves. No "already decided" cutoff any more: win% compresses at the extremes
+      // by itself, so slippage inside a hopeless or trivially won position scores near zero
+      // without needing a rule to skip it — and throwing away a won game now registers, which the
+      // cutoff used to hide.
+      if(m.color===me && evals[i]!==null){
+        // SCREEN before paying for the expensive part. The naive swing across your own move is
+        // always at least as large as the true cost against the engine's best: playing the best
+        // move still hands the opponent a tempo, so winPct(after best) <= winPct(before), and
+        // therefore true <= naive. A small naive swing cannot be hiding a real mistake.
+        // Skipping those saves a best-move search AND a second eval on the majority of moves,
+        // which are ordinary. A margin below the mistake line keeps it well clear of eval noise.
+        const naive = winPctOf(evals[i]) - winPctOf(evals[i+1]);
+        if(naive < T_MISTAKE*0.8){
+          drops[i]=0;
+          REV_SKIPS++;
+        } else {
         const r=await engineTask(()=>bestMoveFor(w, fenBefore, JUDGE_DEPTH, 8000));
         if(r && r.san){
           bests[i]=r.san;
@@ -15428,10 +15710,12 @@ async function analyzeGame(){
             if(fenBest){
               const eBest=await evalOf(fenBest);
               if(eBest!==null && evals[i+1]!==null){
-                drops[i]=(clampEval(eBest) - clampEval(evals[i+1]))/100;
+                // points of win chance surrendered, engine's move vs yours, from the same position
+              drops[i]=winPctOf(eBest) - winPctOf(evals[i+1]);
               }
             }
           }
+        }
         }
       }
 
@@ -15442,6 +15726,7 @@ async function analyzeGame(){
       $("revProg").hidden=false;
       $("revProgFill").style.width=pct+"%";
       $("revAnStatus").textContent=`Analyzing\u2026 ${pct}%`;
+      if(REV_FOLLOW){ REV.ply=i+1; revPaintBoard(); }
       // Bank the work periodically. A full analysis is minutes of engine time, and on a phone a
       // backgrounded tab can be evicted mid-run — losing every search paid for. done/total ride
       // along in the record, so a partial restore is shown as partial rather than as a clean game.
@@ -15462,23 +15747,113 @@ async function analyzeGame(){
   }catch(e){
     $("revAnStatus").textContent="Engine unavailable: "+e.message;
   }
-  REV_RUNNING=false;
+  REV_RUNNING=false; REV_FOLLOW=false;
   $("revAnalyze").textContent="Analyze this game";
   $("revAnalyze").classList.remove("running");
 }
 $("revAnalyze").addEventListener("click",analyzeGame);
+// Re-run from the results row. Same handler, so Stop and the guard against a second run come free.
+// The call to action only belongs on screen while there's something to call for. Once a game is
+// fully analyzed the button is a large green box saying "done" in the best spot on the panel, so
+// it goes and "re-analyze" lives quietly beside the counts instead.
+// How much vertical room the stuff ABOVE the panel is using — the WIP banner, the game picker,
+// the legend line. Measured rather than hardcoded, because the banner comes and goes and the
+// legend wraps to two lines on narrower windows. Feeds the height calc in the media query.
+function fitReviewToViewport(){
+  const wrap=document.querySelector(".reviewwrap");
+  if(!wrap) return;
+  const panel=document.getElementById("panel-review");
+  if(!panel || panel.getBoundingClientRect().height===0) return;   // tab isn't showing
+  const top=wrap.getBoundingClientRect().top+window.scrollY;
+  // Leave room for the footer too, otherwise the panel fills the window and the page still
+  // scrolls by exactly the footer's height — a scrollbar for nothing you wanted to reach.
+  const foot=document.querySelector("footer");
+  const footH=foot ? Math.round(foot.getBoundingClientRect().height)+16 : 0;
+  document.documentElement.style.setProperty("--rev-chrome",Math.round(top+footH+40)+"px");
+  // Cap the sidebar at the board column's height. Without it the sidebar's own content sets the
+  // row height, so opening "All moves" grew the panel by ~800px and shoved everything below it
+  // down the page. Measured from the board, which is the column that should decide the height.
+  const col=document.querySelector(".revboard");
+  if(col){
+    const h=Math.round(col.getBoundingClientRect().height);
+    if(h>200) document.documentElement.style.setProperty("--rev-side-h",h+"px");
+  }
+}
+addEventListener("resize",()=>{ if(CURRENT_TAB==="review") fitReviewToViewport(); });
+function syncAnalyzeCta(){
+  const wrap=document.querySelector(".revanalyze");
+  if(!wrap) return;
+  const done = !!(REV_ANALYSIS && REV_ANALYSIS.total && (REV_ANALYSIS.done||0)>=REV_ANALYSIS.total);
+  wrap.hidden = done && !REV_RUNNING;
+}
 
 // Read the verdict off the drop we already computed.
+// The "?" beside the counts. Everything a person needs to trust (or distrust) these numbers:
+// what the unit is, where the line is drawn, what the engine is, and what it can't see. Written
+// out rather than hidden in a tooltip because the whole point is that the judging is explainable.
+let REV_HELP_OPEN=false;
+function revHelpHTML(){
+  return `<div class="revhelp">
+    <div class="rh-h">How these moves are judged</div>
+    <p><b>The unit is your chance of winning, not pawns.</b> For each of your moves the engine
+    plays what it would have played, then evaluates both positions to the same depth. The gap
+    between them is what the move cost you.</p>
+    <p>Measuring in win chance rather than pawns matters at the edges: going from winning by six
+    pawns to winning by three is nearly nothing — you were winning, you still are — while dropping
+    from level to a pawn down is a genuine swing. Pawns alone treat those the same.</p>
+    <ul class="rh-l">
+      <li><b class="rv-c blunder">Blunder</b> — cost ${T_BLUNDER}% or more of your chance of winning</li>
+      <li><b class="rv-c mistake">Mistake</b> — cost ${T_MISTAKE}% to ${T_BLUNDER}%</li>
+      <li><b class="rv-c miss">Missed mate</b> — forced mate was on the board and you played something else</li>
+    </ul>
+    <p><b>Why missed mates are counted separately.</b> When mate is available you're normally
+    winning by a mile already, so skipping it barely moves your chance of winning — around two
+    points. The engine's own numbers can't see it. These come from the same scan behind
+    <a href="#tab=mates">Missed Mates</a>, which finds them exactly.</p>
+    <p><b>What this isn't.</b> Only your own moves are judged. There's no "inaccuracy" tier: at
+    the depth this runs, the gap between a small inaccuracy and an ordinary move is smaller than
+    the engine's own margin of error, so naming it would be guessing. Accuracy percentages come
+    from chess.com and are computed differently — a game can look clean here and score modestly
+    there without either being wrong.</p>
+    <button type="button" class="ghostlink" id="revHelpClose">close</button>
+  </div>`;
+}
+// Which plies of THIS game the mate scan flagged as a missed mate. Sourced from g.mates rather
+// than from the eval delta, and that is not a shortcut \u2014 it's the only thing that works. When a
+// mate is on the board you're usually already winning outright, so missing it costs about 2.5
+// points of win chance: real, but far below any threshold worth flagging, and indistinguishable
+// from noise. The scan finds them exactly, for free, and already ran for the Missed Mates tab.
+function missedMatePlies(){
+  const g=REV.game;
+  if(!g || !g.mates || !g.mates.misses) return {};
+  const white = g.color==="W";
+  const out={};
+  for(const m of g.mates.misses){
+    if(!m || typeof m.move!=="number") continue;
+    out[2*(m.move-1) + (white?0:1)] = m;      // full-move number -> 0-indexed ply
+  }
+  return out;
+}
 function moveVerdict(i){
   if(!REV_ANALYSIS || !REV_ANALYSIS.drops) return null;
+  // A missed mate outranks whatever the eval delta says \u2014 it's the most concrete thing that can
+  // be said about a move, and the delta is near-blind to it by construction.
+  const mm=(REV_MISSES||{})[i];
+  if(mm) return {cls:"blunder", miss:true,
+                 txt:`<b class="rm-w miss">missed mate</b> \u00b7 ${mm.mate} was checkmate, you played ${mm.played}`};
   const d=REV_ANALYSIS.drops[i];
   if(d===null || d===undefined) return null;
   const best=REV_ANALYSIS.bests[i];
-  const alt = best && best!==REV.moves[i].san ? ` \u00b7 ${best} was better` : "";
-  if(d>=T_BLUNDER) return {cls:"blunder", txt:`blunder (\u2212${d.toFixed(1)})${alt}`};
-  if(d>=T_MISTAKE) return {cls:"mistake", txt:`mistake (\u2212${d.toFixed(1)})${alt}`};
-  if(d>=T_INACC)   return {cls:"inacc",   txt:`inaccuracy (\u2212${d.toFixed(1)})${alt}`};
-  if(d<=0.05 && best===REV.moves[i].san) return {cls:"best", txt:"engine's choice"};
+  // The win chance the engine's move would have kept: what you ended on, plus what the
+  // move gave away \u2014 both already in the record, so cached reviews get this for free.
+  const after=REV_ANALYSIS.evals ? winPctOf(REV_ANALYSIS.evals[i+1]) : null;
+  const kept=after!=null ? Math.max(0,Math.min(100,Math.round(after+d))) : null;
+  const alt = best && best!==REV.moves[i].san
+    ? ` \u00b7 ${best} was better${kept!=null?` (${kept}%)`:""}` : "";
+  // "\u221218% win chance" \u2014 a unit people already understand, and the same one the tooltip explains.
+  if(d>=T_BLUNDER) return {cls:"blunder", txt:`<b class="rm-w blunder">blunder</b> \u00b7 \u2212${Math.round(d)}% win chance${alt}`};
+  if(d>=T_MISTAKE) return {cls:"mistake", txt:`<b class="rm-w mistake">mistake</b> \u00b7 \u2212${Math.round(d)}% win chance${alt}`};
+  if(d<=1 && best===REV.moves[i].san) return {cls:"best", txt:"engine's choice"};
   return null;
 }
 
@@ -15488,10 +15863,14 @@ function evalCurve(){
   const n=e.length;
   const W=520, H=150, padX=6, padY=8;
   const CAP=8;                                   // pawns shown top to bottom
-  const clamp=v=>Math.max(-CAP,Math.min(CAP,v/100));
+  // evals[] are stored from YOUR side. The chart is drawn from WHITE's, always: white on top,
+  // black on the bottom, whichever colour you played. A curve that flips meaning depending on who
+  // you were is unreadable next to a board — and every other eval graph in chess reads this way.
+  const wsign = REV.game.color==="W" ? 1 : -1;
+  const clamp=v=>Math.max(-CAP,Math.min(CAP,(v*wsign)/100));
   const x=i=>padX+(W-2*padX)*i/Math.max(1,n-1);
-  // INVERTED: your advantage grows DOWNWARD, so you're always the bottom half of the chart.
-  const y=v=>padY + (H-2*padY) * (clamp(v)+CAP)/(2*CAP);
+  // White's advantage grows UPWARD, so a bigger number sits higher.
+  const y=v=>padY + (H-2*padY) * (CAP-clamp(v))/(2*CAP);
   const mid=y(0);
 
   let d="", started=false;
@@ -15499,9 +15878,15 @@ function evalCurve(){
   if(!d) return "";
   const lastI=e.reduce((a,v,i)=>v!=null?i:a,0);
 
-  // your half of the board, shaded
-  const area=`<path d="${d} L${x(lastI).toFixed(1)},${mid} L${x(0).toFixed(1)},${mid} Z"
-     fill="var(--win)" opacity="0.13"/>`;
+  // The area between curve and level, painted by who holds the edge: buff like the white
+  // pieces above the line, near-black below — the way chess.com shades its chart. One area
+  // path drawn twice through two clips, so the crossover points need no math at all.
+  const areaD=`${d} L${x(lastI).toFixed(1)},${mid} L${x(0).toFixed(1)},${mid} Z`;
+  const area=`
+    <clipPath id="egClipW"><rect x="0" y="0" width="${W}" height="${mid}"/></clipPath>
+    <clipPath id="egClipB"><rect x="0" y="${mid}" width="${W}" height="${H-mid}"/></clipPath>
+    <path d="${areaD}" fill="#D6DAD2" opacity="0.88" clip-path="url(#egClipW)"/>
+    <path d="${areaD}" fill="#0A0B0C" opacity="0.92" clip-path="url(#egClipB)"/>`;
 
   // one hoverable, clickable segment per ply
   const segW=(W-2*padX)/Math.max(1,n-1);
@@ -15526,23 +15911,40 @@ function evalCurve(){
   let marks="";
   for(let i=0;i<REV.moves.length;i++){
     const v=moveVerdict(i);
-    if(!v || !(v.cls==="blunder"||v.cls==="mistake"||v.cls==="inacc")) continue;
+    if(!v || !(v.cls==="blunder"||v.cls==="mistake")) continue;
     if(e[i+1]==null) continue;
-    const col = v.cls==="blunder" ? "var(--loss)" : v.cls==="mistake" ? "#D98A4A" : "var(--draw)";
-    marks+=`<circle class="egdot" data-ply="${i+1}" cx="${x(i+1).toFixed(1)}" cy="${y(e[i+1]).toFixed(1)}"
-      r="4.5" fill="${col}" stroke="#0E0F10" stroke-width="1"/>`;
+    // Shape as well as colour. On a small curve three warm dots were three dots; and colour alone
+    // excludes anyone who can't separate red from amber. Circle = blunder, diamond = mistake,
+    // square-on-point... square = a mate that was there and went unplayed.
+    const col = v.miss ? "var(--v-miss)" : v.cls==="blunder" ? "var(--v-blunder)" : "var(--v-mistake)";
+    const cx=x(i+1), cy=y(e[i+1]);
+    const common=`class="egdot" data-ply="${i+1}" fill="${col}" stroke="#0E0F10" stroke-width="1"`;
+    if(v.miss){
+      marks+=`<rect ${common} x="${(cx-4.2).toFixed(1)}" y="${(cy-4.2).toFixed(1)}" width="8.4" height="8.4" rx="1.2"/>`;
+    } else if(v.cls==="mistake"){
+      marks+=`<polygon ${common} points="${cx.toFixed(1)},${(cy-5.4).toFixed(1)} ${(cx+5.4).toFixed(1)},${cy.toFixed(1)} ${cx.toFixed(1)},${(cy+5.4).toFixed(1)} ${(cx-5.4).toFixed(1)},${cy.toFixed(1)}"/>`;
+    } else {
+      marks+=`<circle ${common} cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4.8"/>`;
+    }
   }
 
+  // The position marker used to be a green full-height line — the same green as the curve,
+  // so parked at the last ply it read as the eval crashing to the floor. Now the line is a
+  // neutral hairline and the "you are here" is a green dot ON the curve, chess.com-style.
+  const curY = e[REV.ply]!=null ? y(e[REV.ply]) : null;
   const cur=`<line class="egcur" x1="${x(REV.ply).toFixed(1)}" y1="0" x2="${x(REV.ply).toFixed(1)}" y2="${H}"
-    stroke="var(--green)" stroke-width="1.5" opacity="0.85"/>`;
+    stroke="var(--ink)" stroke-width="1.2" opacity="0.4"/>`
+    + (curY!=null?`<circle cx="${x(REV.ply).toFixed(1)}" cy="${curY.toFixed(1)}" r="4.4"
+    fill="var(--green)" stroke="#0E0F10" stroke-width="1.4"/>`:"");
 
-  return `<svg viewBox="0 0 ${W} ${H}" class="egsvg">
+  // preserveAspectRatio="none" stretches the drawing to the module's full width instead of
+  // letterboxing it at the viewBox's aspect; the corner labels went with it — the eval bar
+  // beside the board already says which way is White.
+  return `<svg viewBox="0 0 ${W} ${H}" class="egsvg" preserveAspectRatio="none">
     <rect x="0" y="0" width="${W}" height="${mid}" fill="rgba(255,255,255,.02)"/>
     <line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="var(--rule)"/>
-    ${area}<path d="${d}" fill="none" stroke="var(--green)" stroke-width="1.8"/>
+    ${area}<path d="${d}" fill="none" stroke="rgba(214,218,210,.55)" stroke-width="1.2"/>
     ${marks}${cur}${segs}
-    <text x="6" y="13" font-size="9" fill="var(--dim)" font-family="inherit">\u2212${CAP} them</text>
-    <text x="6" y="${H-5}" font-size="9" fill="var(--win)" font-family="inherit">+${CAP} you</text>
   </svg>`;
 }
 
@@ -15555,20 +15957,21 @@ function renderReview(){
   const fen = ply===0 ? new Chess().fen() : REV.moves[ply-1].fen;
   const last = ply===0 ? null : REV.moves[ply-1];
   const flip = g.color==="B";
-  // What the engine wanted from the position now on the board, drawn as an arrow — but only
-  // where the move actually played was a blunder or a mistake, so the board stays clean while
-  // you step through a normal game and speaks up exactly where it has something to say.
-  // bests[i] is the engine's choice for ply i, and the board at ply p shows the position BEFORE
-  // ply p — so bests[ply] is this position's move. Only your own moves are judged, so the arrow
-  // only ever appears on your turn.
-  // Stored as SAN (see analyzeGame), so the squares are re-derived here rather than by widening
-  // the cached record — that keeps every review already in rookbook:revdir usable.
+  // What the engine wanted INSTEAD of the move just played, drawn as an arrow — but only
+  // where that move was a blunder or a mistake, so the board stays clean while you step
+  // through a normal game and speaks up exactly where it has something to say. It rides the
+  // SAME screen as the bad move (chess.com's way): your move is on the board, the green
+  // arrow says what should have gone there. It used to draw one ply earlier — on the
+  // position before your move — which read as an arrow on the opponent's turn.
+  // bests[] is SAN (see analyzeGame), so the squares are re-derived from the position the
+  // move was played FROM — that keeps every review already in rookbook:revdir usable.
   let arrow=null;
-  if(REV_ANALYSIS && REV_ANALYSIS.bests && ply<REV.moves.length){
-    const v=moveVerdict(ply), san=REV_ANALYSIS.bests[ply];
+  if(REV_ANALYSIS && REV_ANALYSIS.bests && ply>0){
+    const v=moveVerdict(ply-1), san=REV_ANALYSIS.bests[ply-1];
     if(san && v && (v.cls==="blunder" || v.cls==="mistake")){
       try{
-        const c=new Chess(fen); const mv=c.move(san,{sloppy:true});
+        const prevFen = ply>=2 ? REV.moves[ply-2].fen : new Chess().fen();
+        const c=new Chess(prevFen); const mv=c.move(san,{sloppy:true});
         if(mv) arrow={from:mv.from, to:mv.to, color:"#7CC287"};
       }catch(e){ arrow=null; }   // a cached best move that no longer fits this position
     }
@@ -15587,59 +15990,66 @@ function renderReview(){
     const host=$("revBoard"), wrap=host.closest(".bwrap")||host;
     wrap.outerHTML = boardHTML(fen, flip, last, arrow).replace('class="bgrid"','class="bgrid big" id="revBoard"');
   }
-  $("revPly").textContent = ply===0 ? "start" : `move ${Math.ceil(ply/2)}${ply%2?" (white)":" (black)"} \u00b7 ${last.san}`;
 
-  // running material + clock at this point
-  const VALS={p:1,n:3,b:3,r:5,q:9};
-  let mat=0;
-  const me = g.color==="W" ? "w" : "b";
-  REV.moves.slice(0,ply).forEach(m=>{ if(m.captured) mat += (m.color===me?1:-1)*VALS[m.captured]; });
-  const t = revMine(g) ? revMine(g)[Math.floor((ply-1)/2)] : null;
-  const myThink = (ply>0 && last.color===me && t!=null) ? `${t}s` : "—";
+  const me = g.color==="W" ? "w" : "b";   // the player's piece color; the move table reads it
 
   // ---- eval bar for the current position ----
   const evalHere = REV_ANALYSIS && REV_ANALYSIS.evals[ply]!=null ? REV_ANALYSIS.evals[ply] : null;
   const bar=$("evalBar"), fill=$("evalFill"), num=$("evalNum");
+  // The bar is part of the board, not part of the analysis — hiding it made the board jump sideways
+  // the moment an analysis finished, and left beginners wondering where the thing they'd seen on
+  // chess.com had gone. It now always stands there, sitting level and unlabelled until there's a
+  // number to show.
+  bar.hidden=false;
   if(evalHere!=null){
-    bar.hidden=false;
-    const p=Math.max(-8,Math.min(8,evalHere/100));
+    bar.classList.remove("idle");
+    // The white fill means WHITE, not "you". evals[] are stored from your side, so convert back:
+    // a white bar that grew when a Black player was winning was reading as the opposite of the
+    // pieces it sits beside.
+    const wsign = g.color==="W" ? 1 : -1;
+    const p=Math.max(-8,Math.min(8,(evalHere*wsign)/100));
     fill.style.height=(50+50*p/8)+"%";
     const mate=Math.abs(evalHere)>=1200;
-    num.textContent = mate ? (evalHere>0?"M":"-M") : (p>0?"+":"")+p.toFixed(1);
-    num.style.color = p>0.5 ? "var(--win)" : p<-0.5 ? "var(--loss)" : "var(--ink)";
-  } else bar.hidden=true;
+    // the number keeps White's sign too, the way every engine prints it
+    num.textContent = mate ? ((evalHere*wsign)>0?"M":"-M") : (p>0?"+":"")+p.toFixed(1);
+    num.style.color = "var(--ink)";
+  } else {
+    bar.classList.add("idle");
+    fill.style.height="50%";
+    num.textContent="";
+  }
   $("revGraph").innerHTML = evalCurve();
   $("revGraph").querySelectorAll(".egdot, .egseg").forEach(el=>
     el.addEventListener("click",()=>revGo(+el.dataset.ply)));
 
   // ---- game header ----
   const resCls = g.result==="Win" ? "res win" : g.result==="Loss" ? "res loss" : "res draw";
-  const accCell = g.acc!=null
-    ? `${g.acc.toFixed(1)}${g.oppAcc!=null?` <span class="dim">vs ${g.oppAcc.toFixed(1)}</span>`:""}`
-    : '<span class="dim">not reviewed</span>';
 
   // ---- what the engine found, once it has run ----
-  let verdictBar="", moments="";
+  let verdictBar="", moments="", badCount=0;   // badCount is read by the list toggle below
   if(REV_ANALYSIS){
     // Mid-run this function is called every 6 plies, and a restored-but-stopped analysis can be
     // permanently short — so "nothing found" only means a clean game once every ply is judged.
     const revDone = REV_ANALYSIS.done!=null && REV_ANALYSIS.total!=null
                   ? REV_ANALYSIS.done>=REV_ANALYSIS.total : true;
     const revPct = REV_ANALYSIS.total ? Math.round(100*(REV_ANALYSIS.done||0)/REV_ANALYSIS.total) : 0;
-    const counts={blunder:0,mistake:0,inacc:0};
-    const bad=[];
+    const counts={blunder:0,mistake:0,miss:0,best:0};
+    const bad=[];   // filled below; count hoisted into badCount for the toggle label
     for(let i=0;i<REV.moves.length;i++){
       const v=moveVerdict(i);
       if(!v) continue;
-      if(counts[v.cls]!==undefined) counts[v.cls]++;
+      if(v.miss) counts.miss++;
+      else if(counts[v.cls]!==undefined) counts[v.cls]++;
       if(v.cls==="blunder"||v.cls==="mistake") bad.push({i,v});
     }
-    verdictBar=`<div class="revverdict">
-      <span class="rv blunder">${counts.blunder}<small>blunders</small></span>
-      <span class="rv mistake">${counts.mistake}<small>mistakes</small></span>
-      <span class="rv inacc">${counts.inacc}<small>inaccuracies</small></span>
-      ${revDone?"":`<span class="rv" title="Counts are still going up — the engine hasn't judged every move yet"><span class="dim">${revPct}%</span><small>analyzed</small></span>`}
-    </div>`;
+    verdictBar=`<div class="revverdict${revDone?"":" provisional"}"${revDone?"":' title="Still analyzing — these counts are only for the moves judged so far"'}>
+      <span class="rv blunder" title="Moves that cost ${T_BLUNDER}% or more of your chance of winning">${counts.blunder}<small>blunders</small></span>
+      <span class="rv mistake" title="Moves that cost ${T_MISTAKE}–${T_BLUNDER}% of your chance of winning">${counts.mistake}<small>mistakes</small></span>
+      <span class="rv miss" title="Forced mates that were on the board and went unplayed. Found by the mate scan, not the engine — see Missed Mates.">${counts.miss}<small>missed mates</small></span>
+      <span class="rv best" title="Moves where you found the engine's own choice">${counts.best}<small>engine's choice</small></span>
+      <button type="button" class="rv rv-help" id="revHelp" aria-label="How these are judged">?</button>
+    </div>${REV_HELP_OPEN?revHelpHTML():""}`;
+    badCount=bad.length;
     moments = bad.length
       ? `<div class="revsec">
           <div class="revsech">Where it went wrong \u00b7 click to jump</div>
@@ -15661,23 +16071,30 @@ function renderReview(){
 
   $("revHead").innerHTML=`
     <div class="revhead">
-      <div>
-        <div class="rh-title ${resCls}">${g.result} by ${g.how}</div>
-        <div class="rh-sub">${fmtDate(g.date)} \u00b7 ${g.color==="W"?"White":"Black"} vs <b>${g.oppName}</b> (${g.oppElo}) \u00b7 ${g.moves} moves</div>
-      </div>
-      ${g.delta!=null?`<div class="rh-elo ${g.delta>0?"res win":"res loss"}">${g.delta>0?"+":""}${g.delta}</div>`:""}
+      <span class="star rh-star ${isStarred(g)?"on":""}" data-star="${gid(g)}" role="button" tabindex="0"
+        title="Star this game — starred games get the ★ chip on the Game Log">${isStarred(g)?"★":"☆"}</span>
+      <span class="rh-sub">${fmtDate(g.date)} · ${g.color==="W"?"White":"Black"} vs <b>${g.oppName}</b>${g.oppElo!=null?` (${g.oppElo})`:""}</span>
+      <span class="rh-res ${resCls}">${({Win:"W",Loss:"L",Draw:"D"})[g.result]||"·"}${g.delta!=null?` (${g.delta>0?"+":""}${g.delta})`:""}</span>
+      ${g.url?`<a class="ghostlink rh-link" href="${g.url}" target="_blank" rel="noopener">open on chess.com &#8599;</a>`:""}
     </div>
-    <div class="revgrid">
-      <div><span class="rg-k">Accuracy</span><span class="rg-v">${accCell}</span></div>
-      <div><span class="rg-k">Material here</span><span class="rg-v ${mat>0?"res win":mat<0?"res loss":"dim"}">${mat>0?"+":""}${mat}</span></div>
-      <div><span class="rg-k">You thought</span><span class="rg-v ${t!=null&&t<3?"res loss":""}">${myThink}</span></div>
-      <div><span class="rg-k">Engine</span><span class="rg-v ${evalHere>50?"res win":evalHere<-50?"res loss":"dim"}">${evalHere!=null?(Math.abs(evalHere)>=1200?"mate":((evalHere/100>0?"+":"")+(evalHere/100).toFixed(1))):"\u2014"}</span></div>
-    </div>
-    ${g.url?`<div style="margin-top:8px"><a class="ghostlink" href="${g.url}" target="_blank" rel="noopener">open on chess.com</a></div>`:""}`;
+    `;   // material, think time and the engine number now live on the board bars, the move
+         // rows and the eval bar — the three-cell strip under the header restated all three
 
-  // counts sit under the chart on the board side; the "what went wrong" list stays in the sidebar
   $("revCounts").innerHTML = verdictBar;
-  $("revInfo").innerHTML = moments;
+  // One list, two views. The moves that cost something come first because that is what a review
+  // is for; the full move list is a click away for when you want to walk the whole game. They
+  // used to sit stacked, which pushed the eval curve off the bottom of the sidebar.
+  $("revInfo").innerHTML = `<div class="revswitch" role="tablist">
+      <button type="button" class="rsw ${REV_LIST==="issues"?"on":""}" data-revlist="issues" role="tab"
+        aria-selected="${REV_LIST==="issues"}">What went wrong${badCount?` <span class="rsw-n">${badCount}</span>`:""}</button>
+      <button type="button" class="rsw ${REV_LIST==="all"?"on":""}" data-revlist="all" role="tab"
+        aria-selected="${REV_LIST==="all"}">All moves <span class="rsw-n">${REV.moves.length}</span></button>
+    </div>` + (REV_LIST!=="issues" ? "" :
+      // Always a bordered panel, even before an analysis exists — an empty region with no edge
+      // reads as something failing to load rather than as somewhere results will appear.
+      (moments || `<div class="revlistbox revempty">${REV_ANALYSIS
+        ? "Nothing found yet."
+        : "Run <b>Analyze this game</b> to see where this game turned."}</div>`));
 
   // ---- move table: one row per full move, with what it cost and how long you took ----
   const times = revMine(g) || [];
@@ -15693,10 +16110,16 @@ function renderReview(){
       : "";
     let cls="mvcell";
     if(v) cls+=" "+v.cls;
-    else if(mine && t!=null && t<2) cls+=" blitzed";
     if(i+1===REV.ply) cls+=" on";
-    const tip=[v?v.txt:"", t!=null?`${t}s`:""].filter(Boolean).join(" \u00b7 ");
-    return `<td class="${cls}" data-ply="${i+1}" title="${tip}">${m.san}</td>`
+    // v.txt carries markup for the moments list; a title attribute wants it plain
+  const tip=[v?v.txt.replace(/<[^>]+>/g,""):"", t!=null?`${t}s`:""].filter(Boolean).join(" \u00b7 ");
+    // "Nf3" reads as a piece icon + "f3", the way chess.com prints its move list — kinder to
+    // anyone who doesn't think in SAN. Pawn moves get a pawn, castling gets the king.
+    const first=m.san[0];
+    const pc = "KQRBN".includes(first) ? first.toLowerCase() : m.san.startsWith("O-") ? "k" : "p";
+    const rest = "KQRBN".includes(first) ? m.san.slice(1) : m.san;
+    const sanIc = pieceSVG(m.color==="w" ? pc.toUpperCase() : pc) + rest;
+    return `<td class="${cls}" data-ply="${i+1}" title="${tip?`${m.san} · ${tip}`:m.san}">${sanIc}</td>`
       + `<td class="mvt ${t!=null&&t<2?"res loss":""}" data-ply="${i+1}">${t!=null?t+"s":""}</td>`
       + `<td class="mve ${ev.startsWith("+")?"res win":ev.startsWith("-")?"res loss":"dim"}" data-ply="${i+1}">${ev}</td>`;
   };
@@ -15704,7 +16127,11 @@ function renderReview(){
   for(let i=0;i<REV.moves.length;i+=2){
     rows+=`<tr><td class="mvn">${i/2+1}.</td>${cell(i)}${cell(i+1)}</tr>`;
   }
-  $("revMoves").innerHTML=`
+  $("revMoves").hidden = REV_LIST!=="all";
+  // The 190px findings reservation only earns its keep on the issues view; on "All moves" it
+  // pushed the nav row past the sidebar's height cap and the cap clipped it.
+  $("revInfo").classList.toggle("slim", REV_LIST==="all");
+  $("revMoves").innerHTML = REV_LIST!=="all" ? "" : `
     <table class="mvtable">
       <thead><tr>
         <th></th>
@@ -15715,23 +16142,136 @@ function renderReview(){
     </table>`;
   $("revMoves").querySelectorAll("[data-ply]").forEach(el=>
     el.addEventListener("click",()=>revGo(+el.dataset.ply)));
+  // Same reason as the game picker: keep the scrolling inside the move list.
   const on=$("revMoves").querySelector(".on");
-  if(on) on.scrollIntoView({block:"nearest"});
+  if(on){
+    const box=$("revMoves");
+    const top=on.offsetTop, bot=top+on.offsetHeight;
+    if(top < box.scrollTop) box.scrollTop = top - 4;
+    else if(bot > box.scrollTop+box.clientHeight) box.scrollTop = bot - box.clientHeight + 4;
+  }
 
   $("revMeta").innerHTML = REV_ANALYSIS
-    ? `${REV.moves.length} plies \u00b7 each move judged against the engine's choice at depth ${JUDGE_DEPTH} \u00b7 red \u2265${T_BLUNDER}, orange \u2265${T_MISTAKE}, gold \u2265${T_INACC} pawns lost \u00b7 moves in an already-decided position aren't counted`
-    : `${REV.moves.length} plies \u00b7 red = played under 2s, gold = 20s+ \u00b7 hit <b>Analyze this game</b> for blunder marks`;
+    // Deliberately terse: this line sat above the board on every screen, restating what the "?"
+    // beside the counts now explains properly. Two lines of legend cost more board than they were
+    // worth, and the full version is one click away.
+    ? `${REV.moves.length} plies \u00b7 judged at depth ${JUDGE_DEPTH}`
+    : `${REV.moves.length} plies \u00b7 a red time = played in under 2s \u00b7 hit <b>Analyze this game</b> for blunder marks`;
+  syncAnalyzeCta();
+  revPaintBars();
+  fitReviewToViewport();
+}
+// Board and clocks only. renderReview() rebuilds the move table, the findings list and the
+// curve — far too much to run on every ply of an analysis.
+function revPaintBoard(){
+  const g=REV.game; if(!g) return;
+  const ply=REV.ply;
+  const fen = ply===0 ? new Chess().fen() : REV.moves[ply-1].fen;
+  const last = ply===0 ? null : REV.moves[ply-1];
+  const key = fen+"|"+(last?last.san:"")+"|follow";
+  if(key!==REV_BOARD_KEY){
+    REV_BOARD_KEY=key;
+    const host=$("revBoard"); if(!host) return;
+    const wrap=host.closest(".bwrap")||host;
+    wrap.outerHTML = boardHTML(fen, g.color==="B", last, null)
+      .replace('class="bgrid"','class="bgrid big" id="revBoard"');
+  }
+  revPaintBars();
+}
+// Remaining time for one side at the current position. par: 0=White, 1=Black. The [%clk]
+// stamps alternate in ply order, so a side's clock is its latest stamp at or before the shown
+// ply — and before the side has moved at all, the time control's base.
+function revClockAt(par, ply){
+  const clks=REV.clks; if(!clks) return null;
+  let i=Math.min(ply-1, clks.length-1);
+  while(i>=0 && (i%2)!==par) i--;
+  if(i>=0) return clks[i];
+  const g=REV.game;
+  return (g && g.times && g.times.base!=null) ? g.times.base : null;
+}
+function revPaintBars(){
+  const g=REV.game, top=$("revBarTop"), bot=$("revBarBot");
+  if(!top || !bot) return;
+  if(!g){ top.hidden=true; bot.hidden=true; return; }
+  top.hidden=false; bot.hidden=false;
+  $("revNameTop").innerHTML=`${g.oppName}${g.oppElo!=null?` <span class="dim">(${g.oppElo})</span>`:""}`;
+  $("revNameBot").innerHTML=`You${g.elo!=null?` <span class="dim">(${g.elo})</span>`:""}`;
+  const myPar = g.color==="B"?1:0;
+  const toMove = REV.ply%2;                       // parity of the side to move at this position
+  const paint=(id,par)=>{
+    const el=$(id), t=revClockAt(par, REV.ply);
+    el.textContent = t!=null ? clkStr(t) : "";
+    el.classList.toggle("on", REV.ply<REV.moves.length && par===toMove);
+    el.classList.toggle("low", t!=null && t<30 && longClockGame(g));
+  };
+  paint("revClkBot", myPar);
+  paint("revClkTop", 1-myPar);
+  // Pieces each side has taken so far, on the name line, with the material edge as a +N
+  // beside whoever holds it. Captures are read straight off the replayed move list, so
+  // they track the ply on screen, not the final position.
+  const VALS={p:1,n:3,b:3,r:5,q:9};
+  const taken={w:[], b:[]};
+  let matW=0;
+  REV.moves.slice(0,REV.ply).forEach(m=>{
+    if(!m.captured) return;
+    if(m.color==="w"){ taken.w.push(m.captured); matW+=VALS[m.captured]||0; }
+    else             { taken.b.push(m.captured); matW-=VALS[m.captured]||0; }
+  });
+  const ORDER={p:1,n:2,b:3,r:4,q:5};
+  const icons=(arr,upper)=>arr.sort((a,b)=>ORDER[a]-ORDER[b])
+    .map(t=>pieceSVG(upper?t.toUpperCase():t)).join("");
+  const fill=(id,par)=>{
+    const d = par===0 ? matW : -matW;
+    // White's bar shows the black pieces White took; Black's bar the white ones
+    $(id).innerHTML = (par===0 ? icons(taken.w,false) : icons(taken.b,true))
+                    + (d>0 ? `<b class="rvp-lead">+${d}</b>` : "");
+  };
+  fill("revTakenBot", myPar);
+  fill("revTakenTop", 1-myPar);
 }
 function revGo(p){
+  if(!REV_AUTO_TICK) revAutoStop();   // any manual jump takes the wheel back
+  REV_FOLLOW=false;               // you took the wheel — stop walking the board for you
   REV.ply=Math.max(0,Math.min(REV.moves.length,p));
-  $("revSlider").value=REV.ply;
   renderReview();
+}
+/* ---- autoplay: the middle nav button. Steps forward on a timer and pulls up at the next
+   move the engine flagged — blunder, mistake, or missed mate — or the end. Before a game
+   has been analyzed there are no flags yet, so it simply plays through. ---- */
+function revAutoStop(){
+  if(REV_AUTO){ clearInterval(REV_AUTO); REV_AUTO=null; }
+  const b=$("revPlay");
+  if(b && b.classList.contains("on")){ b.classList.remove("on"); b.innerHTML="&#9656;"; }
+}
+function revAutoStep(){
+  REV_AUTO_TICK=true;
+  try{ revGo(REV.ply+1); } finally{ REV_AUTO_TICK=false; }
+  // Stop AFTER the flagged move is on the board — that's the position worth looking at.
+  const v=moveVerdict(REV.ply-1);
+  if((v && v.cls!=="best") || REV.ply>=REV.moves.length) revAutoStop();
+}
+function revAutoStart(){
+  if(REV_AUTO || !REV.game || !REV.moves.length) return;
+  if(REV.ply>=REV.moves.length){                 // at the end already: play means "from the top"
+    REV_AUTO_TICK=true;
+    try{ revGo(0); } finally{ REV_AUTO_TICK=false; }
+  }
+  const b=$("revPlay");
+  if(b){ b.classList.add("on"); b.innerHTML="&#10073;&#10073;"; }
+  revAutoStep();                                  // step at once — a dead beat first feels broken
+  if(REV.ply<REV.moves.length && $("revPlay").classList.contains("on"))
+    REV_AUTO=setInterval(revAutoStep,700);
 }
 $("revPickBtn").addEventListener("click",()=>{
   const pop=$("revPickPop"), opening=pop.hidden;
   pop.hidden=!opening;
   $("revPickBtn").setAttribute("aria-expanded", opening?"true":"false");
-  if(opening){ const on=pop.querySelector(".revpick-row.on"); if(on) on.scrollIntoView({block:"center"}); }
+  // Scroll the popup itself, never the page. scrollIntoView walks up and scrolls every
+  // scrollable ancestor, so opening the list yanked the whole document back to the top.
+  if(opening){
+    const on=pop.querySelector(".revpick-row.on");
+    if(on) pop.scrollTop = on.offsetTop - (pop.clientHeight/2) + (on.offsetHeight/2);
+  }
 });
 $("revPickPop").addEventListener("click",e=>{
   const row=e.target.closest(".revpick-row"); if(!row) return;
@@ -15741,7 +16281,7 @@ $("revPickPop").addEventListener("click",e=>{
 document.addEventListener("click",e=>{
   const w=$("revPick"); if(w && !w.contains(e.target)){ $("revPickPop").hidden=true; $("revPickBtn").setAttribute("aria-expanded","false"); }
 });
-$("revSlider").addEventListener("input",e=>revGo(+e.target.value));
+$("revPlay").addEventListener("click",()=>{ REV_AUTO ? revAutoStop() : revAutoStart(); });
 $("revStart").addEventListener("click",()=>revGo(0));
 $("revBack").addEventListener("click",()=>revGo(REV.ply-1));
 $("revFwd").addEventListener("click",()=>revGo(REV.ply+1));
@@ -15764,8 +16304,14 @@ $("revGraph").addEventListener("click",e=>{
 });
 document.addEventListener("keydown",e=>{
   if(CURRENT_TAB!=="review") return;
+  if(e.target.closest("input,textarea,select")) return;
   if(e.key==="ArrowLeft"){ revGo(REV.ply-1); e.preventDefault(); }
   if(e.key==="ArrowRight"){ revGo(REV.ply+1); e.preventDefault(); }
+  // Space toggles autoplay — but not when a button has focus, where space already IS a click.
+  if(e.key===" " && !e.target.closest("button")){
+    REV_AUTO ? revAutoStop() : revAutoStart();
+    e.preventDefault();
+  }
 });
 /* ===================== /EXPERIMENTAL: Tempo / What If / Review ===================== */
 
@@ -15788,6 +16334,9 @@ let CURRENT_TAB="log";
 function showTab(which, opts={}){
   const changed = CURRENT_TAB!==which;
   CURRENT_TAB=which;
+  // Lets CSS react to which tab is open — Review uses it to shrink the footer, since that tab is
+  // a workspace you want as much of on screen as possible.
+  document.body.dataset.tab=which;
   // Anonymous tally of WHICH page was opened \u2014 never who, never what they searched.
   // Fires on real switches only, so a re-render doesn't count twice.
   if(changed) track("tab-"+which);
@@ -16497,7 +17046,7 @@ document.addEventListener("click",e=>{
 const logEl=$("changelog");
 // The newest changelog version. Bump this whenever a new entry is added at the top, and the
 // changelog button shows an unread dot until the reader opens it once at this version.
-const LATEST_LOG_V="1.1.2";
+const LATEST_LOG_V="1.2.0";
 function refreshLogDot(){
   const dot=$("logDot"); if(!dot) return;
   const seen=LS.get("rookbook:log:seen");
