@@ -2232,14 +2232,22 @@
   /* The five stepping buttons live at the sidebar's foot, chess.com-style: start, back, play,
      forward, end. Icon-only so five fit where four labels used to. */
   .revnav{display:flex;align-items:stretch;gap:6px;margin-top:8px;flex:0 0 auto}
-  .revnav button{flex:1 1 0;background:var(--panel2);border:1.5px solid var(--rule);border-radius:6px;
+  .revnav button{flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:7px;
+    background:var(--panel2);border:1.5px solid var(--rule);border-radius:6px;
     font-family:var(--sans);font-size:19px;font-weight:700;line-height:1;padding:8px 0;text-transform:none;
     color:var(--ink);cursor:pointer;transition:background .12s,border-color .12s,color .12s}
+  .revnav .nv-i{font-style:normal;font-size:19px;line-height:1}
+  /* Words only where there's room. On a phone the row is five buttons across a 360px screen —
+     the arrows alone are unambiguous there, and labels would force them to wrap. */
+  .revnav .nv-t{display:none;font-size:13px;font-weight:600;letter-spacing:.03em}
+  @media (min-width:900px){ .revnav .nv-t{display:inline} }
   .revnav button:hover,.revnav button:focus-visible{background:var(--panel);border-color:var(--green);
     color:var(--green);outline:none}
   .revnav button:active{transform:translateY(1px)}
-  .revnav #revPlay{color:var(--green);border-color:rgba(111,164,123,.5);font-size:21px}
-  .revnav #revPlay.on{background:var(--panel);border-color:var(--green);font-size:14px}
+  .revnav #revPlay{color:var(--green);border-color:rgba(111,164,123,.5)}
+  .revnav #revPlay .nv-i{font-size:21px}
+  .revnav #revPlay.on{background:var(--panel);border-color:var(--green)}
+  .revnav #revPlay.on .nv-i{font-size:14px}
   /* name + clock bars around the board */
   .revplayer{display:flex;align-items:center;gap:8px;
     padding:0 0 6px;font-size:13.5px}
@@ -2300,7 +2308,9 @@
   .mv.blunder{background:rgba(224,119,108,.25);color:var(--v-blunder);font-weight:700}
   .mv.best{color:var(--win)}
   .egdot{cursor:pointer}
-  .egsvg{width:100%;display:block;border:1px solid var(--rule);background:var(--bg)}
+  /* touch-action:none so a drag scrubs the game instead of scrolling the page on a phone */
+  .egsvg{width:100%;display:block;border:1px solid var(--rule);background:var(--bg);
+    cursor:ew-resize;touch-action:none}
   .egseg{cursor:pointer}
   .egseg:hover{fill:rgba(111,164,123,.14)}
   .egseg.on{fill:rgba(111,164,123,.08)}
@@ -2362,12 +2372,17 @@
      below, where column alignment is the point. */
   #panel-review, #panel-review button, #panel-review input, #panel-review select{font-family:var(--sans)}
   #panel-review .revmoves .mvsan, #panel-review .mvcell, #panel-review .evalnum{font-family:var(--mono)}
-  .revverdict{display:flex;gap:8px;margin-top:10px;align-items:stretch}
+  /* Four tiles share one narrow sidebar, so they size against the viewport rather than sitting
+     at a fixed 19px: just past the 900px two-column breakpoint the column is at its tightest and
+     the old fixed size made ENGINE'S CHOICE wrap, dragging every tile taller with it. */
+  .revverdict{display:flex;gap:6px;margin-top:10px;align-items:stretch}
   .rv{
-    flex:1;text-align:center;padding:8px 4px;border:1px solid var(--rule);
-    font-size:19px;font-weight:700;display:flex;flex-direction:column;gap:2px;
+    flex:1 1 0;min-width:0;text-align:center;padding:6px 3px;border:1px solid var(--rule);
+    font-size:clamp(14px,1.5vw,19px);font-weight:700;display:flex;flex-direction:column;gap:1px;
+    line-height:1.15;
   }
-  .rv small{font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:400;color:var(--dim)}
+  .rv small{font-size:clamp(7px,.72vw,8.5px);letter-spacing:.05em;text-transform:uppercase;
+    font-weight:400;color:var(--dim);line-height:1.2;overflow-wrap:anywhere}
   .rv.blunder{color:var(--v-blunder);border-color:rgba(224,119,108,.45);background:rgba(224,119,108,.09)}
   .rv.mistake{color:var(--v-mistake);border-color:rgba(227,166,60,.45);background:rgba(227,166,60,.09)}
   .rv.inacc{color:var(--draw);border-color:rgba(211,178,90,.35);background:rgba(211,178,90,.07)}
@@ -2376,7 +2391,7 @@
   /* The global button rule paints every button solid green, uppercase and mono, and .rv makes its
      children equal-width panels — so this came out as a full-size green tile with an off-centre
      "?" in it. It's a small icon button, so it opts out of both. */
-  .rv-help{flex:0 0 auto;align-self:center;width:26px;height:26px;min-width:0;padding:0;
+  .rv-help{flex:0 0 auto;align-self:center;width:22px;height:22px;min-width:0;padding:0;
     display:flex;align-items:center;justify-content:center;
     background:transparent;color:var(--dim);border:1px solid var(--rule);border-radius:50%;
     font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:0;text-transform:none;
@@ -3481,11 +3496,11 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
              where the reading happens. The middle one plays the game forward and pulls up at the
              next move the engine flagged. -->
         <div class="revnav">
-          <button id="revStart" title="Jump to the starting position">&#8676;</button>
-          <button id="revBack" title="One move back">&#8592;</button>
-          <button id="revPlay" title="Play through the game &mdash; stops at the next blunder, mistake, or missed mate">&#9656;</button>
-          <button id="revFwd" title="One move forward">&#8594;</button>
-          <button id="revEnd" title="Jump to the final position">&#8677;</button>
+          <button id="revStart" title="Jump to the starting position"><i class="nv-i">&#8676;</i><span class="nv-t">Start</span></button>
+          <button id="revBack" title="One move back"><i class="nv-i">&#8592;</i><span class="nv-t">Prev</span></button>
+          <button id="revPlay" title="Play through the game &mdash; stops at the next blunder, mistake, or missed mate"><i class="nv-i">&#9656;</i><span class="nv-t">Play</span></button>
+          <button id="revFwd" title="One move forward"><i class="nv-i">&#8594;</i><span class="nv-t">Next</span></button>
+          <button id="revEnd" title="Jump to the final position"><i class="nv-i">&#8677;</i><span class="nv-t">End</span></button>
         </div>
       </div>
     </div>
@@ -15770,6 +15785,10 @@ async function analyzeGame(){
   REV_RUNNING=false; REV_FOLLOW=false;
   $("revAnalyze").textContent="Analyze this game";
   $("revAnalyze").classList.remove("running");
+  // Must run AFTER REV_RUNNING clears. The final renderReview() above fires while it is still
+  // true, so syncAnalyzeCta saw "done but running" and left the button up next to
+  // "Analysis complete." Nothing re-rendered afterwards, so it stayed there for good.
+  syncAnalyzeCta();
 }
 $("revAnalyze").addEventListener("click",analyzeGame);
 // Re-run from the results row. Same handler, so Stop and the guard against a second run come free.
@@ -16044,9 +16063,6 @@ function renderReview(){
     num.textContent="";
   }
   $("revGraph").innerHTML = evalCurve();
-  $("revGraph").querySelectorAll(".egdot, .egseg").forEach(el=>
-    el.addEventListener("click",()=>revGo(+el.dataset.ply)));
-
   // ---- game header ----
   const resCls = g.result==="Win" ? "res win" : g.result==="Loss" ? "res loss" : "res draw";
 
@@ -16266,7 +16282,7 @@ function revGo(p){
 function revAutoStop(){
   if(REV_AUTO){ clearInterval(REV_AUTO); REV_AUTO=null; }
   const b=$("revPlay");
-  if(b && b.classList.contains("on")){ b.classList.remove("on"); b.innerHTML="&#9656;"; }
+  if(b && b.classList.contains("on")){ b.classList.remove("on"); b.innerHTML='<i class="nv-i">&#9656;</i><span class="nv-t">Play</span>'; }
 }
 function revAutoStep(){
   REV_AUTO_TICK=true;
@@ -16282,7 +16298,7 @@ function revAutoStart(){
     try{ revGo(0); } finally{ REV_AUTO_TICK=false; }
   }
   const b=$("revPlay");
-  if(b){ b.classList.add("on"); b.innerHTML="&#10073;&#10073;"; }
+  if(b){ b.classList.add("on"); b.innerHTML='<i class="nv-i">&#10073;&#10073;</i><span class="nv-t">Pause</span>'; }
   revAutoStep();                                  // step at once — a dead beat first feels broken
   if(REV.ply<REV.moves.length && $("revPlay").classList.contains("on"))
     REV_AUTO=setInterval(revAutoStep,700);
@@ -16327,6 +16343,37 @@ $("revGraph").addEventListener("click",e=>{
   const s=e.target.closest("[data-ply]");
   if(s) revGo(+s.dataset.ply);
 });
+/* Drag anywhere along the curve to scrub the game. Bound ONCE to the container, not to the
+   svg: revGo() -> renderReview() rewrites revGraph's innerHTML every ply, so a listener on the
+   svg is detached the moment the first move lands and the drag dies after one step. The ply
+   comes from the pointer's x against the svg's box, looked up per event for the same reason. */
+(function(){
+  const host=$("revGraph");
+  let scrubbing=false;
+  const plyAt=e=>{
+    const svg=host.querySelector(".egsvg"); if(!svg) return null;
+    const r=svg.getBoundingClientRect(); if(r.width<=0) return null;
+    const f=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+    return Math.round(f*REV.moves.length);
+  };
+  host.addEventListener("pointerdown",e=>{
+    if(!REV.moves.length || !e.target.closest(".egsvg")) return;
+    const p=plyAt(e); if(p==null) return;
+    scrubbing=true;
+    try{ host.setPointerCapture(e.pointerId); }catch(_){}
+    if(p!==REV.ply) revGo(p);
+    e.preventDefault();
+  });
+  host.addEventListener("pointermove",e=>{
+    if(!scrubbing) return;
+    const p=plyAt(e);
+    if(p!=null && p!==REV.ply) revGo(p);
+  });
+  const end=e=>{ if(!scrubbing) return; scrubbing=false;
+    try{ host.releasePointerCapture(e.pointerId); }catch(_){} };
+  host.addEventListener("pointerup",end);
+  host.addEventListener("pointercancel",end);
+})();
 document.addEventListener("keydown",e=>{
   if(CURRENT_TAB!=="review") return;
   if(e.target.closest("input,textarea,select")) return;

@@ -134,15 +134,15 @@ export default async (request, context) => {
       title = fill(feat.title);
       desc = fill(feat.desc);
     } else if (exists) {
-      title = `${name} — Chess.com stats & insights | Rookbook`;
+      title = `${name} — Chess.com Stats & Free Game Review | Rookbook`;
       const bits = [];
       if (topR) bits.push(`${topF} ${num(topR)}`);
       if (T) bits.push(`${num(T)} rated games`);
       if (WR != null) bits.push(`${WR}% win rate`);
-      desc = `${name}'s Chess.com stats${bits.length ? ": " + bits.join(", ") : ""} — plus blown leads, missed checkmates, opening leaks and a playing-style breakdown. Free, no account.`;
+      desc = `${name}'s Chess.com stats${bits.length ? ": " + bits.join(", ") : ""} — plus blown leads, missed checkmates and opening leaks. Review any game move by move, free and unlimited, no account.`;
     } else {
       title = `${raw} — Chess.com stats | Rookbook`;
-      desc = `Chess.com stats and insights for ${raw} on Rookbook — blown leads, missed checkmates, opening leaks and more. Free, runs in your browser.`;
+      desc = `Chess.com stats and free game review for ${raw} on Rookbook — blown leads, missed checkmates, opening leaks and move-by-move analysis. Free, runs in your browser.`;
     }
     // Canonical is always self-referential: any request carrying a slug (a real feature OR an
     // unknown one) canonicalizes to its own path. Pointing an unknown-slug noindex page at the

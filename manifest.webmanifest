@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Rookbook — Chess.com Game Tracker",
+  "name": "Rookbook — Free Chess.com Game Review",
   "short_name": "Rookbook",
-  "description": "The stats chess.com doesn't show you: tilt curves, blown leads, missed mates, opponent scouting. Your games never leave your device.",
+  "description": "Review any chess.com game move by move with an engine in your browser — free, no daily limit, no membership. Plus blown leads, missed mates, tilt and clock stats. Your games never leave your device.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
