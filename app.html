@@ -1124,17 +1124,21 @@
   .qmate{font-size:11px;cursor:help;border-bottom:1px dotted currentColor}
   .qmate.win{color:var(--win)}
   .qmate.loss{color:var(--loss)}
-  th.flagcol, td.flagcol{width:12px;padding-left:4px;padding-right:0;text-align:center}
-  th.starcol, td.starcol{width:16px;padding-left:0;padding-right:0;text-align:center}
+  th.flagcol, td.flagcol{width:12px;padding-left:2px;padding-right:0;text-align:center}
+  th.starcol, td.starcol{width:14px;padding-left:0;padding-right:0;text-align:center}
   th.starcol+th, td.starcol+td{padding-left:3px}
-  #panel-log td.flagcol, #panel-log th.flagcol{padding-left:4px}
-  #panel-log td.starcol+td, #panel-log th.starcol+th{padding-left:2px}
+  /* These MUST stay ID-scoped. #panel-log tbody td{padding:0 8px} above is specificity
+     (0,1,0,2) and beats a plain td.flagcol{padding-right:0} (0,0,1,1) — which is why the
+     class rules further up silently did nothing and the star sat in 16px of dead gutter. */
+  #panel-log tbody td.flagcol, #panel-log thead th.flagcol{padding-left:2px;padding-right:2px}
+  #panel-log tbody td.starcol, #panel-log thead th.starcol{padding-left:2px;padding-right:3px}
+  #panel-log td.starcol+td, #panel-log th.starcol+th{padding-left:0}
   /* Feed star column: match the Game Log's edge/gutter spacing (the .weekly tables otherwise pad
      the first cell 3px-left / 11px-right, so the star hugs the edge and sits too far from the date) */
   .weekly td.starcol{padding-left:8px;padding-right:8px}
   .gflag{
     display:inline-block;font-size:17px;line-height:1;
-    padding:2px 3px;
+    padding:2px 1px;
   }
   .gflag.threw{color:var(--loss)}
   .gflag.squander{color:#D98A4A}
@@ -1496,6 +1500,10 @@
     display:flex;flex-direction:row;align-items:center;justify-content:center;
     gap:26px;margin-bottom:22px;flex-wrap:wrap;
   }
+  .wel-em{color:var(--win)}
+  .wel-new{font-style:normal;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--draw);border:1px solid rgba(211,178,90,.55);border-radius:3px;padding:1px 4px;
+    margin-left:6px;vertical-align:2px}
   .wel-logo{
     width:clamp(96px,10.5vw,128px);height:auto;aspect-ratio:1;
     flex:0 0 auto;display:block;
@@ -3153,11 +3161,13 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
         <picture><source srcset="/wel-logo.webp" type="image/webp"><img class="wel-logo" alt="" src="/wel-logo.png" width="320" height="320" fetchpriority="high" decoding="async"></picture>
         <div class="wel-word"><span class="wm-rook">rook</span><span class="wm-book">book</span></div>
       </div>
-      <h1>A closer look at your chess.com games.</h1>
+      <h1>Free game review for <span class="wel-em">every</span> chess.com game.</h1>
       <p class="wel-lede">
-        Enter your chess.com username and <b>rookbook</b> will pull your game history
-        using their API. rookbook analyzes every game, provides detailed insights into
-        your play, shows you every checkmate you ever missed, and much more.
+        Type your chess.com username and <b>rookbook</b> pulls your history through their public
+        API. Then review <b>any game, move by move</b>, with an engine running in this browser
+        &mdash; blunders, mistakes, and the checkmates you walked past, each on the board at the
+        move it mattered. <b>No daily limit and no membership.</b> Everything else it finds &mdash;
+        blown leads, missed mates, tilt, your clock &mdash; comes along with it.
       </p>
       <div class="wel-form">
         <div class="userfield">
@@ -3174,6 +3184,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
         Free. No account, no sign-in. Your games never leave your browser.
       </div>
       <div class="wel-grid">
+        <div><a class="wel-link" data-tab="review" href="#tab=review">Game Review <em class="wel-new">new</em></a>Any game, move by move, against an engine in your browser. Blunders and mistakes priced in win chance, missed mates, and the moves you got right. Unlimited, free, no chess.com membership.</div>
         <div><a class="wel-link" data-tab="insights" href="#tab=insights">Insights</a>What your games add up to. Where you're strong, where you're weak, how you spend your clock, and how you hold up after a bad run.</div>
         <div><a class="wel-link" data-tab="blown" href="#tab=blown">Blown Leads</a>Losses where you were up 3+ material at some point. Shows your peak lead, what you finished with, and how much you handed back.</div>
         <div><a class="wel-link" data-tab="mates" href="#tab=mates">Missed Mates</a>Every game where checkmate was on the board and you played something else, shown move by move so you finish the job next time.</div>
@@ -15745,6 +15756,10 @@ async function analyzeGame(){
     }
     $("revProg").hidden=true;
     $("revAnStatus").textContent = REV_CANCEL ? "Stopped." : "Analysis complete.";
+    // One event per game carried to the end — the running total behind the landing page's
+    // "N chess.com games reviewed for free". Cancelled runs don't count; a re-analysis of the
+    // same game does, which is the honest reading of "reviews run", not "distinct games".
+    if(!REV_CANCEL) track("review-run");
     // Save even when stopped — partial analysis is worth keeping now that it is labelled as such.
     // Keyed off the game captured at entry, never REV.game, which may have moved on.
     rememberReview(g.url, REV_ANALYSIS);
@@ -17064,7 +17079,9 @@ function refreshLogDot(){
 }
 function markLogSeen(){ LS.set("rookbook:log:seen", LATEST_LOG_V); refreshLogDot(); }
 refreshLogDot();
-$("logBtn").addEventListener("click",()=>{ logEl.hidden=false; lockScroll(); markLogSeen(); });
+// Tracked so there's an answer to "does anyone actually read this?" — the number that decides
+// whether the changelog ever earns a page of its own.
+$("logBtn").addEventListener("click",()=>{ logEl.hidden=false; lockScroll(); markLogSeen(); track("changelog"); });
 $("logClose").addEventListener("click",()=>{ logEl.hidden=true; unlockScroll(); });
 logEl.addEventListener("click",e=>{ if(e.target===logEl){ logEl.hidden=true; unlockScroll(); } });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !logEl.hidden){ logEl.hidden=true; unlockScroll(); } });

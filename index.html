@@ -237,6 +237,11 @@
        the fold at 812px, and below it on anything smaller. */
     .scene.hero .card{order:0}
   }
+  /* Social proof for the reviewer. Stays hidden until the tally is genuinely impressive —
+     "31 games reviewed" argues against us. It reveals itself once it clears the floor. */
+  .revcount{margin-top:16px;font-family:var(--mono);font-size:12.5px;color:var(--dim);
+    border-left:2px solid var(--green);padding-left:11px}
+  .revcount b{color:var(--win);font-size:15px}
   /* banned-opponents card: strike-styled rows with the fair-play chip */
   .bnlist{font-size:12.5px}
   .bn-row{display:flex;align-items:center;gap:10px;padding:9px 11px;margin-bottom:6px;
@@ -327,7 +332,7 @@
   <section class="scene hero" id="hero">
     <div class="copy">
       <h1>See how you<br><span class="em">actually play.</span></h1>
-      <p class="sub lede">rookbook reads your Chess.com history and shows you the whole picture &mdash; your <b>style and strengths</b>, the <a class="jump" href="#hero">blown leads</a> and <a class="jump" href="#mate">missed mates</a>, and the <a class="jump" href="#banned">opponents who were later banned</a> for cheating. <a class="jump" href="#review">Free game review</a>, move by move, as many games as you like. Nothing leaves your browser.</p>
+      <p class="sub lede">rookbook reads your Chess.com history and shows you the whole picture &mdash; your <b>style and strengths</b>, the <a class="jump" href="#hero">blown leads</a> and <a class="jump" href="#mate">missed mates</a>, and the <a class="jump" href="#banned">opponents who were later banned</a> for cheating. <a class="jump" href="#review">Free game review</a>, move by move, as many games as you like.</p>
       <div class="form">
         <input type="text" id="u1" placeholder="your chess.com username" spellcheck="false" autocomplete="off" aria-label="chess.com username">
         <button type="button" data-go="u1">Analyze my games</button>
@@ -369,6 +374,7 @@
         reviews <b>any game, move by move</b>, with an engine running in your browser &mdash; the
         blunders, the mistakes, and the checkmates you walked past, each one replayed on the board
         at the exact position. No daily limit, no account, no paywall.</p>
+      <div class="revcount" id="revCount" hidden></div>
     </div>
     <div class="card">
       <div class="card-head"><span class="card-res dim">51 moves checked</span></div>
@@ -391,9 +397,14 @@
   <section class="scene" id="mate">
     <div class="copy">
       <h2>The mates you <span class="em">never saw.</span></h2>
-      <p class="sub">Every game where a forced checkmate was on the board and you played
-        something else. <b>Found and replayed to the exact move</b>, so the pattern sticks
-        and you finish it next time. Even the games you won.</p>
+      <p class="sub">A forced mate was on the board and you played something else. It happens far
+        more than anyone thinks &mdash; and you never find out, because the game moves on and nobody
+        tells you. rookbook scans <b>every game in your history</b>, finds the ones where a mate was
+        available, and replays each to the exact position with the move you missed and the move you
+        played instead.</p>
+      <p class="sub">Including the games you <b>won</b>. Those are the instructive ones: a mate in two
+        you walked past on move 20 is the same blind spot that will cost you a winning position next
+        week, whether or not you got away with it this time.</p>
     </div>
     <div class="card">
       <div class="card-head"><span class="card-res bad">Bh3#</span></div>
@@ -618,6 +629,29 @@
         el.scrollIntoView({behavior: reduce ? "auto" : "smooth", block: "start"});
       });
     });
+  })();
+
+  // social proof: games run through the free reviewer. Same GoatCounter-counter trick as the
+  // lookup tally below, but gated — the event only started counting on 31 Jul 2026, so it stays
+  // invisible until it clears a floor worth bragging about rather than showing a cold-start number.
+  (function(){
+    var el=document.getElementById("revCount"); if(!el) return;
+    var FLOOR=250;
+    // Peek at the live number before it clears the floor: load the page with ?peek=1 (or #peek).
+    // Shows the real tally with a marker so it can never be mistaken for the public line.
+    var peek=/[?&]peek=1/.test(location.search)||location.hash==="#peek";
+    // GoatCounter answers 404 — with a perfectly good {"count":"0"} body — for an event that has
+    // never fired. r.ok would throw that away, so parse the body regardless of status.
+    fetch("https://rookbookchess.goatcounter.com/counter/event/review-run.json")
+      .then(function(r){ return r.text(); })
+      .then(function(t){ var d=null; try{ d=JSON.parse(t); }catch(e){ return; }
+        if(!d||d.count==null) return;
+        var n=parseInt(String(d.count).replace(/,/g,""),10)||0;
+        if(n<FLOOR && !peek) return;
+        el.innerHTML="<b>"+n.toLocaleString()+"</b> chess.com games reviewed for free on rookbook"
+          +(n<FLOOR?' <span style="opacity:.6">(preview — hidden publicly until '+FLOOR+')</span>':"");
+        el.hidden=false; })
+      .catch(function(){});
   })();
 
   // social proof: total chess.com accounts looked up on Rookbook (reads the app's GoatCounter fetch tally)
