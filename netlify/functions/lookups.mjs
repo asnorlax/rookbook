@@ -31,14 +31,22 @@ export default async (req) => {
     const store = getStore("rookbook");
 
     if (req.method === "POST") {
-      /* Read-modify-write, so two lookups landing in the same instant can cost one
-         count. For a social-proof number that drifts by a hair under load, that is a
-         fine trade against the complexity of a lock — and it can only ever undercount,
-         never inflate, which is the direction an honest counter should err. */
-      stored = Number(await store.get(KEY)) || 0;
+      /* consistency:"strong" is load-bearing here, not a nicety. Blobs reads are eventually
+         consistent by default, and measured against production that lag is seconds — long
+         enough that two lookups a few seconds apart would both read the same number and one
+         increment would silently vanish. A strong read costs latency nobody sees on a
+         fire-and-forget POST.
+
+         It still doesn't make this atomic: two requests landing inside the same instant can
+         read the same value and cost one count. That's a deliberate trade against the
+         complexity of a lock, and it can only ever undercount, never inflate — the direction
+         an honest counter should err. */
+      stored = Number(await store.get(KEY, { consistency: "strong" })) || 0;
       stored += 1;
       await store.set(KEY, String(stored));
     } else {
+      /* The display read stays eventually consistent on purpose: a few seconds of staleness
+         on a social-proof number is invisible, and it keeps the page fast. */
       stored = Number(await store.get(KEY)) || 0;
     }
   } catch (e) {
