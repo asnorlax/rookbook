@@ -2232,6 +2232,9 @@
     background:#16181A;border:1px solid var(--rule);
     display:flex;flex-direction:column-reverse;
   }
+  /* board flipped for a Black player: White is at the top, so the white fill grows from the top */
+  .evalbar.flip{flex-direction:column}
+  .evalbar.flip .evalnum{top:auto;bottom:4px}
   /* an explicit display:flex beats the browser's [hidden]{display:none}, so restate it */
   .evalbar[hidden]{display:none}
   .evalfill{width:100%;background:#E7DFC4;transition:height .18s ease}
@@ -2373,6 +2376,12 @@
   .mv.best{color:var(--win)}
   .egdot{cursor:pointer}
   /* touch-action:none so a drag scrubs the game instead of scrolling the page on a phone */
+  /* the labels sit OUTSIDE the stretched svg, or preserveAspectRatio="none" would squash them */
+  .revgraph{position:relative}
+  .eg-side{position:absolute;left:6px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+    pointer-events:none;font-family:var(--sans)}
+  .eg-side.top{top:4px;color:#6A6F71}
+  .eg-side.bot{bottom:4px;color:#8A8F92}
   .egsvg{width:100%;display:block;border:1px solid var(--rule);background:var(--bg);
     cursor:ew-resize;touch-action:none}
   .egseg{cursor:pointer}
@@ -16312,12 +16321,19 @@ function evalCurve(){
   // preserveAspectRatio="none" stretches the drawing to the module's full width instead of
   // letterboxing it at the viewBox's aspect; the corner labels went with it — the eval bar
   // beside the board already says which way is White.
+  /* Whose side is up. These were removed this morning when the chart went full-width, on the
+     reasoning that the eval bar beside the board already showed orientation — it doesn't, its
+     number is White-relative and unlabelled too. Without them a Black player reads a rising
+     curve as their own position improving, when it means the opposite, and it contradicts the
+     move rows, which ARE from their side. preserveAspectRatio="none" stretches the drawing, so
+     the labels are drawn in a second, unstretched overlay instead of inside this svg. */
   return `<svg viewBox="0 0 ${W} ${H}" class="egsvg" preserveAspectRatio="none">
     <rect x="0" y="0" width="${W}" height="${H}" fill="#1A1C1D"/>
     <line x1="0" y1="${mid}" x2="${W}" y2="${mid}" stroke="rgba(255,255,255,.18)" stroke-dasharray="3 4"/>
     ${area}
     ${marks}${cur}${segs}
-  </svg>`;
+  </svg>
+  <span class="eg-side top">White</span><span class="eg-side bot">Black</span>`;
 }
 
 /* ========== /EXPERIMENTAL: per-move engine analysis ========== */
@@ -16387,6 +16403,11 @@ function renderReview(){
   // chess.com had gone. It now always stands there, sitting level and unlabelled until there's a
   // number to show.
   bar.hidden=false;
+  /* The bar has to share the BOARD's orientation. It fills white-from-the-bottom, which is right
+     while White sits at the bottom — but playing Black flips the board, putting White's pieces at
+     the top while the white fill still grew from the bottom. The bar and the board then disagreed
+     about which end was White's, so a winning position looked losing. */
+  bar.classList.toggle("flip", !!flip);
   if(evalHere!=null){
     bar.classList.remove("idle");
     // The white fill means WHITE, not "you". evals[] are stored from your side, so convert back:
