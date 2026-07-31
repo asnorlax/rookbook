@@ -36,7 +36,12 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   const isOurs = url.origin === self.location.origin;
   const isChessJs = url.href.startsWith("https://cdnjs.cloudflare.com/ajax/libs/chess.js/");
-  // Everything else — chess.com API, Stockfish, fonts, GoatCounter — passes straight through.
+  // Everything else — chess.com API, fonts, GoatCounter — passes straight through.
+  // NOTE: the engine is now same-origin (/engine/<ver>/), so it DOES flow through the network-
+  // first branch below and lands in this cache. That is fine and slightly helpful: it is
+  // version-pinned and immutable, so a revalidation is a 304. Do NOT add it to PRECACHE —
+  // that would push 640KB onto every first-time visitor, including the ones who never run an
+  // analysis, and destroy the laziness that makes the size acceptable in the first place.
   if (e.request.method !== "GET" || (!isOurs && !isChessJs)) return;
 
   // Is this the page itself? Navigations are where a stale copy is actually visible.

@@ -1,0 +1,6 @@
+# The engine is immutable because the PATH carries its version. Never overwrite a file inside
+# /engine/<ver>/ — publish a new directory and repoint app.html. Netlify's default here is
+# max-age=0,must-revalidate, which costs two conditional round trips before 640KB can come off
+# disk on every analysis.
+/engine/10.0.2/*
+  Cache-Control: public, max-age=31536000, immutable

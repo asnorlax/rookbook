@@ -642,7 +642,11 @@
     var peek=/[?&]peek=1/.test(location.search)||location.hash==="#peek";
     // GoatCounter answers 404 — with a perfectly good {"count":"0"} body — for an event that has
     // never fired. r.ok would throw that away, so parse the body regardless of status.
-    fetch("https://rookbookchess.goatcounter.com/counter/event/review-run.json")
+    // Cache-bust: GoatCounter serves this endpoint Cache-Control:public with no max-age, so a
+    // browser that once read {"count":"0"} keeps serving that copy for hours and the counter
+    // looks permanently stuck. cache:"no-store" alone isn't enough on every browser.
+    fetch("https://rookbookchess.goatcounter.com/counter/event/review-run.json?t=" + Date.now(),
+          { cache: "no-store" })
       .then(function(r){ return r.text(); })
       .then(function(t){ var d=null; try{ d=JSON.parse(t); }catch(e){ return; }
         if(!d||d.count==null) return;

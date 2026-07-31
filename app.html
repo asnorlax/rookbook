@@ -2056,11 +2056,16 @@
   }
   .revpick-row{
     display:grid;
-    grid-template-columns:11px 42px 38px minmax(66px,1fr) 50px 56px 70px 56px 34px;
+    grid-template-columns:11px 42px 38px 108px 46px 62px minmax(60px,1fr) 56px 34px;
     align-items:center;gap:6px;width:100%;
     padding:4px 10px;border:none;border-bottom:1px solid var(--rule);
     background:none;color:var(--ink);font-family:var(--mono);font-size:11.5px;
     cursor:pointer;text-align:left;white-space:nowrap;
+    /* The row is a <button>, so it inherits the global button rule's bold along with the
+       uppercase and mono it already resets below. Everything came out heavy, which flattened
+       the row: the result and the rating delta set their own weight and should be the only
+       things that pop. */
+    font-weight:400;
     text-transform:none;letter-spacing:normal;
   }
   .revpick-row:last-child{border-bottom:none}
@@ -2074,7 +2079,7 @@
   .rp-res{font-weight:700}
   .rp-score{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
   .rp-delta{font-weight:700}
-  .rp-oppelo{text-align:left;font-size:10.5px;white-space:nowrap}
+  .rp-oppelo{text-align:right;font-size:10.5px;white-space:nowrap}
   .rp-u{font-size:9px;margin-left:1px}
   .rpl-sep{opacity:.35;margin:0 1px}
   .rp-delta.up{color:var(--win)}
@@ -2264,6 +2269,11 @@
      squares are light enough that the original near-black stroke is the right one */
   .rvp-taken svg path[stroke="#1B1C1E"]{stroke:#9BA0A3}
   .rvp-lead{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--dim);margin-left:4px}
+  .rvp-out{font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.09em;
+    border-radius:3px;padding:2px 6px;margin-left:7px;vertical-align:1px}
+  .rvp-out.won{color:#0E0F10;background:var(--win)}
+  .rvp-out.lost{color:var(--v-blunder);border:1px solid rgba(224,119,108,.5);background:rgba(224,119,108,.10)}
+  .rvp-out.draw{color:var(--draw);border:1px solid rgba(211,178,90,.5);background:rgba(211,178,90,.10)}
   .rvp-clock{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-size:15px;font-weight:700;
     color:var(--dim);border:1px solid var(--rule);background:var(--bg);border-radius:4px;
     padding:2px 8px;font-variant-numeric:tabular-nums}
@@ -2419,6 +2429,10 @@
     background:rgba(255,255,255,.02);
   }
   .revmoment:hover{background:rgba(111,164,123,.10)}
+  /* The row for the position currently on the board. A ring rather than a fill: these rows are
+     already colour-coded by verdict, and painting the background would fight that — this says
+     "you are here" without overwriting "this was a blunder". */
+  .revmoment.on{background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(111,164,123,.6)}
   .revmoment.blunder{border-left-color:var(--v-blunder)}
   .revmoment.mistake{border-left-color:var(--v-mistake)}
   .rm-n{color:var(--read);width:26px;text-align:right}
@@ -2918,6 +2932,15 @@
   .sn-new{font-style:normal;font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
     color:var(--draw);border:1px solid rgba(211,178,90,.55);border-radius:3px;padding:1px 4px;
     margin-left:5px;vertical-align:1px}
+  /* Collapsed to icons, the NEW tag goes with the label it lives in — so the one visitor most
+     likely to have collapsed the rail (a returning one) is the one who never learns a tab is new.
+     A dot carries the same signal in 6px. Keyed off :has(.sn-new) rather than the tab name, so
+     pulling the tag when it stops being new removes the dot too, with nothing left to clean up. */
+  .sidenav .sn-item{position:relative}
+  .sidenav.collapsed .sn-item:has(.sn-new)::after,
+  html.nav-collapsed .sidenav .sn-item:has(.sn-new)::after{
+    content:"";position:absolute;top:6px;right:12px;width:6px;height:6px;border-radius:50%;
+    background:var(--draw);box-shadow:0 0 0 2px #0A0B0C}
   html.nav-collapsed .sidenav .sn-l{display:none}
   html.nav-collapsed .sidenav .sn-locked{display:none}
   html.nav-collapsed .sidenav .sn-item{justify-content:center;padding:8px 0;gap:0}
@@ -3634,7 +3657,9 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
   </div>
 
   <footer>
-    <div class="fine">&copy; 2026 Rookbook. Unaffiliated with chess.com</div>
+    <div class="fine">&copy; 2026 Rookbook. Unaffiliated with chess.com &middot;
+      Analysis by <a href="https://github.com/niklasf/stockfish.js/tree/v10.0.2" target="_blank" rel="noopener">Stockfish.js 10.0.2</a>,
+      <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPLv3</a></div>
     <div>Free to use.<span id="coffeeSlot"></span></div>
     <div>Contact <a class="mailto" href="mailto:rookbookchess@gmail.com?subject=Rookbook%20feedback">rookbookchess@gmail.com</a> &middot; <a class="mailto" href="/reading.html">reading</a></div>
   </footer>
@@ -3890,12 +3915,31 @@ function track(name){
       window.goatcounter.count({ path:"event/"+name, title:name, event:true });
   }catch(e){}
 }
-// Bump the first-party lookup tally. A bare POST — no username, no hash, no body — so nothing
-// identifying leaves the device. keepalive lets it survive the tab closing mid-fetch. Silent on
-// fail: a counter must never be able to break a lookup.
-function bumpLookups(){
-  try{ fetch("/api/lookups",{method:"POST",keepalive:true}).catch(()=>{}); }catch(e){}
+// First-party counters (netlify/functions/lookups.mjs). Same-origin, so ad blockers can't eat
+// them the way they eat GoatCounter, and nothing is deduped. The body carries a metric name and
+// a number — never a username, a hash, or anything about the games themselves. keepalive lets a
+// send survive the tab closing. Silent on fail: a counter must never break the thing it counts.
+// Named bumpStat, not stat: two render helpers in this file already take that name as a
+// function-local const. They shadow harmlessly today, but a counter call added inside either
+// one would silently render a div instead of counting anything.
+function bumpStat(k, n){
+  try{
+    fetch("/api/stats",{
+      method:"POST", keepalive:true,
+      headers:{"content-type":"application/json"},
+      body:JSON.stringify(n>1?{k,n}:{k})
+    }).catch(()=>{});
+  }catch(e){}
 }
+function bumpLookups(){ bumpStat("lookups"); }
+/* Tab opens are the highest-frequency event here, and one function invocation per click would
+   dwarf everything else on the plan for the least valuable number. Tally them in memory and
+   send one summary when the page goes away. */
+const TAB_HITS = Object.create(null);
+function statTab(t){ TAB_HITS[t] = (TAB_HITS[t]||0) + 1; }
+addEventListener("pagehide", ()=>{
+  for(const t in TAB_HITS) bumpStat("tab:"+t, TAB_HITS[t]);
+}, {once:true});
 // Profile-lookup counter on the welcome screen, as social proof.
 // Reads /api/lookups, not GoatCounter: gc.zgo.at is on every blocklist, and GoatCounter dedups
 // per visitor per day, so the old tally sat near 22 through the week the site was posted on
@@ -3912,7 +3956,7 @@ function bumpLookups(){
     .catch(()=>{});
 })();
 // counted once per install, also anonymous
-addEventListener("appinstalled", ()=>track("pwa-install"));
+addEventListener("appinstalled", ()=>{ track("pwa-install"); bumpStat("pwa"); });
 
 // One anonymous visit-length tally per visit, in broad buckets — a histogram of
 // "do people bounce or settle in", never who or precisely when. Sent the first time
@@ -5224,14 +5268,77 @@ function parseMoveTimes(pgn, iAmWhite){
 // ---------- engine evaluation of final positions ----------
 // Stockfish isn't in chess.com's API — the eval bar is computed client-side. We do the same,
 // but only for the FINAL position of each game (one search per game, not per move).
-const SF_URLS=[
+/* Stockfish 10.0.2, self-hosted WASM, with the asm.js build on cdnjs as the fallback.
+   Same engine and the same search either way — WASM is compiled rather than interpreted, and
+   measured ~7x the node rate (58.5k -> 409k nps), which is the whole cost of an analysis.
+
+   WHY SELF-HOSTED. You cannot `new Worker()` a cross-origin URL, so the asm.js path fetches the
+   source and wraps it in a blob. That trick cannot carry the WASM build: the loader resolves
+   stockfish.wasm relative to the worker's own script, and a blob: URL has no usable base.
+
+   And the obvious workaround does not exist. An earlier attempt pre-defined
+   `var Module = {locateFile: ...}` before importScripts — the engine's first line overwrites
+   Module unconditionally, so the hook is destroyed before it is ever read. The failure is
+   silent and expensive to diagnose: the JS side initialises, `self.onmessage` appears, and the
+   worker then simply never answers "uci".
+
+   Serving both files from our own origin sidesteps all of it — the worker is same-origin, so
+   it needs no blob, and the loader finds its sibling .wasm by ordinary relative resolution.
+   The .wasm MUST stay named stockfish.wasm next to the .js.
+
+   The path is version-pinned so _headers can mark it immutable. To upgrade, add a new
+   directory and change ENGINE_DIR — never overwrite a file in place. */
+const ENGINE_DIR = "/engine/10.0.2";
+const SF_URLS=[                       // fallback: no WebAssembly, or the files 404
   "https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js",
   "https://unpkg.com/stockfish.js@10.0.2/stockfish.js"
 ];
-let sfWorker=null;
+let sfWorker=null, SF_KIND=null;
+
+/* A same-origin Worker pointed at a 404 does NOT throw — construction succeeds and the thing
+   just never speaks. try/catch is worthless here; the only real proof of life is uci -> uciok.
+
+   The "uci" is RETRIED, which is the part that matters. A single send right after construction
+   is silently swallowed: the wasm module is still compiling, there is no command queue yet, and
+   the engine answers nothing ever after. That failure is indistinguishable from a missing file,
+   and it is what made an earlier attempt look like the wasm build was broken when it was fine. */
+function sfHandshake(w, ms=8000){
+  return new Promise(resolve=>{
+    const done=ok=>{ clearInterval(poke); clearTimeout(t);
+      w.removeEventListener("message",on); w.removeEventListener("error",onErr); resolve(ok); };
+    const t=setTimeout(()=>done(false), ms);
+    /* A Worker whose script 404s does not throw at construction — it fires an error event.
+       Without this listener the only signal is the timeout, so a missing engine file costs
+       every visitor an 8-second stall before the asm.js fallback even starts. */
+    const onErr=()=>done(false);
+    w.addEventListener("error",onErr);
+    // Plain string test on purpose. This was a regex with word-boundary escapes and they
+    // got written to the file as literal backspace bytes, so it never matched and the wasm
+    // build looked dead when it was answering perfectly.
+    const on=e=>{ if(typeof e.data==="string" && e.data.indexOf("uciok")!==-1) done(true); };
+    w.addEventListener("message",on);
+    w.postMessage("uci");
+    const poke=setInterval(()=>w.postMessage("uci"), 400);
+  });
+}
+
 async function getEngine(){
   if(sfWorker) return sfWorker;
   let lastErr=null;
+
+  if(typeof WebAssembly==="object"){
+    try{
+      const w=new Worker(ENGINE_DIR+"/stockfish.wasm.js");
+      if(await sfHandshake(w)){ sfWorker=w; SF_KIND="wasm"; return sfWorker; }
+      w.terminate();
+      throw new Error("no uciok from the self-hosted wasm build");
+    }catch(e){
+      lastErr=e;
+      // Worth knowing about: it means every visitor is silently on the slow path.
+      try{ track("engine-wasm-fail"); bumpStat("engine_fail"); }catch(_){}
+    }
+  }
+
   for(const url of SF_URLS){
     try{
       const res=await api(url);
@@ -5239,11 +5346,13 @@ async function getEngine(){
       const code=await res.text();
       const blob=new Blob([code],{type:"application/javascript"});
       sfWorker=new Worker(URL.createObjectURL(blob));
+      SF_KIND="asm";
       return sfWorker;
     }catch(e){ lastErr=e; }
   }
   throw new Error("couldn't load the engine ("+(lastErr?lastErr.message:"unknown")+")");
 }
+
 
 // One engine, one search at a time. Without this, a background job (say, the Openings
 // best-move pass) can interleave with a foreground one and each reads the other's replies —
@@ -5899,6 +6008,10 @@ async function fetchGames(force){
     SHOWN_USER=u;                                 // remember whose games are on screen now
     track("fetch");                               // anonymous tally: an account was loaded (never which one)
     bumpLookups();                                // same tally, first-party so ad blockers can't eat it
+    // How many games this load actually put on screen. Counts throughput, not distinct games:
+    // a refetch of the same account counts again, which is the honest reading of "games
+    // analyzed". Just a number — nothing about the games leaves the device.
+    if(games && games.length) bumpStat("games", games.length);
     enterApp();                                   // (deliberately does NOT change tabs)
     DEMO=false; $("demoBar").hidden=true; document.body.classList.remove("demo");
     // Point the address at whoever we just loaded. Only showTab and reviewGame used to
@@ -11593,7 +11706,7 @@ async function runCompare(){
   const them=demoRun ? DEMO_RIVAL : $("rival").value.trim().toLowerCase();
   if(!them){ $("cmpStatus").textContent="Enter a username."; return; }
   if(!demoRun) pushSearchHist("oppHist","oppHist",$("rival").value);
-  if(!demoRun) track("compare");                   // anonymous tally: a comparison ran (never against whom)
+  if(!demoRun){ track("compare"); bumpStat("compare"); }   // anonymous tally: a comparison ran (never against whom)
   if(!games.length){ $("cmpStatus").textContent="Fetch your own games first."; return; }
   if(typeof FETCHING!=="undefined" && FETCHING){ $("cmpStatus").textContent="Wait for your own fetch to finish first."; return; }
   const range=$("cmpRange").value, tc=MINI_TC.cmp;
@@ -13003,7 +13116,7 @@ async function runScout(){
   if(!u){ $("scoutStatus").textContent="Type a username."; return; }
   if(u===DEMO_RIVAL || (typeof DEMO!=="undefined" && DEMO)){ await demoScout(); return; }
   pushSearchHist("oppHist","oppHist",$("scoutUser").value);
-  track("scout");                                  // anonymous tally: a scout ran (never on whom)
+  track("scout"); bumpStat("scout");                   // anonymous tally: a scout ran (never on whom)
   const btn=$("scoutBtn"); btn.disabled=true;
   $("scoutStatus").textContent="Reading their games\u2026";
   try{
@@ -15475,7 +15588,7 @@ function reviewable(){ return games.filter(g=>g.pgn && g.pgn.length>20); }
 // so their rating, accuracy and length stay in vertical alignment down the whole list.
 function revRowBits(g){
   const R={Win:["win","W"],Loss:["loss","L"],Draw:["draw","D"]}[g.result]||["draw","·"];
-  const d = g.delta!=null ? `${g.delta>0?"+":""}${g.delta}` : "";
+  const d = g.delta!=null ? `(${g.delta>0?"+":""}${g.delta})` : "";
   const dCls = g.delta==null ? "flat" : g.delta>0 ? "up" : g.delta<0 ? "down" : "flat";
   return {R, d, dCls};
 }
@@ -15652,10 +15765,22 @@ const winPct = cp => {
   const c = Math.max(-1000, Math.min(1000, cp));
   return 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * c)) - 1);
 };
-// toMe() encodes mate as ±1200, so treat that as the game being over rather than a big number.
+// A REAL mate is encoded as ±MATE_ENC, which must sit far above any score the engine can
+// report as centipawns — otherwise the two are indistinguishable. This used to encode mate as
+// ±1200 and then print "M" for anything past 1200cp, but 1200cp is twelve pawns: an ordinary
+// reading when you are up a queen and rook. Winning-but-not-mating positions were labelled
+// mate. fmtEval elsewhere in this file has seen genuine evals of +61.7 (6170cp).
 // Without this, being up 11 pawns would score HIGHER than having mate on the board: the curve's
 // own ceiling sits below what +1100 converts to.
-const MATE_CP = 1200;
+const MATE_CP = 1200;      // win% pins to 100/0 from twelve pawns up — unchanged, and correct
+const MATE_ENC = 30000;    // sentinel for an ACTUAL forced mate; no cp eval comes near this
+/* Past ~20 pawns the number stops carrying information ("completely winning" either way) and a
+   five-digit reading just looks broken. Same cap fmtEval settled on for the Game Log. */
+function fmtRevCp(cp){
+  const p = cp/100;
+  if(Math.abs(p) >= 20) return p>0 ? "+20⁺" : "−20⁺";
+  return (p>0?"+":"") + p.toFixed(1);
+}
 const winPctOf = cp => cp==null ? null
   : cp>=MATE_CP ? 100 : cp<=-MATE_CP ? 0 : winPct(cp);
 
@@ -15676,7 +15801,7 @@ async function analyzeGame(){
   // the blunder counts meaningless. All that's left to do is turn White's view into yours.
   const toMe = (r) => {
     if(r===null) return null;
-    if(r.mate!==undefined) return (r.mate>0 ? 1200 : -1200) * sign;
+    if(r.mate!==undefined) return (r.mate>0 ? MATE_ENC : -MATE_ENC) * sign;
     return r.cp * sign;
   };
 
@@ -15701,7 +15826,7 @@ async function analyzeGame(){
 
     const evalOf = async fen => {
       const term=terminalScore(fen);
-      if(term) return term.draw ? 0 : (term.mated === me ? -1200 : 1200);
+      if(term) return term.draw ? 0 : (term.mated === me ? -MATE_ENC : MATE_ENC);
       // No handshake needed per position: evalFen only resolves on bestmove, so the engine is
       // idle by the time we get here and is ready for the next position/go.
       const r=await engineTask(()=>evalFen(w, fen, JUDGE_DEPTH, 8000));
@@ -15741,7 +15866,15 @@ async function analyzeGame(){
           if(r.san===m.san){
             drops[i]=0;                                     // you found it
           } else {
-            // play the engine's move and evaluate THAT position, at the same depth
+            /* Evaluate the position AFTER the engine's move with its own full-depth search, so
+               both moves are measured the same way.
+
+               Do NOT be tempted to reuse the score bestMoveFor already returned: it looks like
+               the same number and saves a search per flagged move (~11% on a 40-ply game,
+               measured), but it is a backed-up PV score from the parent position rather than an
+               independent search of this one. Swapping it in made every drop grow and turned a
+               2-blunder game into a 3-blunder game. The symmetry below is what makes the
+               comparison fair. */
             let fenBest=null;
             try{
               const c=new Chess(fenBefore);
@@ -15783,7 +15916,7 @@ async function analyzeGame(){
     // One event per game carried to the end — the running total behind the landing page's
     // "N chess.com games reviewed for free". Cancelled runs don't count; a re-analysis of the
     // same game does, which is the honest reading of "reviews run", not "distinct games".
-    if(!REV_CANCEL) track("review-run");
+    if(!REV_CANCEL){ track("review-run"); bumpStat("reviews"); }
     // Save even when stopped — partial analysis is worth keeping now that it is labelled as such.
     // Keyed off the game captured at entry, never REV.game, which may have moved on.
     rememberReview(g.url, REV_ANALYSIS);
@@ -15951,7 +16084,7 @@ function evalCurve(){
     const rt=revMine(REV.game);
     const t=(rt && m.color===(REV.game.color==="W"?"w":"b")) ? rt[Math.floor(i/2)] : null;
     const num=Math.ceil((i+1)/2);
-    const evTxt = v==null ? "\u2014" : Math.abs(v)>=1200 ? "mate" : `${v>0?"+":""}${(v/100).toFixed(1)}`;
+    const evTxt = v==null ? "\u2014" : Math.abs(v)>=MATE_ENC ? "mate" : fmtRevCp(v);
     const tip=`${num}${m.color==="w"?".":"..."} ${m.san}\n${evTxt} for you`
       + (verdict?`\n${verdict.txt}`:"")
       + (t!=null?`\nyou thought ${t}s`:"");
@@ -16062,7 +16195,7 @@ function renderReview(){
     const wsign = g.color==="W" ? 1 : -1;
     const p=Math.max(-8,Math.min(8,(evalHere*wsign)/100));
     fill.style.height=(50+50*p/8)+"%";
-    const mate=Math.abs(evalHere)>=1200;
+    const mate=Math.abs(evalHere)>=MATE_ENC;
     // the number keeps White's sign too, the way every engine prints it
     num.textContent = mate ? ((evalHere*wsign)>0?"M":"-M") : (p>0?"+":"")+p.toFixed(1);
     num.style.color = "var(--ink)";
@@ -16106,7 +16239,7 @@ function renderReview(){
           ${bad.map(({i,v})=>{
             const num=Math.ceil((i+1)/2);
             const tt=revMine(g)?revMine(g)[Math.floor(i/2)]:null;
-            return `<div class="revmoment ${v.cls}" data-jump="${i+1}">
+            return `<div class="revmoment ${v.cls}${i+1===REV.ply?" on":""}" data-jump="${i+1}">
               <span class="rm-n">${num}.</span>
               <span class="rm-san">${REV.moves[i].san}</span>
               <span class="rm-v">${v.txt}</span>
@@ -16146,6 +16279,21 @@ function renderReview(){
         ? "Nothing found yet."
         : "Run <b>Analyze this game</b> to see where this game turned."}</div>`));
 
+  /* Keep the highlighted row visible. The findings list has its own scroller, and on a long
+     game the flagged move you just stepped onto is usually outside it — a highlight you have
+     to go hunting for isn't a highlight. Scrolls the inner box only, never the page. */
+  {
+    const onRow=$("revInfo").querySelector(".revmoment.on");
+    if(onRow){
+      const box=onRow.closest(".revlistbox") || onRow.parentElement;
+      if(box && box.scrollHeight > box.clientHeight){
+        const top=onRow.offsetTop, bot=top+onRow.offsetHeight;
+        if(top < box.scrollTop) box.scrollTop = top - 4;
+        else if(bot > box.scrollTop + box.clientHeight) box.scrollTop = bot - box.clientHeight + 4;
+      }
+    }
+  }
+
   // ---- move table: one row per full move, with what it cost and how long you took ----
   const times = revMine(g) || [];
   const cell=(i)=>{
@@ -16154,9 +16302,12 @@ function renderReview(){
     const v=moveVerdict(i);
     const mine=m.color===me;
     const t=mine ? times[Math.floor(i/2)] : null;
+    /* A bare "M" said a mate was on the board but not whose, and fell through the +/- colour
+       test below to render grey — the one cell in the column telling you nothing at a glance.
+       Signed like every other value, so it colours itself and reads the same direction. */
     const ev=REV_ANALYSIS && REV_ANALYSIS.evals[i+1]!=null
-      ? (Math.abs(REV_ANALYSIS.evals[i+1])>=1200 ? "M"
-         : ((REV_ANALYSIS.evals[i+1]>0?"+":"")+(REV_ANALYSIS.evals[i+1]/100).toFixed(1)))
+      ? (Math.abs(REV_ANALYSIS.evals[i+1])>=MATE_ENC ? (REV_ANALYSIS.evals[i+1]>0?"+M":"-M")
+         : fmtRevCp(REV_ANALYSIS.evals[i+1]))
       : "";
     let cls="mvcell";
     if(v) cls+=" "+v.cls;
@@ -16245,7 +16396,11 @@ function revPaintBars(){
   if(!g){ top.hidden=true; bot.hidden=true; return; }
   top.hidden=false; bot.hidden=false;
   $("revNameTop").innerHTML=`${g.oppName}${g.oppElo!=null?` <span class="dim">(${g.oppElo})</span>`:""}`;
-  $("revNameBot").innerHTML=`You${g.elo!=null?` <span class="dim">(${g.elo})</span>`:""}`;
+  // Name the player rather than saying "You" — this board gets screenshotted and shared, and
+  // "You" is meaningless to everyone who isn't the person who ran it. Falls back to "You" only
+  // when we genuinely don't know whose account is loaded (demo data, direct deep link).
+  const meName = (typeof SHOWN_USER==="string" && SHOWN_USER) ? SHOWN_USER : "You";
+  $("revNameBot").innerHTML=`${meName}${g.elo!=null?` <span class="dim">(${g.elo})</span>`:""}`;
   const myPar = g.color==="B"?1:0;
   const toMove = REV.ply%2;                       // parity of the side to move at this position
   const paint=(id,par)=>{
@@ -16278,6 +16433,25 @@ function revPaintBars(){
   };
   fill("revTakenBot", myPar);
   fill("revTakenTop", 1-myPar);
+
+  /* Who actually won, stated once and plainly, on the winning player's own bar. The result was
+     technically on screen already — a "W" in the header and a +8 next to it — but a letter and a
+     rating delta are things you decode, not things you see. This only appears once you reach the
+     final position, so it reads as the game ending rather than as a spoiler on move one. */
+  const atEnd = REV.ply >= REV.moves.length;
+  const meWon  = g.result==="Win", drew = g.result==="Draw";
+  const badge = (id, isMe) => {
+    const el=$(id); if(!el) return;
+    const old=el.querySelector(".rvp-out"); if(old) old.remove();
+    if(!atEnd) return;
+    const won = drew ? null : (isMe ? meWon : !meWon);
+    const txt = drew ? "DRAW" : won ? "WON" : "LOST";
+    const cls = drew ? "draw" : won ? "won" : "lost";
+    el.insertAdjacentHTML("beforeend",
+      ` <span class="rvp-out ${cls}">${txt}</span>`);
+  };
+  badge("revNameBot", true);
+  badge("revNameTop", false);
 }
 function revGo(p){
   if(!REV_AUTO_TICK) revAutoStop();   // any manual jump takes the wheel back
@@ -16420,7 +16594,7 @@ function showTab(which, opts={}){
   document.body.dataset.tab=which;
   // Anonymous tally of WHICH page was opened \u2014 never who, never what they searched.
   // Fires on real switches only, so a re-render doesn't count twice.
-  if(changed) track("tab-"+which);
+  if(changed){ track("tab-"+which); statTab(which); }
   if(!opts.fromHash) writeHash(which);
   for(const t of TABS){
     const p=$("panel-"+t);
@@ -17418,7 +17592,7 @@ document.querySelectorAll(".sn-item, .wel-link").forEach(el=>{
 });
 
 function enterDemo(tab){
-  track("demo");                                   // anonymous tally: someone toured the sample
+  track("demo"); bumpStat("demo");                     // anonymous tally: someone toured the sample
   DEMO=true;
   document.body.classList.add("demo");
   SCOUT=null;
@@ -17538,6 +17712,10 @@ const wanted = HASH.user ? HASH.user.toLowerCase() : savedUser;
 // Distinguish "never fetched" from "we had your games and can't read them". The second
 // case used to drop you on the welcome screen with no explanation of where they went.
 const HAD_CACHE = !!(wanted && (()=>{ try{ return localStorage.getItem(cacheKey(wanted))!=null; }catch(e){ return false; } })());
+/* A visit that opens straight from cache is somebody coming back — the single number that
+   says whether this is a tool people use twice. Fired once per page load, so it counts
+   returning VISITS, not returning people; nobody is identified either way. */
+if(HAD_CACHE) try{ bumpStat("returning"); }catch(e){}
 
 /* Drop the boot gate (html.has-cache) as soon as the layout is CORRECT, not once the data
    has arrived. Decoding a few hundred cached games is by far the slowest step here and it
