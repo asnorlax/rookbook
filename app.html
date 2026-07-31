@@ -2239,6 +2239,12 @@
   }
   /* [hidden] is a UA rule; the display:flex above outranks it, so say it explicitly */
   .revanalyze[hidden]{display:none}
+  /* Same trap again, and the one that mattered: syncReviewEmpty() hides these two to put the
+     empty state in their place, and without this the empty state simply rendered ON TOP of the
+     skeleton it was written to replace — strictly worse than leaving it alone. .twin is scoped
+     to Review because other panels use the class and none of them set hidden on it. */
+  .reviewwrap[hidden]{display:none}
+  #panel-review .twin[hidden]{display:none}
   /* .chip has border:none — it only looks like a button inside a filter group.
      The analyze button needs to look like a button on its own. */
   .analyze-btn{
@@ -2338,12 +2344,18 @@
     font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
     padding:7px 8px;text-align:left;border-bottom:1px solid var(--rule);
   }
-  /* The name keeps its own casing and normal tracking. The heading is uppercase with .12em
-     letter-spacing, which is fine for the word WHITE and turns a username into something you
-     have to decode. Ellipsised rather than wrapped — the header is sticky, and a two-line one
-     would shift every row under it. */
+  /* The name keeps its own casing and normal tracking: the heading is uppercase with .12em
+     letter-spacing, which suits the word WHITE and turns a username into something you decode.
+
+     It sits on its own line and WRAPS rather than truncating. Truncating hides the thing the
+     column exists for. Sharing the line was the expensive option: this sidebar is ~290px, an
+     auto-layout table sizes columns to content, and "WHITE (25-char-name)" on one line pushed
+     the table to 385px and put a horizontal scrollbar under the move list. Own line takes that
+     to 337px, and wrapping absorbs the rest. overflow-wrap:anywhere because a username has no
+     spaces to break at. Not table-layout:fixed — that flattens all seven columns to an equal
+     41px and the move-number column does not need the same room as the verdict column. */
   .mvtable thead th .mvwho{text-transform:none;letter-spacing:0;font-weight:400;
-    font-size:11.5px;color:var(--read);margin-left:5px;white-space:nowrap}
+    font-size:11.5px;color:var(--read);display:block;overflow-wrap:anywhere}
   .mvtable td{padding:5px 5px;border-bottom:1px solid rgba(255,255,255,.04)}
   .mvn{color:var(--dim);width:34px;text-align:right;font-variant-numeric:tabular-nums}
   .mvcell{
@@ -15763,6 +15775,10 @@ let REV={game:null, moves:[], ply:0, chess:null};
 let REV_AUTO_T=null;              // pending auto-start, cancelled by any further navigation
 let REV_AUTO_PENDING=false;       // set just before an auto-start so analyzeGame can tell how it began
 let REV_AUTO_RUN=false;           // true while THIS run is one nobody asked for
+let REV_RUNNING_GID="";           // the game the in-flight analysis belongs to, which is not
+                                  // necessarily REV.game — loadReview() cancels a run but leaves
+                                  // REV_RUNNING true until the loop notices, so the user can be
+                                  // looking at a different game by the time they press Stop
 /* Keyed on gid(), not g.url. Plenty of games have no url at all — every game in the sample
    account, for one — and keying on it meant Stop was quietly forgotten for exactly those. */
 const REV_NOAUTO=new Set();       // gid() of every game the user explicitly stopped
@@ -15810,7 +15826,7 @@ function revRowBits(g){
    trust a half-analysed game's counts. Nothing renders for an untouched game: an empty column
    is what makes the marked ones findable. */
 function revMark(g){
-  const r = g.url ? REVDIR[g.url] : null;
+  const r = REVDIR[gid(g)];
   /* Must apply the SAME acceptance test loadReview does, not merely "a record exists".
      loadReview rejects an analysis judged by an older metric — pawn-scale numbers read as win
      chance would downgrade every blunder in it — so a game saved under the old scoring still
@@ -15887,6 +15903,10 @@ function loadReview(idx, opts={}){
   // the new game's moves through the old game's sign — then saved that mess under the NEW url,
   // where it was restored as real analysis forever after.
   if(REV_RUNNING) REV_CANCEL=true;
+  /* Disarm before anything else. opts.auto===false only skips SCHEDULING a new run; a timer
+     already armed for the previous game would otherwise survive and fire here — which is the
+     one thing a shared review link is explicitly not allowed to do. */
+  clearTimeout(REV_AUTO_T); REV_AUTO_T=null;
   REV_FOCUS=null;   // a filter left on from the last game would open this one already narrowed
   const body=g.pgn.replace(/\[[^\]]*\]/g," ").replace(/\{[^}]*\}/g," ")
                   .replace(/\$\d+/g," ").replace(/\d+\.(\.\.)?/g," ")
@@ -15906,7 +15926,7 @@ function loadReview(idx, opts={}){
   // Only reuse an analysis judged by the CURRENT metric. Anything stored before moves were scored
   // in win chance holds pawn-scale numbers, and reading a 2.6 as "2.6% of your win chance" would
   // quietly downgrade every blunder in it to nothing.
-  const cached = g.url ? REVDIR[g.url] : null;
+  const cached = REVDIR[gid(g)];
   REV_ANALYSIS = (cached && cached.m===REV_METRIC) ? cached : null;
   REV_BOARD_KEY=null;
   REV_HELP_OPEN=false;
@@ -15992,9 +16012,12 @@ const REV_METRIC=3;
 const REVDIR_KEY="rookbook:revdir";
 let REVDIR=LS.get(REVDIR_KEY) || {};
 // keep only the 40 most recent analyses — ~70 numbers per game, so this stays tiny
-function rememberReview(url, an){
-  if(!url || !an) return;
-  REVDIR[url]={evals:an.evals, drops:an.drops, bests:an.bests, done:an.done, total:an.total, when:Date.now(), m:REV_METRIC};
+/* Keyed on gid(), not a raw url. gid() returns g.url when the game has one, so every review
+   saved before this change still loads under the same key — but a game without a url now gets
+   a stable date+opponent key instead of being silently un-saveable. */
+function rememberReview(key, an){
+  if(!key || !an) return;
+  REVDIR[key]={evals:an.evals, drops:an.drops, bests:an.bests, done:an.done, total:an.total, when:Date.now(), m:REV_METRIC};
   const keys=Object.keys(REVDIR);
   if(keys.length>40){
     keys.sort((a,b)=>(REVDIR[a].when||0)-(REVDIR[b].when||0));
@@ -16055,7 +16078,7 @@ async function analyzeGame(){
      which is the single most annoying thing an auto-starting feature can do. */
   if(REV_RUNNING){
     REV_CANCEL=true;
-    if(REV.game) REV_NOAUTO.add(gid(REV.game));
+    if(REV_RUNNING_GID) REV_NOAUTO.add(REV_RUNNING_GID);   // the one being analysed, not the one on screen
     REV_AUTO_PENDING=false;
     return;
   }
@@ -16064,6 +16087,7 @@ async function analyzeGame(){
   const g=REV.game;
   if(!g || !REV.moves.length) return;
   REV_RUNNING=true; REV_CANCEL=false; REV_FOLLOW=true; REV_SKIPS=0;
+  REV_RUNNING_GID=gid(g);
   /* A re-run throws away every drop and best, so every count except missed mates falls back to
      zero on the first re-render. A filter still pointing at one of those buckets would sit lit
      over an empty list until the counts caught up. Clear it with the data it was describing. */
@@ -16197,7 +16221,7 @@ async function analyzeGame(){
       // Bank the work periodically. A full analysis is minutes of engine time, and on a phone a
       // backgrounded tab can be evicted mid-run — losing every search paid for. done/total ride
       // along in the record, so a partial restore is shown as partial rather than as a clean game.
-      if(i%24===23) rememberReview(g.url, REV_ANALYSIS);
+      if(i%24===23) rememberReview(gid(g), REV_ANALYSIS);
       if(i%6===5 || i===REV.moves.length-1){
         renderReview();
         await new Promise(r2=>setTimeout(r2,0));
@@ -16213,7 +16237,7 @@ async function analyzeGame(){
     if(!REV_CANCEL){ track("review-run"); bumpStat("reviews"); }
     // Save even when stopped — partial analysis is worth keeping now that it is labelled as such.
     // Keyed off the game captured at entry, never REV.game, which may have moved on.
-    rememberReview(g.url, REV_ANALYSIS);
+    rememberReview(gid(g), REV_ANALYSIS);
     renderReview();
     /* The picker's reviewed ticks are built from REVDIR, which only just gained this game — so
        without a rebuild the game you literally just analysed is the one row in the list still
