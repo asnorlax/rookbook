@@ -57,6 +57,7 @@ FEATURE_SLUGS = [
     "openings",
     "endgames",
     "tilt",
+    "game-review",
 ]
 
 # app.html is the tool itself — a single-page app. It used to be skipped on the theory that

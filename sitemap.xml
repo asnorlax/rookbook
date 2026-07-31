@@ -2,87 +2,91 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://rookbook.net/app.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-31</lastmod>
   </url>
   <url>
     <loc>https://rookbook.net/chess-accuracy-explained.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-31</lastmod>
   </url>
   <url>
     <loc>https://rookbook.net/chess-com-banned-opponents.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-25</lastmod>
   </url>
   <url>
     <loc>https://rookbook.net/do-you-actually-tilt.html</loc>
-    <lastmod>2026-07-24</lastmod>
-  </url>
-  <url>
-    <loc>https://rookbook.net/find-your-missed-checkmates.html</loc>
-    <lastmod>2026-07-24</lastmod>
-  </url>
-  <url>
-    <loc>https://rookbook.net/glossary.html</loc>
-    <lastmod>2026-07-24</lastmod>
-  </url>
-  <url>
-    <loc>https://rookbook.net/how-many-chess-games-per-day.html</loc>
-    <lastmod>2026-07-24</lastmod>
-  </url>
-  <url>
-    <loc>https://rookbook.net/how-to-review-your-chess-games.html</loc>
-    <lastmod>2026-07-24</lastmod>
-  </url>
-  <url>
-    <loc>https://rookbook.net/how-to-stop-blundering.html</loc>
-    <lastmod>2026-07-24</lastmod>
-  </url>
-  <url>
-    <loc>https://rookbook.net/</loc>
-    <lastmod>2026-07-24</lastmod>
-  </url>
-  <url>
-    <loc>https://rookbook.net/is-chess-com-down.html</loc>
-    <lastmod>2026-07-24</lastmod>
-  </url>
-  <url>
-    <loc>https://rookbook.net/knight-forks-in-chess.html</loc>
-    <lastmod>2026-07-24</lastmod>
-  </url>
-  <url>
-    <loc>https://rookbook.net/losing-winning-endgames.html</loc>
-    <lastmod>2026-07-24</lastmod>
-  </url>
-  <url>
-    <loc>https://rookbook.net/losing-winning-positions.html</loc>
-    <lastmod>2026-07-24</lastmod>
-  </url>
-  <url>
-    <loc>https://rookbook.net/rapid-or-blitz-to-improve.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-25</lastmod>
   </url>
   <url>
     <loc>https://rookbook.net/features.html</loc>
-    <lastmod>2026-07-29</lastmod>
+    <lastmod>2026-07-31</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/find-your-missed-checkmates.html</loc>
+    <lastmod>2026-07-30</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/free-chess-game-review.html</loc>
+    <lastmod>2026-07-31</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/glossary.html</loc>
+    <lastmod>2026-07-25</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/how-many-chess-games-per-day.html</loc>
+    <lastmod>2026-07-25</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/how-to-review-your-chess-games.html</loc>
+    <lastmod>2026-07-31</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/how-to-stop-blundering.html</loc>
+    <lastmod>2026-07-31</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/</loc>
+    <lastmod>2026-07-31</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/is-chess-com-down.html</loc>
+    <lastmod>2026-07-25</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/knight-forks-in-chess.html</loc>
+    <lastmod>2026-07-25</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/losing-winning-endgames.html</loc>
+    <lastmod>2026-07-25</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/losing-winning-positions.html</loc>
+    <lastmod>2026-07-31</lastmod>
+  </url>
+  <url>
+    <loc>https://rookbook.net/rapid-or-blitz-to-improve.html</loc>
+    <lastmod>2026-07-25</lastmod>
   </url>
   <url>
     <loc>https://rookbook.net/reading.html</loc>
-    <lastmod>2026-07-29</lastmod>
+    <lastmod>2026-07-31</lastmod>
   </url>
   <url>
     <loc>https://rookbook.net/why-am-i-stuck-at-the-same-rating.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-25</lastmod>
   </url>
   <url>
     <loc>https://rookbook.net/why-do-i-lose-on-time.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-31</lastmod>
   </url>
   <url>
     <loc>https://rookbook.net/why-do-i-lose-to-lower-rated-players.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-25</lastmod>
   </url>
   <url>
     <loc>https://rookbook.net/why-do-i-miss-checkmates.html</loc>
-    <lastmod>2026-07-24</lastmod>
+    <lastmod>2026-07-25</lastmod>
   </url>
   <url>
     <loc>https://rookbook.net/player/magnuscarlsen</loc>
@@ -106,6 +110,9 @@
     <loc>https://rookbook.net/player/magnuscarlsen/tilt</loc>
   </url>
   <url>
+    <loc>https://rookbook.net/player/magnuscarlsen/game-review</loc>
+  </url>
+  <url>
     <loc>https://rookbook.net/player/hikaru</loc>
   </url>
   <url>
@@ -125,6 +132,9 @@
   </url>
   <url>
     <loc>https://rookbook.net/player/hikaru/tilt</loc>
+  </url>
+  <url>
+    <loc>https://rookbook.net/player/hikaru/game-review</loc>
   </url>
   <url>
     <loc>https://rookbook.net/player/gothamchess</loc>
@@ -148,6 +158,9 @@
     <loc>https://rookbook.net/player/gothamchess/tilt</loc>
   </url>
   <url>
+    <loc>https://rookbook.net/player/gothamchess/game-review</loc>
+  </url>
+  <url>
     <loc>https://rookbook.net/player/alexandrabotez</loc>
   </url>
   <url>
@@ -167,6 +180,9 @@
   </url>
   <url>
     <loc>https://rookbook.net/player/alexandrabotez/tilt</loc>
+  </url>
+  <url>
+    <loc>https://rookbook.net/player/alexandrabotez/game-review</loc>
   </url>
   <url>
     <loc>https://rookbook.net/player/danielnaroditsky</loc>
@@ -190,6 +206,9 @@
     <loc>https://rookbook.net/player/danielnaroditsky/tilt</loc>
   </url>
   <url>
+    <loc>https://rookbook.net/player/danielnaroditsky/game-review</loc>
+  </url>
+  <url>
     <loc>https://rookbook.net/player/annacramling</loc>
   </url>
   <url>
@@ -209,6 +228,9 @@
   </url>
   <url>
     <loc>https://rookbook.net/player/annacramling/tilt</loc>
+  </url>
+  <url>
+    <loc>https://rookbook.net/player/annacramling/game-review</loc>
   </url>
   <url>
     <loc>https://rookbook.net/player/chessbrah</loc>
@@ -232,6 +254,9 @@
     <loc>https://rookbook.net/player/chessbrah/tilt</loc>
   </url>
   <url>
+    <loc>https://rookbook.net/player/chessbrah/game-review</loc>
+  </url>
+  <url>
     <loc>https://rookbook.net/player/nemsko</loc>
   </url>
   <url>
@@ -251,5 +276,8 @@
   </url>
   <url>
     <loc>https://rookbook.net/player/nemsko/tilt</loc>
+  </url>
+  <url>
+    <loc>https://rookbook.net/player/nemsko/game-review</loc>
   </url>
 </urlset>

@@ -66,6 +66,13 @@ const FEATURES = {
     intro: "Tilt is when one loss bleeds into the next and you play the following game angrier, faster, and worse. This page charts {name}'s form across a single sitting: how the games right after a defeat go, the point where fatigue starts eating accuracy, and which hours of the day tend to run hot or cold. Learning to close the app at the right moment is its own quiet rating gain.",
     cta: "Run the full breakdown in your browser to see exactly when {name} should stop for the day.",
   },
+  "game-review": {
+    title: "{name} — Free Game Review, Move by Move | Rookbook",
+    desc: "Review {name}'s chess.com games move by move with a free in-browser engine: every blunder and mistake priced in win chance, plus the checkmates that went unplayed. No daily limit.",
+    h1: "Review {name}'s games move by move",
+    intro: "Pick any of {name}'s recent chess.com games and walk it on a board with an engine running locally in your browser. Each costly move is priced in the win chance it threw away, the engine's better idea is drawn as an arrow, and forced mates that went unplayed get their own count. Chess.com sells this as Game Review; here it has no daily limit and needs no membership.",
+    cta: "Open the review board and step through {name}'s latest game, blunder by blunder, free.",
+  },
 };
 
 export default async (request, context) => {
@@ -176,7 +183,8 @@ export default async (request, context) => {
            + `<a href="${esc(base)}/openings">opening leaks</a>, `
            + `<a href="${esc(base)}/endgames">endgame conversion</a>, `
            + `<a href="${esc(base)}/tilt">tilt after a loss</a>, and a `
-           + `<a href="${esc(base)}/playing-style">six-axis Chess-DNA playing-style radar</a>. `
+           + `<a href="${esc(base)}/playing-style">six-axis Chess-DNA playing-style radar</a> — `
+           + `and a <a href="${esc(base)}/game-review">free move-by-move game review</a> of any game. `
            + `<a href="${esc(base)}">Open the full analysis →</a></p>`;
       ssr += `</section>`;
     } else {

@@ -14,7 +14,7 @@
    {"@type":"Question","name":"Can I install Rookbook as an app?",
     "acceptedAnswer":{"@type":"Answer","text":"Yes. On iPhone open rookbook.net in Safari, tap Share, then Add to Home Screen. On Android open it in Chrome, tap the browser menu, then Add to Home screen. You get an icon, full-screen stats, and your saved games ready offline."}},
    {"@type":"Question","name":"Why do some chess.com games show a question mark for accuracy?",
-    "acceptedAnswer":{"@type":"Answer","text":"chess.com only computes accuracy when a game has been through their Game Review. Open the game there, run the review, then re-fetch in Rookbook."}},
+    "acceptedAnswer":{"@type":"Answer","text":"chess.com only computes accuracy when a game has been through their Game Review. Open the game there, run the review, then re-fetch in Rookbook — or use Rookbook's own free Review tab, which analyzes any game move by move in your browser."}},
    {"@type":"Question","name":"Why did my chess statistics change after an update?",
     "acceptedAnswer":{"@type":"Answer","text":"When the stats engine improves, Rookbook re-derives everything from your saved games automatically. The newer numbers are the more accurate ones, and the changelog explains each change."}},
    {"@type":"Question","name":"Is Rookbook free, and does it need an account?",
@@ -24,16 +24,16 @@
 <!-- Caching is handled by the host: Netlify serves this file with max-age=0 + ETag,
      so browsers revalidate on every visit (one tiny request, 304 when unchanged)
      and new uploads appear immediately. No meta cache tags needed. -->
-<meta name="description" content="Free chess.com stats tracker — the stats chess.com doesn’t show you. Accuracy, blown leads, missed checkmates, opening records. No account; your games never leave your browser.">
+<meta name="description" content="Free chess.com game review and stats tracker. Review any game move by move with an engine in your browser — no daily limit — plus blown leads, missed checkmates, opening records. No account needed.">
 <meta name="theme-color" content="#0E0F10">
 <!-- Paint the page background before any stylesheet is parsed, so a slow first load
      never flashes white on the way to a dark UI. -->
 <style>html{background:#0E0F10;color-scheme:dark}</style>
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="shortcut icon" href="/favicon.ico">
-<title>Rookbook — Chess.com Game Tracker</title>
-<meta property="og:title" content="Rookbook — Chess.com Game Tracker">
-<meta property="og:description" content="The stats chess.com doesn't show you: tilt curves, blown leads, missed mates, hung pieces, player lookup. Free, no account — your games never leave your browser.">
+<title>Rookbook — Free Chess.com Game Review &amp; Stats Tracker</title>
+<meta property="og:title" content="Rookbook — Free Chess.com Game Review & Stats Tracker">
+<meta property="og:description" content="Free game review with no daily limit, plus the stats chess.com doesn't show you: tilt curves, blown leads, missed mates, player lookup. No account — your games never leave your browser.">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://rookbook.net/app.html">
@@ -45,7 +45,7 @@
   "name": "Rookbook",
   "url": "https://rookbook.net/",
   "image": "https://rookbook.net/og.png",
-  "description": "Chess.com game tracker and analysis dashboard. Tilt curves, blown leads, missed mates, clock analysis — the stats chess.com doesn't show you. Free, no account, your games never leave your browser.",
+  "description": "Free chess.com game review and stats dashboard. Review any game move by move with an in-browser engine — no daily limit — plus tilt curves, blown leads, missed mates and clock analysis. No account, your games never leave your browser.",
   "applicationCategory": "GameApplication",
   "operatingSystem": "Any",
   "browserRequirements": "Requires JavaScript",
@@ -3300,9 +3300,6 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <div class="hourly-title">Elo over time</div>
       <div id="eloChart"></div>
     </div>
-    <div class="hourly">
-      <div class="hourly-title">Move destination map<span class="mm-filter"><button class="mm-tab on" data-mm="all">All</button><button class="mm-tab" data-mm="win">Wins</button><button class="mm-tab" data-mm="loss">Losses</button></span></div>
-    </div>
     <div class="chartgrid">
       <div class="hourly c-hour">
         <div class="hourly-title">W / L by hour of day<span class="t-avg"></span></div>
@@ -4280,7 +4277,15 @@ document.querySelectorAll(".fgroup").forEach(grp=>{
     shown=ROWCAP;
     grp.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active", off ? c.dataset.val==="all" : c===btn));
     grp.classList.toggle("at-all", F[grp.dataset.key]==="all");
+    // A filter click shouldn't move the bar under your cursor. Fewer rows shorten the
+    // document, the browser clamps the scroll, and the whole page read as a jump — so pin
+    // the group where it was on screen and absorb the difference after the re-render.
+    const yBefore=grp.getBoundingClientRect().top;
     renderSoon();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const dy=grp.getBoundingClientRect().top - yBefore;
+      if(dy) window.scrollBy(0, dy);
+    }));
   });
 });
 
@@ -15844,15 +15849,20 @@ function moveVerdict(i){
   const d=REV_ANALYSIS.drops[i];
   if(d===null || d===undefined) return null;
   const best=REV_ANALYSIS.bests[i];
-  // The win chance the engine's move would have kept: what you ended on, plus what the
-  // move gave away \u2014 both already in the record, so cached reviews get this for free.
+  // The arc anchors on the JUDGED value of the position (best-move win chance = after + drop),
+  // not on the eval-curve snapshot from the previous ply. The two passes run at different
+  // depths and routinely disagree by a few points, so an arc drawn from the snapshot showed
+  // "\u221210%" next to a 14-point fall \u2014 blaming the move for measurement noise it didn't commit.
+  // Anchored this way, from \u2212 to always equals the headline drop.
   const after=REV_ANALYSIS.evals ? winPctOf(REV_ANALYSIS.evals[i+1]) : null;
-  const kept=after!=null ? Math.max(0,Math.min(100,Math.round(after+d))) : null;
-  const alt = best && best!==REV.moves[i].san
-    ? ` \u00b7 ${best} was better${kept!=null?` (${kept}%)`:""}` : "";
+  const kept=after!=null ? Math.max(0,Math.min(100,after+d)) : null;
+  const arc=(a,b)=>(a!=null&&b!=null)?` (${Math.round(a)}% \u2192 ${Math.round(b)}%)`:"";
+  // No "(kept N%)" on the suggestion: kept IS the arc's opening number by construction
+  // (after + drop), so printing it again just repeated every row's first percentage.
+  const alt = best && best!==REV.moves[i].san ? ` \u00b7 ${best} was better` : "";
   // "\u221218% win chance" \u2014 a unit people already understand, and the same one the tooltip explains.
-  if(d>=T_BLUNDER) return {cls:"blunder", txt:`<b class="rm-w blunder">blunder</b> \u00b7 \u2212${Math.round(d)}% win chance${alt}`};
-  if(d>=T_MISTAKE) return {cls:"mistake", txt:`<b class="rm-w mistake">mistake</b> \u00b7 \u2212${Math.round(d)}% win chance${alt}`};
+  if(d>=T_BLUNDER) return {cls:"blunder", txt:`<b class="rm-w blunder">blunder</b> \u00b7 \u2212${Math.round(d)}% win chance${arc(kept,after)}${alt}`};
+  if(d>=T_MISTAKE) return {cls:"mistake", txt:`<b class="rm-w mistake">mistake</b> \u00b7 \u2212${Math.round(d)}% win chance${arc(kept,after)}${alt}`};
   if(d<=1 && best===REV.moves[i].san) return {cls:"best", txt:"engine's choice"};
   return null;
 }
@@ -16322,7 +16332,7 @@ const TABS=["overview","log","insights","charts","trends","openings","blown","tr
 // — so a crawler sees a distinct, indexable page per feature instead of a #hash fragment (which
 // Google folds into the base page). The edge function server-renders matching metadata + a summary
 // at each of these paths; the sitemap lists them for the curated players. Kept in sync both ways.
-const FEATURE_SLUGS={ "playing-style":"insights", "blown-leads":"blown", "missed-mates":"mates", "openings":"openings", "endgames":"endgames", "tilt":"trends" };
+const FEATURE_SLUGS={ "playing-style":"insights", "blown-leads":"blown", "missed-mates":"mates", "openings":"openings", "endgames":"endgames", "tilt":"trends", "game-review":"review" };
 const TAB_SLUGS=Object.fromEntries(Object.entries(FEATURE_SLUGS).map(([s,t])=>[t,s]));   // tab -> slug
 // The feature tab named by the current address's PATH (/player/<user>/<slug>), or "" if none.
 function pathFeatureTab(){

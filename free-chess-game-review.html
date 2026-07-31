@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Free Chess.com Game Review — Move by Move, No Daily Limit | Rookbook</title>
+<meta name="description" content="Review any chess.com game move by move with a free engine in your browser. Blunders, mistakes and missed checkmates explained in win chance — no daily limit, no membership, no account.">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="canonical" href="https://rookbook.net/free-chess-game-review.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Free Chess.com Game Review — Move by Move, No Daily Limit | Rookbook">
+<meta property="og:description" content="Review any chess.com game move by move with a free engine in your browser. Blunders, mistakes and missed checkmates explained in win chance — no daily limit, no membership, no account.">
+<meta property="og:url" content="https://rookbook.net/free-chess-game-review.html">
+<meta property="og:image" content="https://rookbook.net/og.png">
+<link rel="preload" as="font" type="font/woff2" href="/poppins-500.woff2" crossorigin>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "Free Chess.com Game Review — Move by Move, No Daily Limit", "description": "Review any chess.com game move by move with a free engine in your browser. Blunders, mistakes and missed checkmates explained in win chance — no daily limit, no membership, no account.", "url": "https://rookbook.net/free-chess-game-review.html", "publisher": {"@type": "Organization", "name": "Rookbook", "url": "https://rookbook.net/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is Rookbook's game review really free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Every review is free, with no daily limit and no account. The engine runs in your own browser, so there is no server bill to pass on to you — that is the whole trick."}}, {"@type": "Question", "name": "Do I need a chess.com membership to review my games?", "acceptedAnswer": {"@type": "Answer", "text": "No. Chess.com includes one Game Review a day free and sells the rest with a membership. Rookbook reads your games from chess.com's public API and reviews them itself, so a lapsed or absent membership changes nothing."}}, {"@type": "Question", "name": "Does Rookbook use a real chess engine?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — Stockfish, compiled to run inside your browser. Every position in the game is evaluated locally on your machine; nothing is uploaded anywhere."}}, {"@type": "Question", "name": "Is this the same as chess.com's accuracy score?", "acceptedAnswer": {"@type": "Answer", "text": "No, and it doesn't pretend to be. Chess.com's accuracy is their own number, computed only for games run through their Game Review. Rookbook prices each of your moves in win chance — the percentage a mistake cost you — which is easier to act on than a single grade."}}]}</script>
+<style>
+  /* Poppins from this folder, not Google: no third-party request, no network wait before
+     headings render, and nothing to flicker. Falls back to a sans rather than the mono
+     stack — a monospace fallback made the pre-decode frame look like a different design. */
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:400;font-display:swap;
+    src:url("/poppins-400.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:500;font-display:swap;
+    src:url("/poppins-500.woff2") format("woff2")}
+  @font-face{font-family:"Poppins";font-style:normal;font-weight:600;font-display:swap;
+    src:url("/poppins-600.woff2") format("woff2")}
+  :root{--bg:#0E0F10;--panel:#161719;--ink:#E7DFC4;--dim:#9A947C;--read:#CBC5B0;--rule:#313436;--green:#6FA47B;
+    --loss:#E0776C;--draw:#D3B25A;--mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--read);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:660px;margin:0 auto;padding:34px 20px 60px}
+  a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
+  a:hover{border-bottom-style:solid}
+  header{border-bottom:1px solid var(--rule);padding-bottom:16px;margin-bottom:26px;
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .wm{font-family:"Poppins",var(--sans);font-size:22px;font-weight:500;text-decoration:none;
+    border-bottom:none;display:inline-flex;align-items:center}
+  .wm img{border-radius:6px;flex:0 0 auto;margin-right:9px}
+  .wm b{color:var(--ink);font-weight:500} .wm i{color:var(--green);font-style:normal}
+  .nav{font-size:12px}
+  h1{font-family:"Poppins",var(--sans);color:var(--ink);font-size:26px;font-weight:500;
+    line-height:1.35;margin:0 0 14px}
+  h2{font-family:"Poppins",var(--sans);color:var(--ink);font-size:18px;font-weight:500;
+    margin:32px 0 10px;padding-top:18px;border-top:1px solid var(--rule)}
+  p{margin:0 0 15px;max-width:64ch}
+  b{color:var(--ink);font-weight:500} p>b:first-child{color:var(--green)}
+  ul{margin:0 0 15px;padding-left:20px;max-width:64ch} li{margin:0 0 8px}
+  .lede{color:var(--ink);font-size:17px;line-height:1.55;margin-bottom:22px;max-width:64ch}
+  .box{background:var(--panel);border-left:2px solid var(--green);padding:13px 16px;margin:18px 0}
+  .box p:last-child{margin:0}
+  .cta{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    padding:15px 0;margin:26px 0 0}
+  .cta p{margin:0 0 6px;color:var(--dim)}
+  .cta .go{font-size:14px}
+  .rel{margin:0 0 6px}
+  .rel li{margin:0 0 8px}
+  footer{border-top:1px solid var(--rule);margin-top:38px;padding-top:15px;font-size:12px;color:#6A675B}
+  footer a{color:var(--green)}
+</style>
+  <script data-goatcounter="https://rookbookchess.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <a class="wm" href="/"><img src="/logo.png" alt="" width="30" height="30"><b>rook</b><i>book</i></a>
+  <div class="nav"><a href="/">Analyze my games</a> &middot; <a href="/reading.html">Reading</a> &middot; <a href="/glossary.html">Glossary</a></div>
+</header>
+
+<h1>Free chess.com game review</h1>
+
+<p class="lede">Chess.com gives you one Game Review a day, then asks for a membership. <a href="/">Rookbook</a> reviews any chess.com game, move by move, with an engine running in your browser &mdash; free, with no daily limit and no account.</p>
+
+<h2>What a review shows you</h2>
+<p>Type a chess.com username, pick a game, hit analyze. The engine walks every move and comes back with:</p>
+<ul>
+  <li><b>Blunders and mistakes, priced in win chance.</b> Not a bare "?!" &mdash; each bad move says what it cost: <i>blunder &middot; &minus;24% win chance &middot; Nd5 was better</i>. Blunders dropped your winning chances by 20% or more, mistakes by 10&ndash;20%.</li>
+  <li><b>The better move, drawn on the board.</b> When your move was flagged, the engine's suggestion appears as an arrow on the same screen, with the win chance it would have kept.</li>
+  <li><b>The checkmates you walked past.</b> A separate scan finds forced mates that were on the board and went unplayed &mdash; including in games you won anyway.</li>
+  <li><b>Your best moves too.</b> Moves that matched the engine's own choice get counted, so a review isn't only a list of scoldings.</li>
+  <li><b>Clocks and captures, replayed.</b> Step through the game and both players' clocks count down from the actual game record, with captured pieces and the material lead tracking every move.</li>
+</ul>
+<p>A win-chance curve runs under the whole game, marked where things went wrong &mdash; click anywhere on it to jump the board there. Or press play and the game advances on its own, pulling up at the next mistake.</p>
+
+<h2>How it's free</h2>
+<p>The engine is <b>Stockfish, compiled to run inside your browser</b>. Your games come from chess.com's public API, the analysis happens on your own machine, and the results are cached on your device for next time. There's no analysis server, which means there's no bill, which means there's nothing to charge you for. Nothing is uploaded anywhere &mdash; your games never leave your browser.</p>
+
+<h2>How it compares with chess.com's Game Review</h2>
+<p>Chess.com's Game Review is polished &mdash; the coach character, the lesson tie-ins &mdash; and one a day is free before the membership ask. Rookbook's review is plainer and focuses on the three things that decide club games: the moves that threw away win chance, the mates that went unplayed, and where the clock stood while it happened. The trade is simple: <b>their production, or unlimited reviews of every game you play.</b> You can run both; they measure different things and neither overwrites the other.</p>
+<p>It also works on <b>any public account</b> &mdash; review your own games, or step through how a stronger player converted the opening you keep losing.</p>
+
+<h2>Common questions</h2>
+<p><b>Is Rookbook's game review really free?</b> Yes. Every review is free, with no daily limit and no account. The engine runs in your own browser, so there is no server bill to pass on to you &mdash; that is the whole trick.</p>
+<p><b>Do I need a chess.com membership?</b> No. Chess.com includes one Game Review a day free and sells the rest with a membership. Rookbook reads your games from chess.com's public API and reviews them itself, so a lapsed or absent membership changes nothing.</p>
+<p><b>Does it use a real chess engine?</b> Yes &mdash; Stockfish, compiled to run inside your browser. Every position is evaluated locally on your machine.</p>
+<p><b>Is this the same as chess.com's accuracy score?</b> No, and it doesn't pretend to be. Their accuracy is their own number, computed only for games run through their Game Review. Rookbook prices each move in win chance &mdash; the percentage a mistake cost you &mdash; which is easier to act on than a single grade.</p>
+
+<div class="cta">
+  <p>Free, no account, and your games never leave your browser.</p>
+  <a class="go" href="/#tab=review">Review your games on rookbook.net &rarr;</a>
+</div>
+
+<h2>Related</h2>
+<ul class="rel">
+  <li><a href="/how-to-review-your-chess-games.html">How to review your own chess games</a> &mdash; which games to pick and what to ask of them</li>
+  <li><a href="/chess-accuracy-explained.html">Why accuracy is missing on some chess.com games</a></li>
+  <li><a href="/find-your-missed-checkmates.html">Find the checkmates you missed</a></li>
+</ul>
+
+<footer>
+  <p>Rookbook is a free chess.com game tracker. <a href="/">Try it &rarr;</a></p>
+  <p>&copy; 2026 Rookbook. Not affiliated with or endorsed by Chess.com.</p>
+</footer>
+</div>
+</body>
+</html>
