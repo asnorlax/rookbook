@@ -2167,7 +2167,16 @@
     /* the open list absorbs the slack and scrolls internally, so switching views cannot change
      the height of the panel underneath you */
   #panel-review #revMoves{flex:1 1 auto;min-height:120px;max-height:none;overflow-y:auto}
-  #panel-review #revInfo{flex:0 0 auto;overflow:visible}
+  /* The findings list takes the column's slack instead of a gap taking it. #revGraph is pinned
+     to the floor by margin-top:auto, so with a fixed 260px cap on the list every spare pixel
+     between the two became dead space — the list scrolled while empty room sat directly below
+     it. #revInfo grows, and the box inside it is flex:0 1 auto: content-height while the rows
+     fit, shrinking (and only then scrolling) once they genuinely outgrow the column. */
+  #panel-review #revInfo{flex:1 1 auto;overflow:visible;display:flex;flex-direction:column;min-height:0}
+  #panel-review #revInfo.slim{flex:0 0 auto}   /* All-moves view: #revMoves is the one that grows */
+  #panel-review #revInfo .revswitch{flex:0 0 auto}
+  #panel-review #revInfo .revsec,
+  #panel-review #revInfo .revlistbox{flex:0 1 auto;min-height:0;max-height:none}
   /* overflow-Y-auto, never the `overflow` shorthand. The shorthand resets BOTH axes and so
      clobbers the overflow-y:auto set a few lines above, which capped this column at
      --rev-side-h with no scrollbar: past the cap the eval curve and the whole Start/Prev/
@@ -2519,6 +2528,7 @@
   .revmoment.on .rm-n,.revmoment.on .rm-t{color:var(--ink)}
   .revmoment.blunder{border-left-color:var(--v-blunder)}
   .revmoment.mistake{border-left-color:var(--v-mistake)}
+  .revmoment.miss{border-left-color:var(--v-miss)}
   .revmoment.best{border-left-color:var(--win)}
   .rm-n{color:var(--read);width:26px;text-align:right}
   .rm-san{font-weight:700;color:var(--ink);width:46px}
@@ -15925,6 +15935,10 @@ let REV_FOCUS=null;
 /* What the list tab calls itself while a tile is active. Leaving it on "What went wrong" while
    the list showed engine's choice would have the heading contradict its own contents. */
 const REV_FOCUS_LBL={blunder:"Blunders",mistake:"Mistakes",miss:"Missed mates",best:"Engine's choice"};
+/* Identity of the list as last rendered. Its scroll offset is only worth restoring onto the
+   same list — a filter change or a different game is a different set of rows, where the old
+   offset would land somewhere meaningless. */
+let REV_LIST_SIG="";
 let REV_MISSES={};      // ply -> missed-mate record for the loaded game (from the mate scan)
 // Bump when the meaning of drops[] changes. m:1 was pawns lost; m:2 is points of win chance.
 // A stored analysis without the current stamp is ignored rather than misread.
@@ -16002,6 +16016,10 @@ async function analyzeGame(){
   const g=REV.game;
   if(!g || !REV.moves.length) return;
   REV_RUNNING=true; REV_CANCEL=false; REV_FOLLOW=true; REV_SKIPS=0;
+  /* A re-run throws away every drop and best, so every count except missed mates falls back to
+     zero on the first re-render. A filter still pointing at one of those buckets would sit lit
+     over an empty list until the counts caught up. Clear it with the data it was describing. */
+  REV_FOCUS=null;
   const btn=$("revAnalyze");
   btn.textContent="Stop analysis";
   btn.classList.add("running");
@@ -16511,11 +16529,17 @@ function renderReview(){
        not tabs — more than one is never active at a time, but each one un-presses itself. */
     const tile=(k,label,about)=>{
       const c=counts[k], on=REV_FOCUS===k;
-      const tip = !c   ? `No ${label} in this game`
+      /* Never assert an absolute while the engine is still walking the game — a bucket that is
+         empty at ply 12 is not a bucket that is empty. Every other string in this block is
+         careful about that; this one was not. */
+      const tip = !c   ? `No ${label} ${revDone?"in this game":"found yet"}`
                 : on   ? `Showing only these — click again to clear`
                        : `${about} — click to show only these`;
+      /* Disabled only when there is nothing behind it AND it is not the active filter. A lit
+         tile stays clickable even at zero, because a re-run empties every count on its first
+         re-render and a pressed toggle you cannot release is a dead control. */
       return `<button type="button" class="rv ${k}${on?" on":""}" data-revfocus="${k}"
-        ${c?"":"disabled"} aria-pressed="${on}" title="${tip}">${c}<small>${label}</small></button>`;
+        ${(c||on)?"":"disabled"} aria-pressed="${on}" title="${tip}">${c}<small>${label}</small></button>`;
     };
     verdictBar=`<div class="revverdict${revDone?"":" provisional"}"${revDone?"":' title="Still analyzing — these counts are only for the moves judged so far"'}>
       ${tile("blunder","blunders",`Moves that cost ${T_BLUNDER}% or more of your chance of winning`)}
@@ -16560,6 +16584,16 @@ function renderReview(){
   // One list, two views. The moves that cost something come first because that is what a review
   // is for; the full move list is a click away for when you want to walk the whole game. They
   // used to sit stacked, which pushed the eval curve off the bottom of the sidebar.
+  /* Hold the findings list still. innerHTML rebuilds .revsec at scrollTop 0, so the pass below
+     re-derived a scroll position from nothing on every render — and since a freshly built box
+     reports every row as below the fold, clicking a row you could already see scrolled it down
+     to the bottom edge, dragging the list out from under the cursor. Remember where the box
+     was, put it back, and only correct when the active row genuinely fell out of view. */
+  const listSig=`${gid(g)}|${REV_LIST}|${REV_FOCUS||""}|${badCount}`;
+  const oldBox=$("revInfo").querySelector(".revsec,.revlistbox");
+  const keepScroll=(oldBox && listSig===REV_LIST_SIG) ? oldBox.scrollTop : 0;
+  REV_LIST_SIG=listSig;
+
   $("revInfo").innerHTML = `<div class="revswitch" role="tablist">
       <button type="button" class="rsw ${REV_LIST==="issues"?"on":""}" data-revlist="issues" role="tab"
         aria-selected="${REV_LIST==="issues"}">${REV_FOCUS?REV_FOCUS_LBL[REV_FOCUS]:"What went wrong"}${badCount?` <span class="rsw-n">${badCount}</span>`:""}</button>
@@ -16572,15 +16606,25 @@ function renderReview(){
         ? "Nothing found yet."
         : "Run <b>Analyze this game</b> to see where this game turned."}</div>`));
 
-  /* Keep the highlighted row visible. The findings list has its own scroller, and on a long
-     game the flagged move you just stepped onto is usually outside it — a highlight you have
-     to go hunting for isn't a highlight. Scrolls the inner box only, never the page. */
+  /* Keep the highlighted row visible. On a long game the flagged move you just stepped onto
+     with Next/Prev is usually outside the scroller — a highlight you have to go hunting for
+     isn't a highlight. Runs after the saved offset is restored, so a row already on screen
+     (the one you just clicked, every time) is left exactly where it is. Scrolls the inner box
+     only, never the page. */
   {
-    const onRow=$("revInfo").querySelector(".revmoment.on");
-    if(onRow){
-      const box=onRow.closest(".revlistbox") || onRow.parentElement;
-      if(box && box.scrollHeight > box.clientHeight){
-        const top=onRow.offsetTop, bot=top+onRow.offsetHeight;
+    const box=$("revInfo").querySelector(".revsec,.revlistbox");
+    if(box){
+      box.scrollTop=keepScroll;
+      const onRow=$("revInfo").querySelector(".revmoment.on");
+      if(onRow && box.scrollHeight > box.clientHeight){
+        /* Measured against the scroller's own box, not offsetTop. .revsec is position:static, so
+           a row's offsetParent is a positioned ancestor far up the tree and offsetTop came back
+           ~430px too large — the arithmetic below then "corrected" a row already sitting at the
+           top of the list by scrolling the list down a few hundred pixels. Rects are relative to
+           the viewport for both elements, so the difference is always the true offset inside the
+           scroller no matter what is positioned where. */
+        const top=onRow.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
+        const bot=top+onRow.offsetHeight;
         if(top < box.scrollTop) box.scrollTop = top - 4;
         else if(bot > box.scrollTop + box.clientHeight) box.scrollTop = bot - box.clientHeight + 4;
       }
