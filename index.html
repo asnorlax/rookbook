@@ -299,6 +299,10 @@
   .rvrow.rx .rvsan{color:#B18BD0}
   .rvrow.rg .rvsan{color:#7CC287}
   .rvwhy{font-size:11.5px;color:var(--dim);min-width:0}
+  .rvv{font-weight:500}
+  .rvv.rb{color:#E0776C} .rvv.rm{color:#E3A63C} .rvv.rx{color:#B18BD0} .rvv.rg{color:#7CC287}
+  /* the before/after pair reads as support for the headline number, not a second number */
+  .rvarc{opacity:.72}
   .rvt{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--dim);flex:0 0 auto}
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto}
@@ -384,10 +388,10 @@
           <span class="rvchip rm">1 mistake</span>
           <span class="rvchip rx">1 missed mate</span>
         </div>
-        <div class="rvrow rb"><span class="rvn">18.</span><span class="rvsan">Qxf7??</span><span class="rvwhy">blunder &middot; &minus;24% win chance &middot; Nd5 was better</span><span class="rvt">2s</span></div>
-        <div class="rvrow rm reveal" style="transition-delay:.35s"><span class="rvn">27.</span><span class="rvsan">Rd8?</span><span class="rvwhy">mistake &middot; &minus;11% win chance</span><span class="rvt">6s</span></div>
-        <div class="rvrow rx reveal" style="transition-delay:.65s"><span class="rvn">31.</span><span class="rvsan">b5</span><span class="rvwhy">missed mate &middot; Bh3 was checkmate</span><span class="rvt">4s</span></div>
-        <div class="rvrow rg reveal" style="transition-delay:.95s"><span class="rvn">34.</span><span class="rvsan">Re8!</span><span class="rvwhy">engine's choice &mdash; your best move of the game</span><span class="rvt">11s</span></div>
+        <div class="rvrow rb"><span class="rvn">18.</span><span class="rvsan">Qxf7??</span><span class="rvwhy"><b class="rvv rb">blunder</b> &middot; &minus;37% win chance <span class="rvarc">(78% &rarr; 41%)</span> &middot; Nd5 was better</span><span class="rvt">2s</span></div>
+        <div class="rvrow rm reveal" style="transition-delay:.35s"><span class="rvn">27.</span><span class="rvsan">Rd8?</span><span class="rvwhy"><b class="rvv rm">mistake</b> &middot; &minus;13% win chance <span class="rvarc">(42% &rarr; 29%)</span> &middot; Bb4 was better</span><span class="rvt">6s</span></div>
+        <div class="rvrow rx reveal" style="transition-delay:.65s"><span class="rvn">31.</span><span class="rvsan">b5</span><span class="rvwhy"><b class="rvv rx">missed mate</b> &middot; Bh3 was checkmate, you played b5</span><span class="rvt">4s</span></div>
+        <div class="rvrow rg reveal" style="transition-delay:.95s"><span class="rvn">34.</span><span class="rvsan">Re8!</span><span class="rvwhy"><b class="rvv rg">engine&rsquo;s choice</b> &middot; the move it would have played</span><span class="rvt">11s</span></div>
         <figcaption><b>Straight from the review panel.</b> Every move checked, the costly ones explained in plain terms, each row one click from the position itself.</figcaption>
       </figure>
     </div>

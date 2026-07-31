@@ -173,10 +173,12 @@
     <button class="mclose" id="aboutClose" aria-label="Close">&times;</button>
     <h2 id="aboutTitle"><span class="wm-rook">rook</span><span class="wm-book">book</span></h2>
 
-    <p class="ab-lede">Type any chess.com username and hit <b>Analyze my games</b>. Rookbook reads your history through chess.com's public API and opens on <b>Insights</b> — the short version of what your games say. Everything you fetch is saved in your browser, so reopening loads instantly and only pulls what's new.</p>
+    <p class="ab-lede">Type any chess.com username and hit <b>Analyze my games</b>. Rookbook reads your history through chess.com's public API. Everything you fetch is saved in your browser, so reopening loads instantly and only pulls what's new.</p>
+    <p class="ab-lede">From there, <b>Review</b> runs a chess engine on any game, right here in this tab — every blunder and mistake priced in win chance, the checkmates you walked past, and the move the engine would have played instead. As many games as you like, with no chess.com membership.</p>
 
     <h4>Your data</h4>
-    <p>Your games, analysis and notes live only in this browser. Nothing is uploaded anywhere. Clearing removes them from this device; your chess.com account is untouched.</p>
+    <p>Your games, analysis and notes live only in this browser, and none of it is ever uploaded — not the games, not the engine's findings, not your username. Clearing removes them from this device; your chess.com account is untouched.</p>
+    <p class="ab-fine">The one thing that does leave: an anonymous tally of <i>that</i> something happened — a lookup ran, a review finished — with no username, no game data and nothing that could identify you or your device. It is what tells me whether any of this is being used.</p>
     <p id="gcSwitch"></p>
     <p id="rcSwitch"></p>
     <p id="storageHealth"></p>
@@ -189,7 +191,8 @@
 
     <details class="ab"><summary>FAQ</summary>
     <p><b>Can I install Rookbook as an app?</b> Yes — it's built for it. On iPhone: open rookbook.net in Safari, tap Share, then <b>Add to Home Screen</b>. On Android: open it in Chrome, tap the browser menu, then <b>Add to Home screen</b>. You get an icon, full-screen stats, and your saved games ready offline.</p>
-    <p><b>Why do some games show "?" for accuracy?</b> chess.com only computes accuracy when a game goes through their Game Review. Open the game there, run the review, re-fetch here.</p>
+    <p><b>Why do some games show "?" for accuracy?</b> That number is chess.com's, and they only compute it for games run through their own Game Review. You don't need it: open the game in <b>Review</b> here and the engine grades every move itself — blunders, mistakes and missed mates — for any game, free.</p>
+    <p><b>Is Review really unlimited?</b> Yes. The engine runs inside your browser rather than on a server, so there is nothing for me to ration — no daily cap, no membership, no account.</p>
     <p><b>My stats changed after an update — why?</b> When the stats engine improves, Rookbook re-derives everything from your saved games automatically. Newer numbers are the more honest ones — the changelog explains each change.</p>
     <p><b>Fetching seems slow or stuck?</b> chess.com rate-limits bursts. Rookbook backs off and retries automatically; the status line will say so. Big accounts just take a minute.</p>
     </details>
@@ -208,6 +211,13 @@
     --dim:#9A947C;
     --read:#CBC5B0;          /* body/reading text — between ink and dim (was referenced but never defined) */
     --rule:#313436;
+    /* --rule pulls double duty: decorative hairlines (table rows, panel edges) AND the borders
+       that define interactive controls. Those have different jobs. WCAG asks 3:1 for a UI
+       component boundary, and --rule against a button's own fill measures 1.38:1 — the labels
+       were perfectly legible while the outlines saying "this is a control" were nearly
+       invisible. --edge clears the floor at 3.13:1 and is for controls ONLY; lifting every
+       hairline to 3:1 would put a cage around every table on the site. */
+    --edge:#626A6D;
     --green:#6FA47B;         /* board green, lifted for dark bg */
     --win:#7CC287;
     --loss:#E0776C;
@@ -248,14 +258,14 @@
   /* the page gutters live here, not on body: the sticky rail runs full-bleed from the very
      top, so pinning at top:0 costs it nothing — no more few-pixel hop when you scroll past
      what used to be the body's top padding */
-  .sheet{max-width:1600px;width:100%;margin:0 auto;padding:14px 20px 40px}
+  .sheet{max-width:1600px;width:100%;margin:0 auto;padding:8px 20px 24px}
 
   /* ---------- header ---------- */
   header{
     background:var(--panel);
     color:var(--ink);
     border:2px solid var(--rule);
-    padding:10px 18px;
+    padding:6px 18px;
     position:relative;
     overflow:hidden;
   }
@@ -293,14 +303,18 @@
 
   /* ---------- controls ---------- */
   .controls[hidden], .tabs[hidden], .filters[hidden]{display:none !important}
+  /* This bar sits above every page, so its height is a tax on all of them. The label was a
+     full line away from the control it names; 1px closes that without the two touching, and
+     trimming the block padding takes the rest. */
   .controls{
     display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;
     background:var(--panel2);
     border:2px solid var(--rule);border-top:none;
-    padding:14px 16px;
+    padding:8px 16px 10px;
   }
-  .field{display:flex;flex-direction:column;gap:4px}
-  .field label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .field{display:flex;flex-direction:column;gap:2px}
+  .field label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+    line-height:1.35}
   input[type=text]{
     font-family:var(--mono);font-size:14px;color:var(--ink);
     background:var(--bg);border:1.5px solid var(--rule);border-radius:0;
@@ -400,7 +414,7 @@
     background:transparent;border:none;color:var(--dim);
     font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
     padding:11px 14px;cursor:pointer;font-weight:700;
-    border-right:1px solid var(--rule);
+    border-right:1px solid var(--edge);
     white-space:nowrap;
   }
   .tab:hover{color:var(--ink)}
@@ -438,7 +452,7 @@
     font-size:11.5px;line-height:1;
   }
   .filters .fsearch input{padding-top:0;padding-bottom:0;height:100%}
-  .fgroup{display:flex;border:1.5px solid var(--rule)}
+  .fgroup{display:flex;border:1.5px solid var(--edge)}
   /* Repertoire has only three filter groups (Time, Rated, Playing as). They fit one row on
      any normal screen, and on a very narrow one they wrap. NOT a scroll container: an
      overflow-x:auto here forces overflow-y to clip too, which cut off the Time dropdown
@@ -456,7 +470,7 @@
     background:transparent;border:none;color:var(--dim);
     font-family:var(--mono);font-size:12px;letter-spacing:.05em;
     padding:6px 12px;cursor:pointer;font-weight:700;
-    border-right:1px solid var(--rule);
+    border-right:1px solid var(--edge);
   }
   .chip:last-child{border-right:none}
   .chip:hover{color:var(--ink)}
@@ -663,14 +677,14 @@
     border-left:2px solid var(--rule);border-right:2px solid var(--rule);border-bottom:2px solid var(--rule);
     background:var(--panel);
   }
-  .ipanel{padding:18px 20px;border-bottom:1px solid var(--rule);border-right:1px solid var(--rule);content-visibility:auto;contain-intrinsic-size:auto none}
+  .ipanel{padding:14px 20px;border-bottom:1px solid var(--rule);border-right:1px solid var(--rule);content-visibility:auto;contain-intrinsic-size:auto none}
   .ipanel h3{
     font-size:13px;letter-spacing:.12em;text-transform:uppercase;
     color:var(--ink);margin-bottom:3px;font-weight:600;font-family:"Poppins",var(--sans);
   }
   .isub{font-size:11px;color:var(--dim)}   /* was only styled inside panels — bare uses (Rolling window row, chart notes) inherited full body size */
-  .ipanel .isub{font-size:11.5px;opacity:.8;margin-bottom:12px;font-family:var(--sans)}
-  .irow{display:flex;align-items:center;gap:11px;margin-bottom:9px;font-size:13px;min-height:20px}
+  .ipanel .isub{font-size:11.5px;opacity:.8;margin-bottom:7px;font-family:var(--sans)}
+  .irow{display:flex;align-items:center;gap:11px;margin-bottom:7px;font-size:13px;min-height:20px}
   /* Labels size to their text and never wrap onto a second line — a fixed width plus
      white-space:normal was breaking every long label in half. */
   .irow .ilabel{
@@ -1413,6 +1427,14 @@
          font-size:12px;color:var(--dim);line-height:1.65}
   footer>div+div{margin-top:7px}
   footer .fine{color:var(--dim)}
+  /* Footer links had no colour of their own, so they fell through to the browser defaults —
+     and once visited, that means purple on a dark green-and-buff page. The changelog already
+     pins :visited for the same reason; the footer just never did. */
+  footer a, footer a:visited{
+    color:var(--green);text-decoration:none;
+    border-bottom:1px solid rgba(111,164,123,.4);
+  }
+  footer a:hover{border-bottom-color:var(--green)}
   .mailto{
     color:var(--green);text-decoration:none;
     border-bottom:1px solid rgba(111,164,123,.4);
@@ -1870,7 +1892,7 @@
   .pf-charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;align-items:start}
   .pf-chartcard{background:var(--panel2);border:1px solid var(--rule);padding:14px 16px}
   .mm-filter{float:right;display:inline-flex;gap:4px}
-  .mm-tab{background:transparent;border:1px solid var(--rule);color:var(--dim);font:inherit;font-size:11px;padding:2px 10px;border-radius:4px;cursor:pointer}
+  .mm-tab{background:transparent;border:1px solid var(--edge);color:var(--dim);font:inherit;font-size:11px;padding:2px 10px;border-radius:4px;cursor:pointer}
   .mm-tab:hover{color:var(--ink)} .mm-tab.on{color:var(--ink);border-color:var(--dim);background:var(--panel)}
   .mm-outer{display:grid;grid-template-columns:1fr auto;gap:4px 7px;max-width:430px;margin-top:4px}
   .mm-board{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;aspect-ratio:1}
@@ -1975,7 +1997,7 @@
   .pf-legend i{width:13px;height:13px;border-radius:2px;display:inline-block}
   .pf-thead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
   .pf-tchips{display:inline-flex;gap:4px;flex-wrap:wrap}
-  .pf-tchip{font-family:var(--mono);font-size:10.5px;color:var(--dim);background:var(--panel);border:1px solid var(--rule);padding:2px 9px;cursor:pointer}
+  .pf-tchip{font-family:var(--mono);font-size:10.5px;color:var(--dim);background:var(--panel);border:1px solid var(--edge);padding:2px 9px;cursor:pointer}
   .pf-tchip:hover{border-color:var(--dim)}
   .pf-tchip.on{background:rgba(111,164,123,.16);color:var(--ink);border-color:#4a6b52}
   .pf-recent{background:var(--panel2);border:1px solid var(--rule);padding:14px 16px}
@@ -2042,11 +2064,14 @@
   body[data-tab="review"] footer > *:not(:first-child){display:none}
   .revpick-btn{
     width:100%;display:flex;align-items:center;gap:8px;justify-content:space-between;
-    background:var(--panel2);border:1px solid var(--rule);color:var(--ink);
+    background:var(--panel2);border:1px solid var(--edge);color:var(--ink);
     font-family:var(--mono);font-size:12px;padding:8px 11px;cursor:pointer;text-align:left;
     text-transform:none;letter-spacing:normal;
   }
-  .revpick-btn:hover{border-color:var(--dim)}
+  /* Must restate the background. The global button:hover paints every button light green, and
+     this one only overrode the border — so hovering the closed picker washed the bar green and
+     the green "W (+8)" inside it vanished. Hover moves the border, never the fill. */
+  .revpick-btn:hover{background:var(--panel2);border-color:var(--dim)}
   .revpick-cur{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .revpick-car{flex:0 0 auto;color:var(--dim);font-size:10px}
   .revpick-pop{
@@ -2056,7 +2081,7 @@
   }
   .revpick-row{
     display:grid;
-    grid-template-columns:11px 42px 38px 108px 46px 62px minmax(60px,1fr) 56px 34px;
+    grid-template-columns:11px 42px 38px 108px 48px 62px 66px 82px minmax(34px,1fr);
     align-items:center;gap:6px;width:100%;
     padding:4px 10px;border:none;border-bottom:1px solid var(--rule);
     background:none;color:var(--ink);font-family:var(--mono);font-size:11.5px;
@@ -2070,14 +2095,18 @@
   }
   .revpick-row:last-child{border-bottom:none}
   .revpick-row:hover{background:rgba(255,255,255,.05)}
-  .revpick-row.on{background:rgba(111,164,123,.16)}
+  /* Selection is a neutral lift plus a green edge, NOT a green wash. The wash tinted the row the
+     same hue as the win colour, so "W (+8)" on the selected game was green-on-green and nearly
+     unreadable — and a red L fared no better. The edge carries "this one" without touching the
+     contrast of anything inside the row. */
+  .revpick-row.on{background:rgba(255,255,255,.07);box-shadow:inset 2px 0 0 var(--green)}
   .rp-dot{width:9px;height:9px;border-radius:2px;border:1px solid var(--rule)}
   /* black = dark fill with a light rim so it reads as a piece, not a hole in the panel */
   .rp-dot.w{background:#E9E0C4;border-color:#c9c0a2}
   .rp-dot.b{background:#202224;border-color:var(--dim)}
   .rp-date{color:var(--dim)}
   .rp-res{font-weight:700}
-  .rp-score{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
+  .rp-score{white-space:nowrap}
   .rp-delta{font-weight:700}
   .rp-oppelo{text-align:right;font-size:10.5px;white-space:nowrap}
   .rp-u{font-size:9px;margin-left:1px}
@@ -2088,8 +2117,10 @@
   /* hard cap, not just the column width: long handles cut off sooner so the eye lands on the elo */
   .rp-opp{min-width:0;max-width:104px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .rp-opp .dim{color:var(--dim)}
-  .rp-acc{color:var(--dim);text-align:right}
+  .rp-acc{color:var(--dim);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .rp-vs{opacity:.55}
   .rp-moves{color:var(--dim);text-align:right}
+  /* endings run long ("checkmate", "abandoned", "insufficient") — clipped, full text on hover */
   .rp-how{color:var(--dim);font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
   .reviewwrap{
@@ -2134,7 +2165,12 @@
      the height of the panel underneath you */
   #panel-review #revMoves{flex:1 1 auto;min-height:120px;max-height:none;overflow-y:auto}
   #panel-review #revInfo{flex:0 0 auto;overflow:visible}
-  #panel-review .revside{overflow:hidden;max-height:var(--rev-side-h,none)}
+  /* overflow-Y-auto, never the `overflow` shorthand. The shorthand resets BOTH axes and so
+     clobbers the overflow-y:auto set a few lines above, which capped this column at
+     --rev-side-h with no scrollbar: past the cap the eval curve and the whole Start/Prev/
+     Play/Next/End row were clipped and simply unreachable. The cap is what stops "All moves"
+     pushing the page down; scrolling is what keeps the clipped part usable. Both are needed. */
+  #panel-review .revside{overflow-y:auto;overflow-x:hidden;max-height:var(--rev-side-h,none)}
     #revGraph svg{max-height:130px}
   }
   /* Standing by, before any analysis: level, and quiet enough not to look like a reading of 0.00 */
@@ -2238,7 +2274,7 @@
      forward, end. Icon-only so five fit where four labels used to. */
   .revnav{display:flex;align-items:stretch;gap:6px;margin-top:8px;flex:0 0 auto}
   .revnav button{flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:7px;
-    background:var(--panel2);border:1.5px solid var(--rule);border-radius:6px;
+    background:var(--panel2);border:1.5px solid var(--edge);border-radius:6px;
     font-family:var(--sans);font-size:19px;font-weight:700;line-height:1;padding:8px 0;text-transform:none;
     color:var(--ink);cursor:pointer;transition:background .12s,border-color .12s,color .12s}
   .revnav .nv-i{font-style:normal;font-size:19px;line-height:1}
@@ -2269,13 +2305,13 @@
      squares are light enough that the original near-black stroke is the right one */
   .rvp-taken svg path[stroke="#1B1C1E"]{stroke:#9BA0A3}
   .rvp-lead{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--dim);margin-left:4px}
-  .rvp-out{font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.09em;
-    border-radius:3px;padding:2px 6px;margin-left:7px;vertical-align:1px}
-  .rvp-out.won{color:#0E0F10;background:var(--win)}
+  .rvp-out{flex:0 0 auto;font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:.09em;
+    border-radius:3px;padding:2px 6px;line-height:1.35;border:1px solid transparent}
+  .rvp-out.won{color:#0E0F10;background:var(--win);border-color:var(--win)}
   .rvp-out.lost{color:var(--v-blunder);border:1px solid rgba(224,119,108,.5);background:rgba(224,119,108,.10)}
   .rvp-out.draw{color:var(--draw);border:1px solid rgba(211,178,90,.5);background:rgba(211,178,90,.10)}
   .rvp-clock{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-size:15px;font-weight:700;
-    color:var(--dim);border:1px solid var(--rule);background:var(--bg);border-radius:4px;
+    color:var(--ink);border:1.5px solid var(--edge);background:var(--bg);border-radius:4px;
     padding:2px 8px;font-variant-numeric:tabular-nums}
   .rvp-clock.on{color:var(--ink);border-color:#3a3d40}
   .rvp-clock.low{color:var(--loss)}
@@ -2348,7 +2384,7 @@
   .revverdict.provisional .rv{opacity:.75}
   /* the toggle row was riding right against the blunder/mistake tiles above it */
   .revswitch{display:flex;gap:10px;margin:14px 0 8px}
-  .rsw{flex:1 1 0;background:var(--panel2);border:1.5px solid var(--rule);border-radius:6px;
+  .rsw{flex:1 1 0;background:var(--panel2);border:1.5px solid var(--edge);border-radius:6px;
     color:var(--dim);font-family:var(--sans);font-size:11.5px;font-weight:600;letter-spacing:.02em;
     text-transform:none;padding:7px 8px;cursor:pointer;display:flex;align-items:center;
     justify-content:center;gap:6px;transition:background .12s,border-color .12s,color .12s}
@@ -2387,9 +2423,9 @@
      the old fixed size made ENGINE'S CHOICE wrap, dragging every tile taller with it. */
   .revverdict{display:flex;gap:6px;margin-top:10px;align-items:stretch}
   .rv{
-    flex:1 1 0;min-width:0;text-align:center;padding:6px 3px;border:1px solid var(--rule);
-    font-size:clamp(14px,1.5vw,19px);font-weight:700;display:flex;flex-direction:column;gap:1px;
-    line-height:1.15;
+    flex:1 1 0;min-width:0;text-align:center;padding:3px 3px 4px;border:1px solid var(--rule);
+    font-size:clamp(14px,1.5vw,18px);font-weight:700;display:flex;flex-direction:column;gap:0;
+    line-height:1.1;
   }
   .rv small{font-size:clamp(7px,.72vw,8.5px);letter-spacing:.05em;text-transform:uppercase;
     font-weight:400;color:var(--dim);line-height:1.2;overflow-wrap:anywhere}
@@ -2403,7 +2439,7 @@
      "?" in it. It's a small icon button, so it opts out of both. */
   .rv-help{flex:0 0 auto;align-self:center;width:22px;height:22px;min-width:0;padding:0;
     display:flex;align-items:center;justify-content:center;
-    background:transparent;color:var(--dim);border:1px solid var(--rule);border-radius:50%;
+    background:transparent;color:var(--dim);border:1px solid var(--edge);border-radius:50%;
     font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:0;text-transform:none;
     line-height:1;cursor:pointer}
   .rv-help:hover,.rv-help:focus-visible{color:var(--ink);border-color:var(--ink);background:transparent;outline:none}
@@ -2523,10 +2559,12 @@
      and focus states that don't vanish when you tab through. */
 
   /* the controls: one primary action, everything else visibly secondary */
-  .controls{gap:12px;padding:10px 18px 6px}
+  .controls{gap:6px 12px;padding:5px 18px 5px}
+  /* No margin here: .field is a flex column, so its gap does the spacing. The two together
+     were stacking 5px + 1px and the gap looked like it had no effect. */
   .field label{
     font-size:10px;letter-spacing:.13em;text-transform:uppercase;
-    color:var(--dim);margin-bottom:5px;display:block;
+    color:var(--dim);margin-bottom:0;display:block;
   }
   #load{
     background:var(--green);color:#0E0F10;border:1.5px solid var(--green);
@@ -2580,7 +2618,7 @@
   .status:empty{display:none}   /* no text, no dot */
 
   /* filters: labels so you know what each row of chips is for */
-  .filters{gap:8px 10px;padding:11px 18px;align-items:center}
+  .filters{gap:6px 10px;padding:6px 18px;align-items:center}
   /* groups are separated by a hairline, not a caption — the chips already name themselves */
   .filters .fgroup + .fgroup,
   .filters .fsel{
@@ -2607,7 +2645,7 @@
     padding:12px 11px;
     border-bottom:1.5px solid var(--rule);
   }
-  tbody td{padding:10px 11px;font-size:13.5px}
+  tbody td{padding:7px 11px;font-size:13.5px}
   tbody tr{border-bottom:1px solid rgba(255,255,255,.045)}
   tbody tr:hover{background:rgba(111,164,123,.07)}
   tbody tr:last-child{border-bottom:none}
@@ -2656,7 +2694,7 @@
   #insights .wipbar .wipx{background:transparent;border:0;color:#6A675B;font-size:17px;line-height:1;cursor:pointer;padding:0 2px;flex:0 0 auto}
   #insights .wipbar .wipx:hover{color:var(--ink)}
   /* "work in progress" banner for tabs still being built (Compare, Review, Repertoire) */
-  .wip-note{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--rule);border-left:3px solid var(--draw);border-radius:7px;padding:8px 14px;margin:0 0 14px;font-size:12.5px;line-height:1.45}
+  .wip-note{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--rule);border-left:3px solid var(--draw);border-radius:7px;padding:6px 14px;margin:0 0 14px;font-size:12.5px;line-height:1.45}
   .wip-note b{color:var(--ink);font-weight:600}
   .wip-note span{color:var(--ink)}
 
@@ -2839,6 +2877,9 @@
   .trends-warn .cline{margin:0;padding:3px 0}
   /* collapsible About sections */
   .mbox details.ab{border-top:1px solid var(--rule);padding:11px 0 7px}
+  /* the caveat under the privacy claim: present and readable, but clearly a footnote to it
+     rather than a second claim of equal weight */
+  .mbox .ab-fine{font-size:11.5px;color:var(--dim);line-height:1.55;margin-top:5px}
   .mbox details.ab summary{cursor:pointer;list-style:none;font-size:12px;letter-spacing:.12em;
     text-transform:uppercase;color:var(--green);font-weight:700;padding:4px 0;user-select:none}
   .mbox details.ab summary::before{content:"\25B8";display:inline-block;margin-right:8px;
@@ -2857,10 +2898,10 @@
      1:1, so nth-of-type keeps each stripe covering both cells. */
   #panel-glossary .gloss{display:grid;grid-template-columns:210px 1fr;max-width:960px;font-size:14.5px}
   #panel-glossary .gloss dt{margin:0;padding:13px 14px 13px 14px;font-size:12.5px;line-height:1.5;align-self:stretch}
-  #panel-glossary .gloss dd{margin:0;padding:12px 18px 13px 4px;font-size:14.5px;line-height:1.65;font-family:var(--sans)}
+  #panel-glossary .gloss dd{margin:0;padding:9px 18px 10px 4px;font-size:14.5px;line-height:1.5;font-family:var(--sans)}
   #panel-glossary .gloss dt:nth-of-type(odd),
   #panel-glossary .gloss dt:nth-of-type(odd)+dd{background:rgba(255,255,255,.055)}
-  #panel-glossary .gloss .gex{display:block;margin-top:5px;color:var(--dim);font-size:13.5px;font-family:var(--sans)}
+  #panel-glossary .gloss .gex{display:block;margin-top:3px;color:var(--dim);font-size:13.5px;font-family:var(--sans)}
   /* entries that reference a feature link to it — same green dotted look as coach links */
   #panel-glossary .gloss a{color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--green)}
   #panel-glossary .gloss a:hover{color:var(--green);border-bottom-style:solid}
@@ -2951,6 +2992,8 @@
      so on reload the rail painted 54px wide with clipped label text, until the main
      script swapped nav-collapsed for .collapsed and they vanished. That was the flash. */
   @media (max-width:820px){
+    /* the phone nav strip sits directly on the sheet — 8px there reads as welded together */
+    .sheet{padding-top:12px}
     html.nav-collapsed .sidenav .sn-l{display:inline}
   }
   .sn-item{
@@ -3476,7 +3519,6 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
   </div>
 
   <div id="panel-review" hidden>
-    <div class="wip-note"><b>Review has a new look</b> <span>(still working on touch ups). Unlimited reviews. No chess.com membership required.</span></div>
     <div class="twin">
       <span class="isub" style="margin:0">Game</span>
       <div class="revpick" id="revPick">
@@ -3657,11 +3699,10 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
   </div>
 
   <footer>
-    <div class="fine">&copy; 2026 Rookbook. Unaffiliated with chess.com &middot;
-      Analysis by <a href="https://github.com/niklasf/stockfish.js/tree/v10.0.2" target="_blank" rel="noopener">Stockfish.js 10.0.2</a>,
-      <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPLv3</a></div>
-    <div>Free to use.<span id="coffeeSlot"></span></div>
-    <div>Contact <a class="mailto" href="mailto:rookbookchess@gmail.com?subject=Rookbook%20feedback">rookbookchess@gmail.com</a> &middot; <a class="mailto" href="/reading.html">reading</a></div>
+    <div class="fine">&copy; 2026 Rookbook &middot; Unaffiliated with chess.com &middot;
+      Engine <a href="https://github.com/niklasf/stockfish.js/tree/v10.0.2" target="_blank" rel="noopener">Stockfish.js</a>
+      (<a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPLv3</a>)</div>
+    <div><span id="coffeeSlot"></span>Contact <a class="mailto" href="mailto:rookbookchess@gmail.com?subject=Rookbook%20feedback">rookbookchess@gmail.com</a> &middot; <a class="mailto" href="/reading.html">reading</a></div>
   </footer>
 </div>
 
@@ -4059,11 +4100,12 @@ if(location.hash==="#toggle-goatcounter"){
 const COFFEE_URL="https://buymeacoffee.com/rookbookchess";
 (function(){
   if(!COFFEE_URL) return;
-  // the whole sentence lives here, not just the link, so an empty COFFEE_URL leaves the
-  // footer reading "Free, private, no accounts." with no dangling half-thought
+  // The whole sentence AND its trailing separator live here, not just the link. "Free to use."
+  // used to open this line; with that gone an empty COFFEE_URL would leave the footer starting
+  // on a dangling middot.
   const a=`<a class="mailto" href="${COFFEE_URL}" target="_blank" rel="noopener" title="Rookbook is free and has no ads — this is the tip jar">Buy me a coffee</a>`;
   const f=document.getElementById("coffeeSlot");
-  if(f) f.innerHTML=" "+a+" if I earned one.";
+  if(f) f.innerHTML=a+" if I earned one. &middot; ";
 })();
 
 // ---------- filters ----------
@@ -10867,10 +10909,13 @@ function renderTrends(list){
     </div>`;
   wk.querySelectorAll("[data-wkmode]").forEach(c=>c.addEventListener("click",()=>{
     WK_MODE=c.dataset.wkmode;
+    /* Do NOT scroll. This used to jump to document.body.scrollHeight on picking Daily, meaning
+       to show off the longer table — but you are already looking at the table when you press
+       the toggle, and moving the viewport out from under you reads as the page jumping, not as
+       helpfulness. It also fired before the taller table had laid out, so it scrolled to the
+       OLD bottom and left you stranded mid-page. A control that swaps a table in place should
+       leave your scroll position exactly where it was. */
     renderTrends(list);
-    // Daily expands the table to one row per day — far longer than the weekly view. Scroll to
-    // the foot of the page so the fuller history is what you're looking at, not the top of it.
-    if(WK_MODE==="day") requestAnimationFrame(()=>window.scrollTo({top:document.body.scrollHeight, behavior:"smooth"}));
   }));
 }
 
@@ -15588,21 +15633,33 @@ function reviewable(){ return games.filter(g=>g.pgn && g.pgn.length>20); }
 // so their rating, accuracy and length stay in vertical alignment down the whole list.
 function revRowBits(g){
   const R={Win:["win","W"],Loss:["loss","L"],Draw:["draw","D"]}[g.result]||["draw","·"];
-  const d = g.delta!=null ? `(${g.delta>0?"+":""}${g.delta})` : "";
-  const dCls = g.delta==null ? "flat" : g.delta>0 ? "up" : g.delta<0 ? "down" : "flat";
-  return {R, d, dCls};
+  /* One span, one class, coloured by the RESULT — byte-for-byte the shape fmtDelta uses for the
+     Game Log's Result column, so the two read identically.
+
+     This used to be two elements with a flex gap, the delta coloured by its own sign. That let
+     them disagree: a win whose delta is negative after a fair-play refund rendered a green W
+     beside a red (-4). Colouring by result keeps the row saying one thing. */
+  const inner = g.result==="Draw" ? "½"
+              : g.delta==null     ? "—"
+              : (g.delta>0?"+":"")+g.delta;
+  const score = `<span class="res ${R[0]}">${R[1]} (${inner})</span>`;
+  return {R, score};
 }
 function reviewRowHTML(g,i){
-  const {R,d,dCls}=revRowBits(g);
-  const acc = g.acc!=null ? `${Math.round(g.acc)}<span class="rp-u">% acc</span>` : "<span class=\"dim\">—</span>";
+  const {score}=revRowBits(g);
+  /* Both players' accuracy. One number alone says nothing about whether 74% was a good game —
+     it reads very differently against an opponent who managed 63% than one who managed 91%. */
+  const acc = g.acc==null
+    ? "<span class=\"dim\">—</span>"
+    : `${Math.round(g.acc)}${g.oppAcc!=null?`<span class="rp-vs"> vs </span>${Math.round(g.oppAcc)}`:""}<span class="rp-u">%</span>`;
   const flag = (typeof g.peakMat==="number" && g.result==="Loss" && g.peakMat>=3) ? " ⚑" : "";
   return `<button type="button" class="revpick-row" data-idx="${i}" role="option">
     <span class="rp-dot ${g.color==="W"?"w":"b"}" title="${g.color==="W"?"White":"Black"}"></span>
     <span class="rp-date">${fmtDate(g.date)}</span>
     <span class="rp-tc dim">${tcCap(g.tc)}</span>
     <span class="rp-opp">${g.oppName}</span>
-    <span class="rp-oppelo dim">${g.oppElo!=null?`(${g.oppElo})`:""}</span>
-    <span class="rp-score"><b class="res ${R[0]}">${R[1]}</b><span class="rp-delta ${dCls}">${d}</span></span>
+    <span class="rp-oppelo dim">${g.oppElo!=null?`(${String(g.oppElo).padStart(4," ")})`:""}</span>
+    <span class="rp-score">${score}</span>
     <span class="rp-how" title="${g.how||""}">${g.how||""}${flag}</span>
     <span class="rp-acc">${acc}</span>
     <span class="rp-moves">${g.moves}m</span>
@@ -15617,7 +15674,7 @@ function updateRevPickLabel(){
     // Same colours as the list below it, so the closed button reads as the row you picked.
     // Switched from textContent to markup, so the opponent name is escaped on the way in.
     const esc=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    const {R,d,dCls}=revRowBits(g);
+    const {score}=revRowBits(g);
     const acc = g.acc!=null
       ? `${Math.round(g.acc)}% acc${g.oppAcc!=null?` vs ${Math.round(g.oppAcc)}%`:""}`
       : "";
@@ -15625,7 +15682,7 @@ function updateRevPickLabel(){
     const parts=[
       esc(fmtDate(g.date)), esc(tcCap(g.tc)),
       `vs <b>${esc(g.oppName)}</b>${g.oppElo!=null?` (${g.oppElo})`:""}`,
-      `<b class="res ${R[0]}">${R[1]}</b>${d?` <span class="rp-delta ${dCls}">${d}</span>`:""}`,
+      score,
       esc(g.how||""), esc(acc), `${g.moves} moves`
     ].filter(Boolean);
     cur.innerHTML = parts.join(sep);
@@ -15945,12 +16002,6 @@ function fitReviewToViewport(){
   if(!wrap) return;
   const panel=document.getElementById("panel-review");
   if(!panel || panel.getBoundingClientRect().height===0) return;   // tab isn't showing
-  const top=wrap.getBoundingClientRect().top+window.scrollY;
-  // Leave room for the footer too, otherwise the panel fills the window and the page still
-  // scrolls by exactly the footer's height — a scrollbar for nothing you wanted to reach.
-  const foot=document.querySelector("footer");
-  const footH=foot ? Math.round(foot.getBoundingClientRect().height)+16 : 0;
-  document.documentElement.style.setProperty("--rev-chrome",Math.round(top+footH+40)+"px");
   // Cap the sidebar at the board column's height. Without it the sidebar's own content sets the
   // row height, so opening "All moves" grew the panel by ~800px and shoved everything below it
   // down the page. Measured from the board, which is the column that should decide the height.
@@ -16440,15 +16491,19 @@ function revPaintBars(){
      final position, so it reads as the game ending rather than as a spoiler on move one. */
   const atEnd = REV.ply >= REV.moves.length;
   const meWon  = g.result==="Win", drew = g.result==="Draw";
+  /* The badge is a SIBLING of the name, not a child. .rvp-name carries overflow:hidden so long
+     usernames ellipsis — which also sheared the badge's border, so LOST looked like it was
+     missing two sides. */
   const badge = (id, isMe) => {
-    const el=$(id); if(!el) return;
-    const old=el.querySelector(".rvp-out"); if(old) old.remove();
+    const nameEl=$(id); if(!nameEl) return;
+    const row=nameEl.parentElement; if(!row) return;
+    const old=row.querySelector(".rvp-out"); if(old) old.remove();
     if(!atEnd) return;
     const won = drew ? null : (isMe ? meWon : !meWon);
     const txt = drew ? "DRAW" : won ? "WON" : "LOST";
     const cls = drew ? "draw" : won ? "won" : "lost";
-    el.insertAdjacentHTML("beforeend",
-      ` <span class="rvp-out ${cls}">${txt}</span>`);
+    nameEl.insertAdjacentHTML("afterend",
+      `<span class="rvp-out ${cls}">${txt}</span>`);
   };
   badge("revNameBot", true);
   badge("revNameTop", false);
@@ -16586,6 +16641,35 @@ function pathFeatureTab(){
   return "";
 }
 let CURRENT_TAB="log";
+/* Retire the gold NEW tag once somebody has actually used the tab.
+   A badge that never goes away stops meaning "new" and starts meaning "ignore me" — and it
+   costs you the next one too, because people learn the marker is decorative. Three visits is
+   enough to say they found it on purpose rather than by a stray click. Removing the element
+   also clears the collapsed-rail dot, which keys off :has(.sn-new). */
+const NEW_TAG_VISITS = 3;
+function retireNewTag(tab){
+  const el = document.querySelector('.sn-item[data-tab="' + tab + '"] .sn-new');
+  if(el) el.remove();
+}
+function tabSeenCount(tab){
+  try{ return +localStorage.getItem("rookbook:seen:" + tab) || 0; }catch(e){ return 0; }
+}
+function noteTabSeen(tab){
+  const el = document.querySelector('.sn-item[data-tab="' + tab + '"] .sn-new');
+  if(!el) return;                                  // nothing tagged: don't write storage for every tab
+  const n = tabSeenCount(tab) + 1;
+  try{ localStorage.setItem("rookbook:seen:" + tab, String(n)); }catch(e){}
+  if(n >= NEW_TAG_VISITS) retireNewTag(tab);
+}
+/* On boot, drop any tag already past its threshold before first paint, so a returning user
+   never sees it flash back on. */
+(function sweepNewTags(){
+  document.querySelectorAll(".sn-item .sn-new").forEach(el=>{
+    const item = el.closest(".sn-item");
+    const tab = item && item.dataset.tab;
+    if(tab && tabSeenCount(tab) >= NEW_TAG_VISITS) retireNewTag(tab);
+  });
+})();
 function showTab(which, opts={}){
   const changed = CURRENT_TAB!==which;
   CURRENT_TAB=which;
@@ -16594,7 +16678,7 @@ function showTab(which, opts={}){
   document.body.dataset.tab=which;
   // Anonymous tally of WHICH page was opened \u2014 never who, never what they searched.
   // Fires on real switches only, so a re-render doesn't count twice.
-  if(changed){ track("tab-"+which); statTab(which); }
+  if(changed){ track("tab-"+which); statTab(which); noteTabSeen(which); }
   if(!opts.fromHash) writeHash(which);
   for(const t of TABS){
     const p=$("panel-"+t);
@@ -17726,7 +17810,11 @@ if(HAD_CACHE) try{ bumpStat("returning"); }catch(e){}
    corrects the view. */
 if(!DEMO && !fresh && wanted && HAD_CACHE){
   enterApp();
-  const bootTab = TABS.includes(HASH.tab) ? HASH.tab : "insights";
+  /* Land on Overview, not Insights. Insights is a long analytical read and a poor first thing
+     to face on every open; Overview is the summary of the account you just loaded, it is first
+     in the sidebar, and Review — the flagship — is one click away with its NEW tag still on.
+     A deep link in the hash always wins over this default. */
+  const bootTab = TABS.includes(HASH.tab) ? HASH.tab : "overview";
   applyTabFilters(bootTab);
   applyTabActions(bootTab);
   // Open the destination panel now — just the hidden flags, no rendering, which stays
