@@ -18560,6 +18560,12 @@ function applyHash(){
 }
 window.addEventListener("hashchange",()=>{
   if(SUPPRESS_HASH) return;
+  /* #demo arriving without a page load. The sample tour is started by a one-time line during
+     boot, so it only ever ran on a fresh load — typing #demo into the address bar of an app that
+     is already open changes the hash, reloads nothing, and leaves your own account sitting there
+     while the URL claims to be the sample. Same for a link to /app.html#demo followed from
+     inside the app. Guarded on DEMO so re-entering it mid-tour is a no-op. */
+  if(!DEMO && /(^|[#&])demo([&=]|$)/.test(location.hash)){ enterDemo("overview"); return; }
   applyHash();
 });
 window.addEventListener("popstate",()=>{
