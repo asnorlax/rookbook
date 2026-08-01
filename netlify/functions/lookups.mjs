@@ -121,7 +121,11 @@ export default async (req) => {
      left the endpoint wide open with Netlify.env alone, so try process.env first and fall back.
      Wrapped because referencing an undefined Netlify global would throw and take the whole
      response down — an unreadable key must fail open on a counter dump, not 500. */
-  let gate = (typeof process !== "undefined" && process.env && process.env.STATS_KEY) || "";
+  const env = (typeof process !== "undefined" && process.env) ? process.env : {};
+  /* Either casing. Env names are case-sensitive on Linux, and the failure mode of getting it
+     wrong is that the gate silently does not exist and the endpoint stays open — which is
+     exactly the mistake you cannot see from the outside. Cheap insurance. */
+  let gate = env.STATS_KEY || env.stats_key || "";
   if (!gate) { try { gate = Netlify.env.get("STATS_KEY") || ""; } catch { gate = ""; } }
   if (gate && url.searchParams.get("key") !== gate) return json({ error: "unauthorized" }, 401);
 

@@ -14203,7 +14203,7 @@ function renderEndgames(list){
           <td class="num">${accGap!=null?`<span class="${accGap>0?"res win":"res loss"}">${accGap>0?"+":""}${accGap}</span>`:'<span class="dim">\u2014</span>'}</td>
           <td class="num">${th?th.avg.toFixed(1)+"s":'<span class="dim">\u2014</span>'}</td>
           <td class="num">${fmtClkDiff(g)}</td>
-          <td class="ctr">${g.url?`<a href="${g.url}" target="_blank" rel="noopener">view</a> <a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:""}</td>
+          <td class="ctr">${g.url?`<a href="${g.url}" target="_blank" rel="noopener">chess.com</a> ${reviewLinkHTML(g)}`:""}</td>
         </tr>`;}).join("");
 
       // read the shape rather than assert one
