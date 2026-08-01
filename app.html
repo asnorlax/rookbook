@@ -1118,13 +1118,13 @@
   .qmate{font-size:11px;cursor:help;border-bottom:1px dotted currentColor}
   .qmate.win{color:var(--win)}
   .qmate.loss{color:var(--loss)}
-  th.flagcol, td.flagcol{width:12px;padding-left:2px;padding-right:0;text-align:center}
+  th.flagcol, td.flagcol{width:12px;padding-left:4px;padding-right:0;text-align:center}
   th.starcol, td.starcol{width:14px;padding-left:0;padding-right:0;text-align:center}
   th.starcol+th, td.starcol+td{padding-left:3px}
   /* These MUST stay ID-scoped. #panel-log tbody td{padding:0 8px} above is specificity
      (0,1,0,2) and beats a plain td.flagcol{padding-right:0} (0,0,1,1) — which is why the
      class rules further up silently did nothing and the star sat in 16px of dead gutter. */
-  #panel-log tbody td.flagcol, #panel-log thead th.flagcol{padding-left:2px;padding-right:2px}
+  #panel-log tbody td.flagcol, #panel-log thead th.flagcol{padding-left:4px;padding-right:2px}
   #panel-log tbody td.starcol, #panel-log thead th.starcol{padding-left:2px;padding-right:3px}
   #panel-log td.starcol+td, #panel-log th.starcol+th{padding-left:0}
   /* Feed star column: match the Game Log's edge/gutter spacing (the .weekly tables otherwise pad
@@ -3402,7 +3402,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
     </div>
     <div class="fgroup" data-key="mark" id="markGroup" hidden>
       <button class="chip active" data-val="all">All</button>
-      <button class="chip" data-val="star" title="Games you starred in the log">&#9733;</button>
+      <button class="chip" data-val="star" title="Games you starred in the log">Starred &#9733;</button>
       <button class="chip" data-val="comeback" title="Wins pulled back from 3+ material down">Comeback ↺</button>
       <button class="chip" data-val="flag" title="Games that deserve a second look: blown 3+ leads, too-early resignations, squandered winning positions">Blown &#9873;</button>
     </div>
@@ -15113,6 +15113,25 @@ function matFromFen(fen, me){
   return m;
 }
 
+/* Rescan one game's mates, carrying the engine's Cost verdicts across.
+
+   The own-side logic has not changed between scan versions, so the misses come out identical
+   and re-pricing them would mean re-running the engine for numbers already on disk. Extracted
+   because there are two rescan sites — findMissedMates and loadReview — and only the first one
+   was doing this: opening a game in Review silently discarded every costEval it had, and the
+   Missed Mates tab then showed dashes where prices used to be. */
+function rescanMates(g){
+  const prev=g.mates;
+  g.mates=scanMates(g);
+  if(prev && prev.misses && prev.misses.length){
+    for(const m of g.mates.misses){
+      const o=prev.misses.find(x=>x.move===m.move && x.mate===m.mate);
+      if(o && o.costEval!==undefined) m.costEval=o.costEval;
+    }
+  }
+  return g.mates;
+}
+
 // Scan one game.
 // IMPORTANT: a mate that stays available for several moves in a row is ONE oversight, not
 // three. We collapse consecutive availability of the SAME mating move into a single missed
@@ -15240,16 +15259,7 @@ async function findMissedMates(){
   if(btn) btn.after(prog);
   for(const g of todo){
     if(MATE_CANCEL) break;
-    const prev=g.mates;                    // a v1 scan being upgraded
-    g.mates=scanMates(g);
-    // Our own-side logic didn't change, so the misses come out identical — carry the
-    // engine's Cost verdicts across instead of re-running them.
-    if(prev && prev.misses && prev.misses.length){
-      for(const m of g.mates.misses){
-        const o=prev.misses.find(x=>x.move===m.move && x.mate===m.mate);
-        if(o && o.costEval!==undefined) m.costEval=o.costEval;
-      }
-    }
+    rescanMates(g);                        // a v1 scan being upgraded; keeps its Cost verdicts
     rememberMates(g);
     totalMissed+=g.mates.missed;
     done++;
@@ -15847,7 +15857,10 @@ function reviewLinkHTML(g){
   const done = usable && (r.total ? (r.done||0) >= r.total : true);
   const href = `href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}"`;
   if(done) return `<a ${href} class="revlink done" title="Already analyzed — opens straight away">✓ view</a>`;
-  const title = usable ? "Partly analyzed — opens where the run stopped"
+  /* Not "opens where the run stopped": analyzeGame() always starts from move one and builds
+     fresh arrays, so a click here re-runs the lot. Say that, because the alternative is a
+     tooltip promising to resume immediately before it discards the partial run it described. */
+  const title = usable ? "Partly analyzed — click to run it again from the start"
                        : "Analyze this game with the engine, move by move";
   return `<a ${href} class="revlink${usable?" part":""}" title="${title}">review</a>`;
 }
@@ -15961,7 +15974,7 @@ function loadReview(idx, opts={}){
   // then cached forever. Doing it here means Review is never silently reporting "0 missed mates"
   // just because the Missed Mates tab hasn't been visited.
   if(g.pgn && (g.mates===undefined || !g.mates.v)){
-    try{ g.mates=scanMates(g); rememberMates(g); }catch(e){ warn("mate scan failed for this game", e); }
+    try{ rescanMates(g); rememberMates(g); }catch(e){ warn("mate scan failed for this game", e); }
   }
   REV_MISSES=missedMatePlies();
   $("revAnStatus").textContent="";
@@ -16281,6 +16294,24 @@ async function analyzeGame(){
       fillReviewPicker();
       if(keepScroll!=null) pop.scrollTop = keepScroll;
     }catch(e){}
+    /* And repaint the review links themselves. Only the picker was rebuilt here, so every table
+       carrying reviewLinkHTML() kept the amber "review" anchor for a game that now has a
+       complete analysis — and that mattered for more than looks. The click handler decides
+       whether to start the engine by reading `.done` off the anchor, so a stale one made
+       `asked` true: clicking it re-ran the whole analysis and banked a PARTIAL record over the
+       finished one at the first 24-ply checkpoint. The .done guard only ever protected links
+       rendered after the run.
+
+       Replaced in place rather than via render(): the log's table is built inside render()
+       (TAB_RENDER.log is a no-op, so marking it dirty does nothing), a full render is far more
+       work than this needs, and swapping the anchors reaches every site at once — including
+       tabs that are hidden but already built. Tabs not yet rendered call reviewLinkHTML fresh
+       and are correct by construction. */
+    try{
+      document.querySelectorAll("a.revlink[data-review]").forEach(a=>{
+        if(a.dataset.review===g.url) a.outerHTML = reviewLinkHTML(g);
+      });
+    }catch(e){}
   }catch(e){
     $("revAnStatus").textContent="Engine unavailable: "+e.message;
   }
@@ -16538,7 +16569,15 @@ function syncReviewEmpty(){
   if(wrap) wrap.hidden=!has;
   if(top) top.hidden=!has;          // a picker with nothing to pick is just another dead control
   box.hidden=has;
-  if(has) return;
+  if(has){
+    /* The board column has just come back from display:none. While the empty state was up it
+       measured zero, so fitReviewToViewport's `h>200` guard refused to set --rev-side-h and the
+       sidebar lost its height cap — "All moves" then grew the panel by several hundred pixels
+       and shoved the page below it down. Re-measure on the next frame, once layout has run;
+       measuring in this one still reads the hidden geometry. */
+    requestAnimationFrame(()=>{ try{ fitReviewToViewport(); }catch(e){} });
+    return;
+  }
   const anyGames=(typeof games!=="undefined" && games && games.length);
   box.innerHTML = anyGames
     ? `<div class="ree-h">These saved games don't include their moves</div>

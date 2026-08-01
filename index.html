@@ -232,6 +232,13 @@
     .scene:not(.hero):has(> .card) .copy h2{order:1;margin-bottom:0}
     .scene:not(.hero):has(> .card) .card{order:2}
     .scene:not(.hero):has(> .card) .copy .sub{order:3;margin-bottom:0}
+    /* Every child of .copy needs an explicit order here, not just the ones that had it when
+       this query was written. display:contents makes them all flex items of .scene, and the
+       default order is 0 — which is BEFORE the h2 at 1. The link below the review pitch landed
+       above its own heading for exactly that reason, and .revcount is the same bug waiting on
+       the counter clearing 250 to become visible. */
+    .scene:not(.hero):has(> .card) .copy .morelink{order:4;margin-top:-8px}
+    .scene:not(.hero):has(> .card) .copy .revcount{order:5}
 
     /* The hero keeps its copy intact: headline, pitch and the whole sign-up path land
        before the chart. Leading with an unlabeled chart there pushed the input onto
