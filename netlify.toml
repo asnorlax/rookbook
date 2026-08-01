@@ -20,3 +20,10 @@
 [[edge_functions]]
   path = "/player/*"
   function = "player"
+
+# NOTE for anyone tempted to add noindex here for branch deploys: it does not work. Headers and
+# redirects in netlify.toml are top-level only — deploy contexts accept build settings, not
+# [[context.branch-deploy.headers]], which is accepted silently and ignored. Verified against a
+# live branch deploy: no x-robots-tag on the response. A branch deploy is therefore a fully
+# indexable copy of the whole site on a public netlify.app URL. Delete test branches when done,
+# or write a _headers file from a build command gated on $CONTEXT.

@@ -27,6 +27,11 @@
 <style>
   :root{
     --bg:#0E0F10; --panel:#161719; --panel2:#191B1D; --ink:#E7DFC4; --dim:#9A947C;
+    /* Referenced twice in this file and never defined until now — an undefined var makes the
+       whole declaration invalid, so anything using it silently inherited instead. Inside a card
+       that is an <a>, what it inherited was the browser's default visited-link purple. Same
+       value app.html carries, where this was caught first. */
+    --read:#CBC5B0;
     --rule:#313436; --green:#6FA47B; --win:#7CC287; --loss:#E0776C; --draw:#D3B25A;
     --sq-light:#E9E0C4; --sq-dark:#6FA47B;
     --mono:"SF Mono","Cascadia Mono",Consolas,"Liberation Mono",Menlo,monospace;
@@ -66,10 +71,42 @@
   h1{font-family:var(--sans);font-weight:600;font-size:40px;line-height:1.08;letter-spacing:-.02em;color:var(--ink);margin-bottom:18px}
   h2{font-family:var(--sans);font-weight:600;font-size:40px;line-height:1.08;letter-spacing:-.02em;color:var(--ink);margin-bottom:18px}
   h1 .em, h2 .em{color:var(--green)}
+  /* Headings wrap on the widest break the line can hold, which left runts and a stranded
+     article: "The mates you never / saw." missed one line by 17px, and "Not a mockup. The /
+     actual app." hung the article off the end. Balance evens the lines instead, so the breaks
+     land on phrase boundaries. Browsers without it keep today's behavior — nothing is lost. */
+  h1, h2{text-wrap:balance}
+  /* The hero headline spans both columns and lands on one line, above the copy/chart row
+     rather than squeezed into the left half of it. Sized off the viewport so it cannot wrap:
+     this line measures ~13.0px of width per 1px of type. Mind the measure: it is (vw - 63),
+     not (vw - 48) — the 24px padding either side plus a 15px scrollbar, which vw units still
+     count. Sizing off (vw - 48) overstates the room by 15px and will wrap a line that the
+     arithmetic says fits. The cap is set by proportion rather than by what would fit: at 72px
+     this sat 1.8x the 40px section headings and read as a different page from everything under
+     it. 56px is 1.4x, fills ~71% of the measure, and still carries a full-width single line.
+     Slack is not the constraint at this size — it clears by ~300px. Keep the line short: every
+     word costs type size,
+     and past ~40 characters the breakpoint size falls below the 32px phones already get,
+     which makes a laptop headline smaller than a phone one. The 36px floor is inert — it
+     would only bite below 643px, outside this query — and exists so that the floor can
+     never become the thing that wraps the line.
+     Below 841px the grid is a single column and it wraps on its own, which is what a phone
+     wants, so the size is left alone there. Row gap does the spacing; margin would double it. */
+  .scene.hero > h1{grid-column:1/-1;margin-bottom:0}
+  @media (min-width:841px){
+    .scene.hero{row-gap:30px}
+    .scene.hero > h1{font-size:clamp(36px,5vw,56px)}
+  }
   .sub{font-size:15px;line-height:1.74;color:var(--dim);max-width:46ch}
   .sub.lede{font-size:15px}
   .sub b{color:var(--ink);font-weight:500}
   .copy .sub{margin-bottom:24px}
+  /* The closing CTA is a single centered sentence, not a column of prose, so the 46ch reading
+     measure works against it: a 372px cap split "...your whole history / is on screen in
+     seconds." across two lines. Uncapped it sets as one 523px line and .copy shrink-wraps to
+     match, which also squares the form below to the same edge. Under ~571px of viewport it
+     wraps again, which is what a phone should do. */
+  #cta .sub{max-width:none}
 
   .form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px}
   /* Squared to 0 to match app.html's global `button` rule — someone types a username here
@@ -313,7 +350,98 @@
   .rvchip.rb{color:#E0776C;border-color:rgba(224,119,108,.45);background:rgba(224,119,108,.08)}
   .rvchip.rm{color:#E3A63C;border-color:rgba(227,166,60,.45);background:rgba(227,166,60,.08)}
   .rvchip.rx{color:#B18BD0;border-color:rgba(177,139,208,.45);background:rgba(177,139,208,.09)}
-  .rvrow{display:flex;align-items:baseline;gap:9px;padding:8px 10px;margin-bottom:6px;
+  /* The good-news chip. Same green as .rvrow.rg / .rvv.rg so the badge, the rule down the left
+     of the row and the verdict text all read as one color-coded verdict. */
+  .rvchip.rg{color:#7CC287;border-color:rgba(124,194,135,.45);background:rgba(124,194,135,.08)}
+
+  /* "Try it on a real game" — the one place a stranger can use the flagship feature without
+     typing anything. It sits INSIDE the review scene, spanning both its columns, rather than in
+     a band of its own: a reader is already here asking what a review looks like, so the answer
+     costs no extra page and does not put a second call to action beside "Analyze my games",
+     which is still the conversion the page exists for.
+
+     The verdict chips are the whole pitch — "1 blunder · 5 mistakes" before a click says more
+     than any sentence about what the reviewer does. They are rookbook's own numbers from running
+     this exact game, not Chess.com's, because those are what a visitor will actually see. */
+  /* order matters twice over, and both are load-bearing. On desktop this is a third grid item in
+     a two-column scene: without an order after .copy's, auto-placement gave it row 2 and pushed
+     the copy down to row 3, beside nothing. On mobile the 840px query dissolves .copy with
+     display:contents and hand-orders its children 1-5 — a default order of 0 would put this
+     block ABOVE the section's own heading, which is the failure the comment on that query
+     already warns about. 6 puts it last in both. */
+  /* No rule across the top. A full-width hairline here reads as a section boundary, which is the
+     opposite of what this block is: it belongs to the review scene above it and is the place you
+     go to try what that scene just described. Spacing alone groups it — a divider would hand it
+     away to whatever comes next. */
+  .tryrow{grid-column:1/-1;order:6}
+  /* Proximity is doing the grouping now that the rule is gone, so the numbers have to agree with
+     the intent. .scene's 48px gap plus any margin here put this block further from the section it
+     belongs to than from the one below it, which is how it ends up looking like the next
+     section's header. Row gap only — the 48px column gap between copy and chart is untouched. */
+  #review{row-gap:26px}
+  /* EVERY scene keeps the shared 1fr 1fr. Do not give individual sections their own ratio.
+     Sections alternate which side the card is on (.scene.flip), so a per-section ratio moves the
+     vertical seam to a different x in each one: widening the review feed, the mate board and
+     narrowing the hero chart produced five seam positions between 479px and 597px, and the eye
+     tracks that jump down the page as the layout coming apart. One column width for everything
+     is what makes a page of alternating panels read as a grid instead of a pile.
+
+     If a module needs more presence, give it more inside its own box — padding, type size, row
+     height — not a wider column. */
+  .tryrow-lead{font-family:var(--sans);font-size:21px;font-weight:600;letter-spacing:-.01em;
+    color:var(--ink);margin-bottom:6px}
+  .tryrow-sub{font-size:14.5px;line-height:1.6;color:var(--dim);margin-bottom:18px}
+  /* Cap the column width. auto-fit with a 1fr max stretched a single card across the whole
+     1032px measure, which is what made it read as mostly empty space — a card is a card, not a
+     banner. With a ceiling it stays card-shaped whether there is one game here or four, and the
+     row fills left to right as more are added. */
+  /* Two per row, not three. The result line carries both usernames in full, and chess.com names
+     run long — "GothamChess WON via resignation vs Ehsan_GhaemMaghami" is 51 characters, which a
+     320px card cannot hold on one line at any readable size. Truncating them is worse than the
+     space it saves: the names are the reason the card is interesting. 420px minimum gives ~509px
+     columns at full width, which fits that line with room, and collapses to one column below
+     ~900px where a single card is full width anyway. */
+  /* 48px gap, matching .scene's. Two cards across the same measure then come out at exactly the
+     column width every other section uses, so the seam between them lands on the page's one
+     vertical line instead of 17px off it. A narrower gap here was the only thing making this row
+     look like a different grid from the section it sits in. */
+  .trygrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+    justify-content:start;gap:48px}
+  /* An explicit colour on the anchor itself, not just on its children. Any descendant whose own
+     colour fails to resolve inherits from here rather than from the UA's link styling, which is
+     how a card's text turned up purple once already. */
+  .trycard{display:flex;flex-direction:column;gap:8px;text-decoration:none;position:relative;
+    color:var(--read);
+    background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:17px 18px 16px;
+    transition:border-color .15s,background .15s}
+  /* No lift on hover. Nothing else on this page moves when you point at it, and a 2px translate
+     here knocked the card out of the single vertical alignment every module shares — the layout
+     visibly twitching under the cursor is a worse trade than any affordance it bought. The green
+     edge and the underlined action say "clickable" without shifting anything. */
+  .trycard:hover{border-color:var(--green);background:var(--panel2)}
+  /* Was #6A675B, the placeholder grey — too faint to read as a label at 10px with tracking this
+     wide. --dim is the same colour the rest of the page uses for supporting text. */
+  .tc-tag{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--dim);white-space:nowrap}
+  /* The page's reading face, same as the body copy. It was mono for a while because that was
+     what fit both usernames on one line at the old 320px card width; at 509px there is room
+     either way, and mono made a sentence read like a config file. */
+  .tc-name{font-family:var(--ui);font-size:15px;font-weight:400;color:var(--read);line-height:1.5}
+  .tc-name b{color:var(--ink);font-weight:700}
+  .tc-name .tc-w{color:var(--win)} .tc-name .tc-l{color:var(--loss)} .tc-name .tc-d{color:var(--draw)}
+  .tc-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}
+  .tc-chips .rvchip{font-size:11px;padding:4px 9px}
+  /* Pinned to the bottom so every card's action sits on one line no matter how long its title
+     wraps — with cards of differing name lengths a baseline that drifts looks broken. */
+  /* No border, deliberately. The whole card is the <a> — a bordered button inside it would
+     claim to BE the hit area and quietly shrink a target that is currently the full card.
+     The card's own hover (green edge, slight lift) is the honest affordance; this line is a
+     cue for where the click leads, so it gets size rather than a box. */
+  .tc-go{font-family:var(--mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+    font-weight:700;color:var(--green);margin-top:auto;padding-top:12px}
+  .trycard:hover .tc-go{text-decoration:underline;text-underline-offset:3px}
+  .trycard:hover .tc-go{color:#82b78e}
+  .rvrow{display:flex;align-items:baseline;gap:10px;padding:11px 13px;margin-bottom:7px;
     background:rgba(255,255,255,.015);border:1px solid var(--rule);border-left:3px solid var(--rule);
     border-radius:6px}
   .rvrow.rb{border-left-color:#E0776C}
@@ -362,9 +490,9 @@
 
   <!-- ===================== HERO: blown lead ===================== -->
   <section class="scene hero" id="hero">
+    <h1>See how you <span class="em">actually play.</span></h1>
     <div class="copy">
-      <h1>See how you<br><span class="em">actually play.</span></h1>
-      <p class="sub lede">rookbook reads your Chess.com history and shows you the whole picture &mdash; your <b>style and strengths</b>, the <a class="jump" href="#hero">blown leads</a> and <a class="jump" href="#mate">missed mates</a>, and the <a class="jump" href="#banned">opponents who were later banned</a> for cheating. <a class="jump" href="#review">Free game review</a>, move by move, as many games as you like.</p>
+      <p class="sub lede">rookbook reads your whole Chess.com history and shows you the picture one game can&rsquo;t &mdash; your <b>style and strengths</b>, the <a class="jump" href="#hero">blown leads</a> and <a class="jump" href="#mate">missed mates</a>, and the <a class="jump" href="#banned">opponents who were later banned</a> for cheating. And <a class="jump" href="#review">a full review of any game in it</a>.</p>
       <div class="form">
         <input type="text" id="u1" placeholder="your chess.com username" spellcheck="false" autocomplete="off" aria-label="chess.com username">
         <button type="button" data-go="u1">Analyze my games</button>
@@ -401,7 +529,11 @@
   <!-- ===================== FREE GAME REVIEW ===================== -->
   <section class="scene flip" id="review">
     <div class="copy">
-      <h2>Every game, reviewed. <span class="em">Free.</span></h2>
+      <!-- "Chess.com" is deliberately absent. It costs a third line in this column, and the very
+           next sentence opens "On Chess.com, Game Review is one game a day until you subscribe" —
+           which names the platform in the more persuasive place anyway. "Unlimited" is the claim
+           doing the work: their Game Review is free too, it is just capped at one a day. -->
+      <h2><span class="em">Free and unlimited</span> game review.</h2>
       <p class="sub">On Chess.com, Game Review is one game a day until you subscribe. rookbook
         reviews <b>any game, move by move</b>, with an engine running in your browser &mdash; the
         blunders, the mistakes, and the checkmates you walked past, each one replayed on the board
@@ -412,17 +544,50 @@
     <div class="card">
       <div class="card-head"><span class="card-res dim">51 moves checked</span></div>
       <figure>
-        <div class="rvchips" role="img" aria-label="Review verdict: 2 blunders, 1 mistake, 1 missed mate.">
+        <div class="rvchips" role="img" aria-label="Review verdict: 2 blunders, 1 mistake, 1 missed mate, 2 engine&rsquo;s choices.">
           <span class="rvchip rb">2 blunders</span>
           <span class="rvchip rm">1 mistake</span>
           <span class="rvchip rx">1 missed mate</span>
+          <span class="rvchip rg">2 engine&rsquo;s choices</span>
         </div>
         <div class="rvrow rb"><span class="rvn">18.</span><span class="rvsan">Qxf7??</span><span class="rvwhy"><b class="rvv rb">blunder</b> &middot; &minus;37% win chance <span class="rvarc">(78% &rarr; 41%)</span> &middot; Nd5 was better</span><span class="rvt">2s</span></div>
         <div class="rvrow rm reveal" style="transition-delay:.35s"><span class="rvn">27.</span><span class="rvsan">Rd8?</span><span class="rvwhy"><b class="rvv rm">mistake</b> &middot; &minus;13% win chance <span class="rvarc">(42% &rarr; 29%)</span> &middot; Bb4 was better</span><span class="rvt">6s</span></div>
         <div class="rvrow rx reveal" style="transition-delay:.65s"><span class="rvn">31.</span><span class="rvsan">b5</span><span class="rvwhy"><b class="rvv rx">missed mate</b> &middot; Bh3 was checkmate, you played b5</span><span class="rvt">4s</span></div>
         <div class="rvrow rg reveal" style="transition-delay:.95s"><span class="rvn">34.</span><span class="rvsan">Re8!</span><span class="rvwhy"><b class="rvv rg">engine&rsquo;s choice</b> &middot; the move it would have played</span><span class="rvt">11s</span></div>
+        <div class="rvrow rg reveal" style="transition-delay:1.25s"><span class="rvn">41.</span><span class="rvsan">Bd4!</span><span class="rvwhy"><b class="rvv rg">engine&rsquo;s choice</b> &middot; the only move that held</span><span class="rvt">8s</span></div>
         <figcaption><b>Unlimited game reviews.</b> Mistakes and great moves highlighted.</figcaption>
       </figure>
+    </div>
+
+    <!-- The only place on this page where a stranger can USE the reviewer instead of reading
+         about it. Each card is a plain link to /review?gameid=<id>, which is the same route the
+         app already serves — no demo mode, no special case, nothing to keep in sync. The counts
+         are what rookbook itself returned for this game. -->
+    <div class="tryrow">
+      <div class="tryrow-lead">Try it on a real game.</div>
+      <div class="tryrow-sub">No username, no sign-in &mdash; opens the full review, move by move.</div>
+      <div class="trygrid">
+        <a class="trycard" href="/review?gameid=172252535830&amp;side=b">
+          <span class="tc-tag">July 29 &middot; Titled Blitz (3+0) &middot; 84 plies</span>
+          <span class="tc-name"><b>Hikaru</b> <span class="tc-w">WON</span> via resignation vs <b>Wizard_97</b></span>
+          <div class="tc-chips">
+            <span class="rvchip rb">1 blunder</span>
+            <span class="rvchip rm">5 mistakes</span>
+            <span class="rvchip rg">15 engine&rsquo;s choices</span>
+          </div>
+          <span class="tc-go">Open the review &rarr;</span>
+        </a>
+        <a class="trycard" href="/review?gameid=171890995030&amp;side=b">
+          <span class="tc-tag">July 21 &middot; Titled Bullet (1+0) &middot; 112 plies</span>
+          <span class="tc-name"><b>GothamChess</b> <span class="tc-w">WON</span> by checkmate vs <b>lucliasco</b></span>
+          <div class="tc-chips">
+            <span class="rvchip rb">1 blunder</span>
+            <span class="rvchip rm">7 mistakes</span>
+            <span class="rvchip rg">21 engine&rsquo;s choices</span>
+          </div>
+          <span class="tc-go">Open the review &rarr;</span>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -462,30 +627,15 @@
           <div class="bn-row reveal" style="transition-delay:.25s"><span class="bn-d">20 Jul</span><span class="bn-c w">W</span><span class="bn-o"><i class="bn-x">&#9940;</i>LOF-Souza</span><span class="bn-r l">L (&minus;8)</span><span class="bn-h">checkmate</span></div>
           <div class="bn-row reveal" style="transition-delay:.45s"><span class="bn-d">19 Jul</span><span class="bn-c b">B</span><span class="bn-o"><i class="bn-x">&#9940;</i>alreadyblessed</span><span class="bn-r l">L (&minus;8)</span><span class="bn-h">resign</span></div>
           <div class="bn-row reveal" style="transition-delay:.65s"><span class="bn-d">16 Jul</span><span class="bn-c b">B</span><span class="bn-o"><i class="bn-x">&#9940;</i>THORINI691975</span><span class="bn-r l">L (&minus;12)</span><span class="bn-h">time</span></div>
-          <div class="bn-sum reveal" style="transition-delay:.85s"><b>4 rated losses</b> to accounts Chess.com later closed</div>
+          <div class="bn-row reveal" style="transition-delay:.85s"><span class="bn-d">14 Jul</span><span class="bn-c w">W</span><span class="bn-o"><i class="bn-x">&#9940;</i>Kaissa_Nightfall</span><span class="bn-r l">L (&minus;11)</span><span class="bn-h">resign</span></div>
+          <div class="bn-sum reveal" style="transition-delay:1.05s"><b>5 rated losses</b> to accounts Chess.com later closed</div>
         </div>
         <figcaption><b>Checked automatically.</b> No digging. More playing.</figcaption>
       </figure>
     </div>
   </section>
 
-<!-- ===================== EVERYTHING IT MEASURES ===================== -->
-    <!-- ===================== EVERYTHING ELSE, IN ONE LINE ===================== -->
-  <!-- This was a six-cell grid of feature names: 447px, 13% of the page, and not one link out
-       of it. The four scenes above already SHOW the best of it; a list that only tells is the
-       weakest thing on a landing page. One sentence keeps the breadth signal and the search
-       terms, and turns a dead end into the strongest internal link to /features.html. -->
-  <section class="scene wide" id="measures">
-    <div class="copy" style="max-width:760px">
-      <p class="alsoline">rookbook also reads your <b>playing style</b>, a <b>checkmate heatmap</b> of
-        where games end, your <b>openings</b> as a repertoire tree, <b>rating trends</b> and tilt,
-        <b>session</b> fatigue, and where your <b>clock</b> goes.
-        <a href="/features.html">See every feature &rarr;</a></p>
-    </div>
-  </section>
-
-
-  <!-- ===================== THE REAL THING ===================== -->
+<!-- ===================== THE REAL THING ===================== -->
   <section class="scene" id="real">
     <div class="copy">
       <h2>Not a mockup. <span class="em">The actual app.</span></h2>
@@ -525,6 +675,24 @@
           <p>Analysis runs in your browser and the results are cached there. Your games are never uploaded to us, because there's no us to upload them to.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ===================== EVERYTHING ELSE, IN ONE LINE ===================== -->
+  <!-- This was a six-cell grid of feature names: 447px, 13% of the page, and not one link out
+       of it. The four scenes above already SHOW the best of it; a list that only tells is the
+       weakest thing on a landing page. One sentence keeps the breadth signal and the search
+       terms, and turns a dead end into the strongest internal link to /features.html.
+       It sits here, after the showcase scenes and immediately before the closing ask, rather
+       than in the middle of them: it is the one section with no heading and no card, so wedged
+       between two full scenes it read as loose text that had lost its home. As a sweep of
+       everything not already shown, landing just before "See yours." it has a job. -->
+  <section class="scene wide" id="measures">
+    <div class="copy" style="max-width:760px">
+      <p class="alsoline">rookbook also reads your <b>playing style</b>, a <b>checkmate heatmap</b> of
+        where games end, your <b>openings</b> as a repertoire tree, <b>rating trends</b> and tilt,
+        <b>session</b> fatigue, and where your <b>clock</b> goes.
+        <a href="/features.html">See every feature &rarr;</a></p>
     </div>
   </section>
 
