@@ -95,7 +95,13 @@
          ledger routine already exist, so the series computes lazily at hover time.
          No new analysis or storage needed. Review-tab sparkline remains a later step.
          ================================================================================ -->
-    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.2.0 <span class="cl-tag">now</span></span><span class="cl-date">31 Jul 2026</span></summary><ul>
+    <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.2.1 <span class="cl-tag">now</span></span><span class="cl-date">1 Aug 2026</span></summary><ul>
+        <li>Review a single game without loading an account. Paste its PGN, or just the chess.com game ID &mdash; there are two games on the <a href="/">front page</a> you can open right now to try it.</li>
+        <li>The game doesn't have to be yours. Any chess.com game you have a link to works, and pasted PGNs from Lichess or over the board work too.</li>
+        <li>Pick which player the engine analyzes &mdash; a game you didn't play has two sides and no reason to prefer either.</li>
+      </ul></details>
+
+    <details class="cl"><summary class="cl-v"><span class="cl-t">v1.2.0</span><span class="cl-date">31 Jul 2026</span></summary><ul>
         <li>Review has been rebuilt. Analyze any chess.com game move by move with an engine in your browser. Free. No daily limit. No chess.com membership required.</li>
         <li>Review returns mistakes (moves that dropped your chances of winning by 10&ndash;30%), blunders (moves that dropped your chances of winning by 30% or more), missed checkmates, and the number of times you found the engine's own move.</li>
       </ul></details>
@@ -3263,7 +3269,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <span class="sub">
         <button class="ghostlink" id="aboutBtn">about</button> ·
         <button class="ghostlink" id="logBtn">changelog<span class="log-dot" id="logDot" hidden></span></button> ·
-        <span class="vtag">v1.2.0</span>
+        <span class="vtag">v1.2.1</span>
       </span>
     </div>
   </header>
