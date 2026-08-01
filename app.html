@@ -97,7 +97,7 @@
          ================================================================================ -->
     <details class="cl" open><summary class="cl-v"><span class="cl-t">v1.2.0 <span class="cl-tag">now</span></span><span class="cl-date">31 Jul 2026</span></summary><ul>
         <li>Review has been rebuilt. Analyze any chess.com game move by move with an engine in your browser. Free. No daily limit. No chess.com membership required.</li>
-        <li>Review returns mistakes (moves that dropped your chances of winning by 10&ndash;20%), blunders (moves that dropped your chances of winning by 20% or more), missed checkmates, and the number of 'best moves' you played.</li>
+        <li>Review returns mistakes (moves that dropped your chances of winning by 10&ndash;30%), blunders (moves that dropped your chances of winning by 30% or more), missed checkmates, and the number of times you found the engine's own move.</li>
       </ul></details>
 
     <details class="cl"><summary class="cl-v"><span class="cl-t">v1.1.2</span><span class="cl-date">30 Jul 2026</span></summary><ul>
@@ -1384,6 +1384,10 @@
   td a{color:var(--green)}
   a.revlink{color:var(--draw);margin-left:6px;border-bottom:1px dotted currentColor;text-decoration:none}
   a.revlink:hover{color:var(--ink)}
+  /* Same green as the picker's reviewed tick (.rp-rev.on), so one colour means one thing on
+     both surfaces. Amber stays the "there is work behind this" colour. */
+  a.revlink.done{color:var(--win)}
+  a.revlink.part{color:var(--dim)}
   a.revlink{
     color:var(--draw);margin-left:6px;
     border-bottom:1px dotted currentColor;text-decoration:none;
@@ -5138,7 +5142,7 @@ function cellFor(c,g){
     case "eco":    return g.eco || '<span class="dim">—</span>';
     case "note":   return `<input type="text" placeholder="—" data-note="${gid(g)}" value="${(m.note||"").replace(/"/g,"&quot;")}">`;
     case "link":   return g.url
-      ? `<a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink" title="Analyze this game with the engine, move by move">review</a>`
+      ? reviewLinkHTML(g)
       : "—";
   }
   return "";
@@ -8921,7 +8925,7 @@ function renderBlown(list){
           <td class="num">${g.acc!=null?g.acc.toFixed(1):'<span class="dim">—</span>'}</td>
           <td class="num">${g.moves}</td>
           <td class="num">${clk(g)}</td>
-          <td class="ctr">${g.url?`<a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"—"}</td>
+          <td class="ctr">${reviewLinkHTML(g)}</td>
         </tr>`;
       };
       const verdictOf=g=>threwItAway(g) ? ["res loss","was winning","The engine had you at +1.0 or better when the game ended and you still lost — usually a resignation or a flag in a winning position."]
@@ -9058,7 +9062,7 @@ function renderBlown(list){
           <td class="num">${g.delta!=null?`<span class="${g.delta>0?"res win":g.delta<0?"res loss":"dim"}">${g.delta>0?"+":""}${g.delta}</span>`:"—"}</td>
           <td class="${g.result==="Win"?"res win":g.result==="Loss"?"res loss":"res draw"}">${g.result}</td>
           <td>${g.how}</td>
-          <td class="ctr">${g.url?`<a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"—"}</td>
+          <td class="ctr">${reviewLinkHTML(g)}</td>
         </tr>`).join("");
         body=`<div class="coach" style="border:1px solid var(--rule);margin-bottom:12px">
             <div class="cline bad"><span class="cdot"></span><span><b>${gifts.length} game${gifts.length===1?"":"s"} where your queen left the board and nothing close came back.</b> You went ${w}/${gifts.length-w-dr}/${dr} in them${early.length?`, and ${early.length} happened by move 20 — open those and look for one repeated tactic: a fork, a pin, or a queen left loose on an open line`:""}.</span></div>
@@ -9439,7 +9443,7 @@ function renderInsights(list){
       const sep=metric?` \u2014 ${metric} `:" ";
       const line=`${wld}${dHtml}${sep}\u2014 <b>${g.oppName}</b>${oppElo}`;
       const plain=line.replace(/<[^>]*>/g,"").replace(/\s+/g," ").trim();
-      const link=g.url?`<a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"";
+      const link=g.url?reviewLinkHTML(g):"";
       return `<div class="irow" style="gap:8px">
       ${star(g)}
       <span class="dim" style="flex:0 0 56px;font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap">${tcDotHTML(g)}<span style="display:inline-block;min-width:40px;text-align:right">${fmtDate(g.date)}</span></span>
@@ -15566,7 +15570,7 @@ function renderMates(list){
         <td class="num">${matCell(g.mat)}</td>
         <td class="num">${swingCell(m.matThen, g.mat)}</td>
         <td>${g.how}</td>
-        <td class="ctr">${g.url?`<a href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}" class="revlink">review</a>`:"—"}</td>
+        <td class="ctr">${reviewLinkHTML(g)}</td>
       </tr>`;
     }).join("");
 
@@ -15825,6 +15829,29 @@ function revRowBits(g){
    stopped part-way is shown as partial rather than claimed as finished — otherwise you would
    trust a half-analysed game's counts. Nothing renders for an untouched game: an empty column
    is what makes the marked ones findable. */
+/* The review link, carrying its own state. Reviewed games read "✓ view" in green — you are
+   opening something that already exists, instantly. Everything else stays amber "review",
+   which now genuinely means work: since auto-analysis landed, clicking one starts a ~15s
+   engine run on its own. Green vs amber is what the eye picks up scanning a column; the verb
+   says what the click costs. Partly-reviewed keeps its own dim state — that run still has
+   moves left to judge.
+
+   One builder for all four render sites (game log, two tables, the streak list) so they can't
+   drift apart. Reuses revMark's acceptance test rather than "is there a record?": a game saved
+   under the old scoring still HAS an entry but loadReview refuses it, and calling that "view"
+   would promise something the tab then declines to deliver. */
+function reviewLinkHTML(g){
+  if(!g.url) return "—";
+  const r = REVDIR[gid(g)];
+  const usable = r && r.m === REV_METRIC;
+  const done = usable && (r.total ? (r.done||0) >= r.total : true);
+  const href = `href="#tab=review&game=${gameId(g.url)}" data-review="${g.url}"`;
+  if(done) return `<a ${href} class="revlink done" title="Already analyzed — opens straight away">✓ view</a>`;
+  const title = usable ? "Partly analyzed — opens where the run stopped"
+                       : "Analyze this game with the engine, move by move";
+  return `<a ${href} class="revlink${usable?" part":""}" title="${title}">review</a>`;
+}
+
 function revMark(g){
   const r = REVDIR[gid(g)];
   /* Must apply the SAME acceptance test loadReview does, not merely "a record exists".
@@ -15933,7 +15960,7 @@ function loadReview(idx, opts={}){
   // Missed mates are a local move-replay, not an engine pass — about half a second for one game,
   // then cached forever. Doing it here means Review is never silently reporting "0 missed mates"
   // just because the Missed Mates tab hasn't been visited.
-  if(g.pgn && g.mates===undefined){
+  if(g.pgn && (g.mates===undefined || !g.mates.v)){
     try{ g.mates=scanMates(g); rememberMates(g); }catch(e){ warn("mate scan failed for this game", e); }
   }
   REV_MISSES=missedMatePlies();
@@ -16299,33 +16326,32 @@ function syncAnalyzeCta(){
 // out rather than hidden in a tooltip because the whole point is that the judging is explainable.
 let REV_HELP_OPEN=false;
 function revHelpHTML(){
+  /* Cut from ~350 words to ~170. Gone: the pawns-versus-win-chance argument (a defence of the
+     design, not something the reader needs), and the standalone paragraphs for engine's choice
+     and missed mates, which now live in the list entries they were explaining. What earns the
+     space instead is the question people actually open this to ask — why these counts differ
+     from the ones chess.com showed them — answered with chess.com's own wording rather than a
+     hedge. The measurement behind that claim (five games, 2026-07-31 — 25 flagged to their 24)
+     is deliberately NOT quoted here: five games is a small enough sample that saying so invites
+     the doubt it is meant to settle, and a hardcoded count goes stale the first time a threshold
+     moves. It lives in the calibration notes instead. */
   return `<div class="revhelp">
     <div class="rh-h">How these moves are judged</div>
     <p><b>The unit is your chance of winning, not pawns.</b> For each of your moves the engine
-    plays what it would have played, then evaluates both positions to the same depth. The gap
-    between them is what the move cost you.</p>
-    <p>Measuring in win chance rather than pawns matters at the edges: going from winning by six
-    pawns to winning by three is nearly nothing — you were winning, you still are — while dropping
-    from level to a pawn down is a genuine swing. Pawns alone treat those the same.</p>
+    plays what it would have played, then scores both positions to the same depth. The gap is
+    what the move cost you.</p>
     <ul class="rh-l">
       <li><b class="rv-c blunder">Blunder</b> — cost ${T_BLUNDER}% or more of your chance of winning</li>
       <li><b class="rv-c mistake">Mistake</b> — cost ${T_MISTAKE}% to ${T_BLUNDER}%</li>
-      <li><b class="rv-c miss">Missed mate</b> — forced mate was on the board and you played something else</li>
-      <li><b class="rv-c best">Engine's choice</b> — you played the move the engine would have played</li>
+      <li><b class="rv-c miss">Missed mate</b> — forced mate was there and you played something else</li>
+      <li><b class="rv-c best">Engine's choice</b> — you played Stockfish's own pick, searched to depth ${JUDGE_DEPTH}</li>
     </ul>
-    <p><b>Engine's choice is the one that counts up, not down.</b> Every one of your moves is
-    checked against what the engine would have played there, so this is a straight count of the
-    times you found it. It only counts an exact match: a move that gave nothing away but wasn't
-    the engine's pick isn't in here, so treat it as a floor rather than a score.</p>
-    <p><b>Why missed mates are counted separately.</b> When mate is available you're normally
-    winning by a mile already, so skipping it barely moves your chance of winning — around two
-    points. The engine's own numbers can't see it. These come from the same scan behind
-    <a href="#tab=mates">Missed Mates</a>, which finds them exactly.</p>
-    <p><b>What this isn't.</b> Only your own moves are judged. There's no "inaccuracy" tier: at
-    the depth this runs, the gap between a small inaccuracy and an ordinary move is smaller than
-    the engine's own margin of error, so naming it would be guessing. Accuracy percentages come
-    from chess.com and are computed differently — a game can look clean here and score modestly
-    there without either being wrong.</p>
+    <p><b>These won't match chess.com's counts, and that's fine.</b> They weigh material — their
+    blunder is "a very bad move that <i>also</i> loses material or the game." Ours is only what a
+    move cost you in win chance. So a move that wrecks your position without hanging anything is
+    a blunder here and a mistake there.</p>
+    <p>Only your own moves are judged, and there's no "inaccuracy" tier — at this depth it would
+    be inside the engine's own margin of error.</p>
     <button type="button" class="ghostlink" id="revHelpClose">close</button>
   </div>`;
 }
