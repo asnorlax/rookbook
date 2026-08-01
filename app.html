@@ -16001,7 +16001,10 @@ document.addEventListener("click",e=>{
      at the game, and firing a ~12s engine run (plus a 640KB engine download on a first visit)
      because someone was curious about "Biggest upset" is a cost they never opted into. The card
      still opens the game with Analyze one button away. */
-  const asked = a.classList.contains("revlink");
+  /* .done is the "✓ view" variant: a game that already has a complete saved analysis. Its whole
+     promise is that it opens instantly, and treating the click as a request to analyse restarted
+     the engine and overwrote that analysis with a partial one. */
+  const asked = a.classList.contains("revlink") && !a.classList.contains("done");
   reviewGame(a.dataset.review, asked);
 });
 
@@ -16044,6 +16047,7 @@ let REVDIR=LS.get(REVDIR_KEY) || {};
    a stable date+opponent key instead of being silently un-saveable. */
 function rememberReview(key, an){
   if(!key || !an) return;
+  if(typeof DEMO!=="undefined" && DEMO) return;   // the sample tour leaves nothing behind
   REVDIR[key]={evals:an.evals, drops:an.drops, bests:an.bests, done:an.done, total:an.total, when:Date.now(), m:REV_METRIC};
   const keys=Object.keys(REVDIR);
   if(keys.length>40){
