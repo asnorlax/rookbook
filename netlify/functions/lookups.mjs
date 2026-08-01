@@ -115,7 +115,14 @@ export default async (req) => {
     reviews: Number(data.reviews) || 0,
   });
 
-  const gate = Netlify.env.get("STATS_KEY");
+  /* Read both surfaces. This is a Node function (Blobs does not resolve in the Deno edge
+     runtime), where process.env is the standard access path; Netlify.env is the edge-runtime
+     API and is not guaranteed to carry the variable here. Setting STATS_KEY and redeploying
+     left the endpoint wide open with Netlify.env alone, so try process.env first and fall back.
+     Wrapped because referencing an undefined Netlify global would throw and take the whole
+     response down — an unreadable key must fail open on a counter dump, not 500. */
+  let gate = (typeof process !== "undefined" && process.env && process.env.STATS_KEY) || "";
+  if (!gate) { try { gate = Netlify.env.get("STATS_KEY") || ""; } catch { gate = ""; } }
   if (gate && url.searchParams.get("key") !== gate) return json({ error: "unauthorized" }, 401);
 
   const tabs = {};
