@@ -16035,7 +16035,12 @@ async function reviewByGameId(id, side){
       if(found && found.pgn){ hit=found; break; }
     }catch(e){ /* this player's archive is unreachable — try the other one */ }
   }
-  if(!hit) return {ok:false, err:"Found that game, but couldn't load its moves."};
+  /* The game exists — we just resolved its players — but chess.com's public archive does not
+     carry it. Abandoned games are the case that proves this is not a lag: an account's archive
+     will hold games from hours LATER while still omitting the abandoned one entirely. Closed or
+     renamed accounts do the same. Neither is recoverable from here, and both are recoverable by
+     pasting the PGN, so say which door to use rather than reporting a load failure. */
+  if(!hit) return {ok:false, err:"chess.com doesn't publish that game in its archive — abandoned games and closed accounts are the usual reasons. Paste its PGN here instead and it'll review fine."};
   /* Deliberately OUTSIDE the loop's try. Building the review used to sit inside it, so anything
      that threw while opening the reviewer — a render, a missing element, anything downstream of
      reviewPgn — was caught by the archive handler, reported as "couldn't load its moves", and
@@ -16228,7 +16233,18 @@ function updateRevPickLabel(){
     // Same colours as the list below it, so the closed button reads as the row you picked.
     // Switched from textContent to markup, so the opponent name is escaped on the way in.
     const esc=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    const {score}=revRowBits(g);
+    /* Read from the reviewed player's side, matching the header above the board. The result word
+       replaces the separate W/L chip: "Hikaru WON as black vs Wizard_97" says in one pass what
+       "vs Wizard_97 · W" made you assemble. Own games drop the leading name — it is you on every
+       row. Ratings are gone from this line entirely; it answers "which game is this", and an elo
+       never helped with that. */
+    const RW={Win:"WON",Loss:"LOST",Draw:"DREW"}[g.result];
+    const RC={Win:"win",Loss:"loss",Draw:"draw"}[g.result]||"draw";
+    const resWord = RW ? `<span class="res ${RC}">${RW}</span> ` : "";
+    /* Past tense to sit inside a sentence. Deliberately only the two that read wrong mid-phrase —
+       inventing a full second vocabulary would drift from the Game Log's How column, which is
+       where these words come from and still says "resign". */
+    const howWord = ({resign:"resigned", checkmate:"checkmated"})[g.how] || g.how || "";
     const acc = g.acc!=null
       ? `${Math.round(g.acc)}% acc${g.oppAcc!=null?` vs ${Math.round(g.oppAcc)}%`:""}`
       : "";
@@ -16237,9 +16253,8 @@ function updateRevPickLabel(){
       esc(fmtDate(g.date)), esc(tcCap(g.tc)),
       /* Name both sides on a standalone game. "vs Wizard_97" is enough when the other player is
          always you; on a game you didn't play it leaves the more important half unsaid. */
-      `${g.pasted&&revMeName(g)?`<b>${esc(revMeName(g))}</b> vs `:"vs "}<b>${esc(g.oppName)}</b>${g.oppElo!=null?` (${g.oppElo})`:""}`,
-      score,
-      esc(g.how||""), esc(acc), `${g.moves} moves`
+      `${g.pasted&&revMeName(g)?`<b>${esc(revMeName(g))}</b> `:""}${resWord}as ${g.color==="W"?"white":"black"} vs <b>${esc(g.oppName)}</b>`,
+      esc(howWord), esc(acc), `${g.moves} moves`
     ].filter(Boolean);
     cur.innerHTML = parts.join(sep);
   }
@@ -17079,7 +17094,7 @@ function renderReview(){
     <div class="revhead">
       <span class="star rh-star ${isStarred(g)?"on":""}" data-star="${gid(g)}" role="button" tabindex="0"
         title="Star this game — starred games get the ★ chip on the Game Log">${isStarred(g)?"★":"☆"}</span>
-      <span class="rh-sub">${fmtDate(g.date)} · <b>${rhEsc(revMeName(g)||"You")}</b> <span class="rh-res ${resCls}">${({Win:"WON",Loss:"LOST",Draw:"DREW"})[g.result]||"—"}</span> as ${g.color==="W"?"white":"black"} vs <b>${rhEsc(g.oppName)}</b>${g.oppElo!=null?` (${g.oppElo})`:""}${g.delta!=null?` <span class="rh-res ${resCls}">${g.delta>0?"+":""}${g.delta}</span>`:""}</span>
+      <span class="rh-sub">${fmtDate(g.date)} · <b>${rhEsc(revMeName(g)||"You")}</b> <span class="rh-res ${resCls}">${({Win:"WON",Loss:"LOST",Draw:"DREW"})[g.result]||"—"}</span> as ${g.color==="W"?"white":"black"} vs <b>${rhEsc(g.oppName)}</b>${g.delta!=null?` <span class="rh-res ${resCls}">${g.delta>0?"+":""}${g.delta}</span>`:""}</span>
       ${g.pasted?`<button type="button" class="ghostlink rh-swap" data-swap="1" title="Re-run the review from the other side of the board">review as ${String(g.oppName).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</button>`:""}
       ${g.url?`<a class="ghostlink rh-link" href="${g.url}" target="_blank" rel="noopener">open on chess.com &#8599;</a>`:""}
     </div>
