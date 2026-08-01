@@ -21,17 +21,9 @@
   path = "/player/*"
   function = "player"
 
-# Keep test deploys out of Google. A branch deploy is a complete copy of the site on a public
-# netlify.app URL, and Netlify does NOT mark those noindex on its own — checked directly, the
-# branch URL came back with no x-robots-tag at all. An indexable second copy would compete with
-# rookbook.net for rookbook.net's own terms, which is the last thing a site this new needs.
-# Scoped to the two non-production contexts, so the live site is unaffected.
-[[context.branch-deploy.headers]]
-  for = "/*"
-  [context.branch-deploy.headers.values]
-    X-Robots-Tag = "noindex, nofollow"
-
-[[context.deploy-preview.headers]]
-  for = "/*"
-  [context.deploy-preview.headers.values]
-    X-Robots-Tag = "noindex, nofollow"
+# NOTE for anyone tempted to add noindex here for branch deploys: it does not work. Headers and
+# redirects in netlify.toml are top-level only — deploy contexts accept build settings, not
+# [[context.branch-deploy.headers]], which is accepted silently and ignored. Verified against a
+# live branch deploy: no x-robots-tag on the response. A branch deploy is therefore a fully
+# indexable copy of the whole site on a public netlify.app URL. Delete test branches when done,
+# or write a _headers file from a build command gated on $CONTEXT.
