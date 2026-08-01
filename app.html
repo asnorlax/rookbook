@@ -3670,6 +3670,10 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       </div>
       <button class="chip" id="revPrev">&#8592; Prev</button>
       <button class="chip" id="revNext">Next &#8594;</button>
+      <!-- The only way into a standalone review from inside the app. The welcome screen's
+           game-ID field is unreachable for anyone with a cached account, which is every
+           returning visitor — so the entry point has to live where the reviewer already is. -->
+      <button class="chip" id="revAdd" title="Review a game that isn't in your history — paste a PGN, or a chess.com game ID">+ any game</button>
       <span class="isub" id="revMeta" style="margin:0"></span>
     </div>
     <div id="revEmpty" hidden></div>
@@ -16020,6 +16024,24 @@ async function reviewByGameId(id, side){
   return {ok:false, err:"Found that game, but couldn't load its moves."};
 }
 
+/* Re-run the review from the other side. Only offered on standalone games: a game from your own
+   account already has a "you", but a game you didn't play has two sides and no reason to prefer
+   either. reviewPgn keys on the URL, so this replaces the record rather than stacking a second
+   copy of the same game in the picker. */
+document.addEventListener("click",e=>{
+  if(!e.target.closest("[data-swap]")) return;
+  const g=(typeof REV!=="undefined" && REV) ? REV.game : null;
+  if(!g || !g.pasted || !g.pgn) return;
+  const next = g.color==="W" ? "b" : "w";
+  reviewPgn(g.pgn, next);
+  /* Keep the address bar honest — someone who swaps and then shares the link should be sharing
+     the side they are actually looking at. */
+  try{
+    const q=new URLSearchParams(location.search||"");
+    if(q.get("gameid")||q.get("game")){ q.set("side",next); history.replaceState(null,"",location.pathname+"?"+q.toString()); }
+  }catch(_){}
+});
+
 /* ---- the paste box ---- */
 function openPasteBox(msg){
   const box=$("pasteBox"); if(!box) return;
@@ -17013,6 +17035,7 @@ function renderReview(){
         title="Star this game — starred games get the ★ chip on the Game Log">${isStarred(g)?"★":"☆"}</span>
       <span class="rh-sub">${fmtDate(g.date)} · ${g.color==="W"?"White":"Black"} vs <b>${g.oppName}</b>${g.oppElo!=null?` (${g.oppElo})`:""}</span>
       <span class="rh-res ${resCls}">${({Win:"W",Loss:"L",Draw:"D"})[g.result]||"·"}${g.delta!=null?` (${g.delta>0?"+":""}${g.delta})`:""}</span>
+      ${g.pasted?`<button type="button" class="ghostlink rh-swap" data-swap="1" title="Re-run the review from the other side of the board">review as ${esc(g.oppName)} instead</button>`:""}
       ${g.url?`<a class="ghostlink rh-link" href="${g.url}" target="_blank" rel="noopener">open on chess.com &#8599;</a>`:""}
     </div>
     `;   // material, think time and the engine number now live on the board bars, the move
@@ -18253,6 +18276,7 @@ $("welGo").addEventListener("click",()=>{
 $("welUser").addEventListener("keydown",e=>{ if(e.key==="Enter") $("welGo").click(); });
 $("welDemo").addEventListener("click",e=>{ e.preventDefault(); enterDemo("overview"); });
 (function(){ const p=$("welPaste"); if(p) p.addEventListener("click",e=>{ e.preventDefault(); openPasteBox(); }); })();
+(function(){ const a=$("revAdd"); if(a) a.addEventListener("click",e=>{ e.preventDefault(); openPasteBox(); }); })();
 /* Review one game straight from its id, from the front door. Accepts a bare id or any chess.com
    URL containing one, since what people actually have on the clipboard is the link. */
 (function(){
