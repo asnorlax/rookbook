@@ -16010,6 +16010,7 @@ async function reviewByGameId(id, side){
   }
   /* The game sits in both players' archives and the PGN is identical either way, so a closed or
      renamed account on one side isn't fatal — ask the other. */
+  let hit=null;
   for(const who of [meta.white, meta.black]){
     if(!who) continue;
     try{
@@ -16017,11 +16018,18 @@ async function reviewByGameId(id, side){
                           +"/games/"+meta.year+"/"+meta.month);
       if(!r.ok) continue;
       const list=(await r.json()).games||[];
-      const hit=list.find(g=>g.url && g.url.indexOf(id)>=0);
-      if(hit && hit.pgn) return reviewPgn(hit.pgn, side||"w");
-    }catch(e){ /* try the other player */ }
+      const found=list.find(g=>g.url && g.url.indexOf(id)>=0);
+      if(found && found.pgn){ hit=found; break; }
+    }catch(e){ /* this player's archive is unreachable — try the other one */ }
   }
-  return {ok:false, err:"Found that game, but couldn't load its moves."};
+  if(!hit) return {ok:false, err:"Found that game, but couldn't load its moves."};
+  /* Deliberately OUTSIDE the loop's try. Building the review used to sit inside it, so anything
+     that threw while opening the reviewer — a render, a missing element, anything downstream of
+     reviewPgn — was caught by the archive handler, reported as "couldn't load its moves", and
+     sent debugging after a network fault that had not happened. The game was already in the
+     picker at the time, which is exactly what a load failure cannot produce. Report what broke. */
+  try{ return reviewPgn(hit.pgn, side||"w"); }
+  catch(e){ return {ok:false, err:"Loaded the game, but the review failed to open: "+((e&&e.message)||e)}; }
 }
 
 /* Re-run the review from the other side. Only offered on standalone games: a game from your own
@@ -17035,7 +17043,7 @@ function renderReview(){
         title="Star this game — starred games get the ★ chip on the Game Log">${isStarred(g)?"★":"☆"}</span>
       <span class="rh-sub">${fmtDate(g.date)} · ${g.color==="W"?"White":"Black"} vs <b>${g.oppName}</b>${g.oppElo!=null?` (${g.oppElo})`:""}</span>
       <span class="rh-res ${resCls}">${({Win:"W",Loss:"L",Draw:"D"})[g.result]||"·"}${g.delta!=null?` (${g.delta>0?"+":""}${g.delta})`:""}</span>
-      ${g.pasted?`<button type="button" class="ghostlink rh-swap" data-swap="1" title="Re-run the review from the other side of the board">review as ${esc(g.oppName)} instead</button>`:""}
+      ${g.pasted?`<button type="button" class="ghostlink rh-swap" data-swap="1" title="Re-run the review from the other side of the board">review as ${String(g.oppName).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")} instead</button>`:""}
       ${g.url?`<a class="ghostlink rh-link" href="${g.url}" target="_blank" rel="noopener">open on chess.com &#8599;</a>`:""}
     </div>
     `;   // material, think time and the engine number now live on the board bars, the move
