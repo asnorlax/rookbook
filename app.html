@@ -16009,17 +16009,24 @@ function reviewPgn(pgn, side){
 async function reviewByGameId(id, side){
   id=String(id||"").replace(/\D/g,"");
   if(!id) return {ok:false, err:"That doesn't look like a chess.com game id."};
-  let meta=null;
+  let meta=null, status=0;
   try{
     const r=await fetch("/api/game?id="+encodeURIComponent(id));
-    meta=await r.json();
-  }catch(e){ /* offline, or the function isn't deployed — handled just below */ }
+    status=r.status;
+    /* Parse the body either way: /api/game reports its own failures as JSON with a status to
+       match, and those are worth telling apart from the endpoint not being there at all. */
+    try{ meta=await r.json(); }catch(_){ meta=null; }
+  }catch(e){ status=-1; }        // network refused it outright
   if(!meta || !meta.ok){
     /* Every failure here is soft on purpose. The lookup leans on an undocumented chess.com
        endpoint, so when it breaks the answer is the paste box, which needs no network at all. */
-    return {ok:false, err: (meta && meta.err==="not_found")
-      ? "chess.com doesn't have a game with that id."
-      : "Couldn't look that id up. You can paste the game's PGN instead."};
+    if(meta && meta.err==="not_found") return {ok:false, err:"chess.com doesn't have a game with that id."};
+    if(meta && meta.err==="bad_id")    return {ok:false, err:"That doesn't look like a chess.com game id."};
+    /* A 404 with no JSON body is the function not existing, which is exactly what a plain static
+       server gives you — python -m http.server serves files and nothing else. Saying "couldn't
+       look that id up" there sends you looking for a fault in an id that is perfectly fine. */
+    if(status===404) return {ok:false, err:"Game-ID lookup isn't available on this server — it needs the deployed site. Paste the game's PGN here instead."};
+    return {ok:false, err:"Couldn't look that id up. You can paste the game's PGN instead."};
   }
   /* The game sits in both players' archives and the PGN is identical either way, so a closed or
      renamed account on one side isn't fatal — ask the other. */
@@ -16134,6 +16141,24 @@ function revMeName(g){
   if(g && g.meName) return g.meName;
   return (typeof SHOWN_USER==="string" && SHOWN_USER) ? SHOWN_USER : "";
 }
+/* Ply count for the picker. It cannot be derived from g.moves: parsePgn stores
+   Math.ceil(hist.length/2), and 49 plies and 50 plies both round to 25 — so the number is
+   recovered from the PGN instead. Token counting only, never a board replay: chess.js across a
+   few hundred rows is far too slow (the heatmap carries the same note), and nothing here needs
+   legality, only how many moves were played. Memoised because the picker rebuilds on every load
+   and the answer never changes for a given game. */
+const PLY_CACHE=new Map();
+function pliesOf(g){
+  if(!g || !g.pgn) return null;
+  const k=g.url || (g.date instanceof Date ? g.date.getTime() : null);
+  if(k!=null && PLY_CACHE.has(k)) return PLY_CACHE.get(k);
+  const body=g.pgn.replace(/\[[^\]]*\]/g," ").replace(/\{[^}]*\}/g," ")
+                  .replace(/\$\d+/g," ").replace(/\d+\.(\.\.)?/g," ")
+                  .replace(/(1-0|0-1|1\/2-1\/2|\*)/g," ");
+  const n=body.trim().split(/\s+/).filter(Boolean).length;
+  if(k!=null) PLY_CACHE.set(k,n);
+  return n;
+}
 function revRowBits(g){
   const R={Win:["win","W"],Loss:["loss","L"],Draw:["draw","D"]}[g.result]||["draw","·"];
   /* One span, one class, coloured by the RESULT — byte-for-byte the shape fmtDelta uses for the
@@ -16221,7 +16246,7 @@ function reviewRowHTML(g,i){
     <span class="rp-score">${score}</span>
     <span class="rp-how" title="${g.how||""}">${g.how||""}${flag}</span>
     <span class="rp-acc">${acc}</span>
-    <span class="rp-moves">${g.moves}m</span>
+    <span class="rp-moves">${pliesOf(g) ?? (g.moves*2)}p</span>
   </button>`;
 }
 function updateRevPickLabel(){
@@ -16254,7 +16279,7 @@ function updateRevPickLabel(){
       /* Name both sides on a standalone game. "vs Wizard_97" is enough when the other player is
          always you; on a game you didn't play it leaves the more important half unsaid. */
       `${g.pasted&&revMeName(g)?`<b>${esc(revMeName(g))}</b> `:""}${resWord}as ${g.color==="W"?"white":"black"} vs <b>${esc(g.oppName)}</b>`,
-      esc(howWord), esc(acc), `${g.moves} moves`
+      esc(howWord), esc(acc), `${pliesOf(g) ?? (g.moves*2)} plies`
     ].filter(Boolean);
     cur.innerHTML = parts.join(sep);
   }
@@ -17233,12 +17258,19 @@ function renderReview(){
     else if(bot > box.scrollTop+box.clientHeight) box.scrollTop = bot - box.clientHeight + 4;
   }
 
+  /* The ply count moved into the picker, which already says which game this is — repeating it
+     here spent a line restating the selector directly beside it. Depth went with it: it is a
+     real quality signal for the handful of readers who know what depth 13 means, but it is not
+     worth standing chrome above the board on every screen. It survives as the tooltip on the
+     counts, next to the "?" that explains how they are judged. */
+  const revDepthTip=$("revCounts");
+  if(revDepthTip) revDepthTip.title = REV_ANALYSIS ? `Judged by Stockfish at depth ${JUDGE_DEPTH}` : "";
   $("revMeta").innerHTML = REV_ANALYSIS
     // Deliberately terse: this line sat above the board on every screen, restating what the "?"
     // beside the counts now explains properly. Two lines of legend cost more board than they were
     // worth, and the full version is one click away.
-    ? `${REV.moves.length} plies \u00b7 judged at depth ${JUDGE_DEPTH}`
-    : `${REV.moves.length} plies \u00b7 a red time = played in under 2s \u00b7 hit <b>Analyze this game</b> for blunder marks`;
+    ? ``
+    : `a red time = played in under 2s \u00b7 hit <b>Analyze this game</b> for blunder marks`;
   syncAnalyzeCta();
   revPaintBars();
   fitReviewToViewport();
