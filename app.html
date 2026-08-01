@@ -3348,6 +3348,11 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
     .pb-side{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;
       font-size:12.5px;color:var(--dim)}
     .pb-side button{cursor:pointer}
+    /* The review header is one row of short items, so a long username broke this button across
+       two lines mid-phrase and pushed the row's height with it. Keep the label whole — if the
+       row genuinely runs out of width the whole button moves down intact, which reads as a
+       wrap rather than as a typo. */
+    .rh-swap{white-space:nowrap}
   </style>
   <div class="pastebox" id="pasteBox" hidden>
     <div class="pb-inner" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
@@ -15979,6 +15984,10 @@ function reviewPgn(pgn, side){
   catch(e){ return {ok:false, err:"Couldn't read that game's moves."}; }
   if(!rec.moves) return {ok:false, err:"Couldn't read that game's moves — is the move list complete?"};
   rec.pasted=true;
+  /* Who "you" is for this game. Everything downstream labels the bottom of the board from
+     SHOWN_USER — the account that was loaded — which is right for your own games and wrong for
+     these: someone with an account cached would see their own name sitting on Hikaru's side. */
+  rec.meName=(side==="b"?black:white);
   const at=PASTED.findIndex(g=>g.url===url);
   if(at>=0) PASTED[at]=rec; else PASTED.unshift(rec);
   if($("welcome") && !$("welcome").hidden) enterApp();
@@ -17043,7 +17052,7 @@ function renderReview(){
         title="Star this game — starred games get the ★ chip on the Game Log">${isStarred(g)?"★":"☆"}</span>
       <span class="rh-sub">${fmtDate(g.date)} · ${g.color==="W"?"White":"Black"} vs <b>${g.oppName}</b>${g.oppElo!=null?` (${g.oppElo})`:""}</span>
       <span class="rh-res ${resCls}">${({Win:"W",Loss:"L",Draw:"D"})[g.result]||"·"}${g.delta!=null?` (${g.delta>0?"+":""}${g.delta})`:""}</span>
-      ${g.pasted?`<button type="button" class="ghostlink rh-swap" data-swap="1" title="Re-run the review from the other side of the board">review as ${String(g.oppName).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")} instead</button>`:""}
+      ${g.pasted?`<button type="button" class="ghostlink rh-swap" data-swap="1" title="Re-run the review from the other side of the board">review as ${String(g.oppName).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</button>`:""}
       ${g.url?`<a class="ghostlink rh-link" href="${g.url}" target="_blank" rel="noopener">open on chess.com &#8599;</a>`:""}
     </div>
     `;   // material, think time and the engine number now live on the board bars, the move
@@ -17225,7 +17234,7 @@ function revClockAt(par, ply){
    account is loaded (demo data, a direct deep link). */
 function revWho(isMe){
   const g=REV.game; if(!g) return "";
-  const nm = isMe ? ((typeof SHOWN_USER==="string" && SHOWN_USER) ? SHOWN_USER : "You") : g.oppName;
+  const nm = isMe ? (g.meName || ((typeof SHOWN_USER==="string" && SHOWN_USER) ? SHOWN_USER : "You")) : g.oppName;
   if(!nm) return "";
   const esc=String(nm).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   return ` <span class="mvwho" title="${esc}">(${esc})</span>`;
@@ -17236,12 +17245,16 @@ function revPaintBars(){
   if(!top || !bot) return;
   if(!g){ top.hidden=true; bot.hidden=true; return; }
   top.hidden=false; bot.hidden=false;
-  $("revNameTop").innerHTML=`${g.oppName}${g.oppElo!=null?` <span class="dim">(${g.oppElo})</span>`:""}`;
+  /* Names reach innerHTML, and since pasted PGNs arrived they are no longer all from chess.com's
+     API — a [White "<img onerror=…>"] header would otherwise run. Escape both sides. */
+  const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  $("revNameTop").innerHTML=`${esc(g.oppName)}${g.oppElo!=null?` <span class="dim">(${g.oppElo})</span>`:""}`;
   // Name the player rather than saying "You" — this board gets screenshotted and shared, and
-  // "You" is meaningless to everyone who isn't the person who ran it. Falls back to "You" only
-  // when we genuinely don't know whose account is loaded (demo data, direct deep link).
-  const meName = (typeof SHOWN_USER==="string" && SHOWN_USER) ? SHOWN_USER : "You";
-  $("revNameBot").innerHTML=`${meName}${g.elo!=null?` <span class="dim">(${g.elo})</span>`:""}`;
+  // "You" is meaningless to everyone who isn't the person who ran it. A standalone game carries
+  // its own name; SHOWN_USER is the loaded account, which on somebody else's game would put your
+  // username under their pieces. Falls back to "You" only when we genuinely know neither.
+  const meName = g.meName || ((typeof SHOWN_USER==="string" && SHOWN_USER) ? SHOWN_USER : "You");
+  $("revNameBot").innerHTML=`${esc(meName)}${g.elo!=null?` <span class="dim">(${g.elo})</span>`:""}`;
   const myPar = g.color==="B"?1:0;
   const toMove = REV.ply%2;                       // parity of the side to move at this position
   const paint=(id,par)=>{
