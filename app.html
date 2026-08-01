@@ -2222,7 +2222,7 @@
   .mtrain-score{font-size:11.5px;color:var(--dim)}
   .boardrow{display:flex;gap:8px;align-items:stretch}
   .evalbar{
-    width:20px;flex:0 0 auto;position:relative;
+    width:26px;flex:0 0 auto;position:relative;
     background:#16181A;border:1px solid var(--rule);
     display:flex;flex-direction:column-reverse;
   }
@@ -17202,6 +17202,13 @@ function renderSummary(list){
   const d=list.filter(g=>g.result==="Draw").length;
   const cast=list.filter(g=>g.castled==="yes" && playedOut(g));
   const noCast=list.filter(g=>g.castled==="no" && playedOut(g));
+  /* Both tiles drop games shorter than MIN_REAL_MOVES: a game that ended before anyone COULD
+     castle is not evidence about castling. Correct, but it means these percentages sit on a
+     smaller base than the Wins tile beside them — and with the castle filter on, the two read
+     as the same set and disagree anyway. Say so, the way Moves/g already does. */
+  const castSkip   = list.filter(g=>g.castled==="yes" && !playedOut(g)).length;
+  const noCastSkip = list.filter(g=>g.castled==="no"  && !playedOut(g)).length;
+  const skipNote = k => k ? ` ${k} game${k===1?"":"s"} under ${MIN_REAL_MOVES} moves ${k===1?"is":"are"} excluded — nobody could have castled that early.` : "";
   // one decimal: whole percents made a 3-game difference look identical across splits
   const wr=a=>a.length? (100*a.filter(g=>g.result==="Win").length/a.length).toFixed(1)+"%":"—";
   const wc=a=>a.length? a.filter(g=>g.result==="Win").length+"/"+a.length : "";
@@ -17267,8 +17274,8 @@ function renderSummary(list){
     <div class="stat"><div class="k">Last 10</div><div class="v">${last10}</div></div>
     <div class="stat elopop" data-elo="${eloData}"><div class="k">Elo (Peak)</div><div class="v">${eloTc?`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${TC_COLOR[eloTc]||"var(--dim)"};vertical-align:2px;margin-right:3px"></span>`:""}${cur} <small>(${peak})</small></div></div>
     ${colourTiles}
-    <div class="stat"><div class="k">Castled Win %</div><div class="v">${wr(cast)} <small>${wc(cast)}</small></div></div>
-    <div class="stat"><div class="k">No-castle Win %</div><div class="v">${wr(noCast)} <small>${wc(noCast)}</small></div></div>
+    <div class="stat" title="Win rate in games you castled.${skipNote(castSkip)}"><div class="k">Castled Win %</div><div class="v">${wr(cast)} <small>${wc(cast)}</small></div></div>
+    <div class="stat" title="Win rate in games you didn't castle.${skipNote(noCastSkip)}"><div class="k">No-castle Win %</div><div class="v">${wr(noCast)} <small>${wc(noCast)}</small></div></div>
     <div class="stat" title="Average game length for games that went at least ${MIN_REAL_MOVES} moves.${skipped?` ${skipped} game${skipped===1?"":"s"} under ${MIN_REAL_MOVES} moves (instant abandons and walkovers) ${skipped===1?"is":"are"} excluded.`:""}"><div class="k">Moves/g</div><div class="v">${avgMoves}</div></div>
     <div class="stat"><div class="k">Avg Acc</div><div class="v">${avgAcc}</div></div>
     `

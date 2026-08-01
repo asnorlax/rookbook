@@ -113,6 +113,7 @@
   .demo a{color:var(--green);text-decoration:none;border-bottom:1px dotted var(--green)}
   .demo a:hover{border-bottom-style:solid}
   .privacy{font-size:12px;color:#6A675B;display:flex;align-items:center;gap:7px}
+  .privacy[hidden]{display:none}
   .lookup-count{font-size:12.5px;color:var(--dim);margin-top:11px;min-height:1em} .lookup-count b{color:var(--ink);font-weight:600}
   .privacy .dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex:0 0 auto}
   a.jump{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--green)}
@@ -637,6 +638,11 @@
           // breath contradicts it — so both sample affordances go with the same check,
           // the button in the hero and the link under the closing call to action.
           document.querySelectorAll('.form .ghost, #cta .demo').forEach(function(el){ el.hidden=true; });
+          // Same logic for the reassurance under the field. "Free. No sign-in. Your games never
+          // leave your browser." answers the three objections someone has at the moment they're
+          // asked for a username — but a returning visitor has already answered all three by
+          // being here, so for them it is only clutter above the thing they came back for.
+          var pv=document.querySelector('.privacy'); if(pv) pv.hidden=true;
         }
       }
     }catch(e){}
