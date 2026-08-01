@@ -66,10 +66,39 @@
   h1{font-family:var(--sans);font-weight:600;font-size:40px;line-height:1.08;letter-spacing:-.02em;color:var(--ink);margin-bottom:18px}
   h2{font-family:var(--sans);font-weight:600;font-size:40px;line-height:1.08;letter-spacing:-.02em;color:var(--ink);margin-bottom:18px}
   h1 .em, h2 .em{color:var(--green)}
+  /* Headings wrap on the widest break the line can hold, which left runts and a stranded
+     article: "The mates you never / saw." missed one line by 17px, and "Not a mockup. The /
+     actual app." hung the article off the end. Balance evens the lines instead, so the breaks
+     land on phrase boundaries. Browsers without it keep today's behavior — nothing is lost. */
+  h1, h2{text-wrap:balance}
+  /* The hero headline spans both columns and lands on one line, above the copy/chart row
+     rather than squeezed into the left half of it. Sized off the viewport so it cannot wrap:
+     this line measures ~14.7px of width per 1px of type. Mind the measure: it is (vw - 63),
+     not (vw - 48) — the 24px padding either side plus a 15px scrollbar, which vw units still
+     count. Sizing off (vw - 48) overstates the room by 15px and will wrap a line that the
+     arithmetic says fits. 5.6vw/64px leaves ~87px of slack at the 841px breakpoint and ~93px
+     at the cap, filling 91% of the measure. Keep the line short: every word costs type size,
+     and past ~40 characters the breakpoint size falls below the 32px phones already get,
+     which makes a laptop headline smaller than a phone one. The 36px floor is inert — it
+     would only bite below 643px, outside this query — and exists so that the floor can
+     never become the thing that wraps the line.
+     Below 841px the grid is a single column and it wraps on its own, which is what a phone
+     wants, so the size is left alone there. Row gap does the spacing; margin would double it. */
+  .scene.hero > h1{grid-column:1/-1;margin-bottom:0}
+  @media (min-width:841px){
+    .scene.hero{row-gap:30px}
+    .scene.hero > h1{font-size:clamp(36px,5.6vw,64px)}
+  }
   .sub{font-size:15px;line-height:1.74;color:var(--dim);max-width:46ch}
   .sub.lede{font-size:15px}
   .sub b{color:var(--ink);font-weight:500}
   .copy .sub{margin-bottom:24px}
+  /* The closing CTA is a single centered sentence, not a column of prose, so the 46ch reading
+     measure works against it: a 372px cap split "...your whole history / is on screen in
+     seconds." across two lines. Uncapped it sets as one 523px line and .copy shrink-wraps to
+     match, which also squares the form below to the same edge. Under ~571px of viewport it
+     wraps again, which is what a phone should do. */
+  #cta .sub{max-width:none}
 
   .form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:11px}
   /* Squared to 0 to match app.html's global `button` rule — someone types a username here
@@ -313,6 +342,9 @@
   .rvchip.rb{color:#E0776C;border-color:rgba(224,119,108,.45);background:rgba(224,119,108,.08)}
   .rvchip.rm{color:#E3A63C;border-color:rgba(227,166,60,.45);background:rgba(227,166,60,.08)}
   .rvchip.rx{color:#B18BD0;border-color:rgba(177,139,208,.45);background:rgba(177,139,208,.09)}
+  /* The good-news chip. Same green as .rvrow.rg / .rvv.rg so the badge, the rule down the left
+     of the row and the verdict text all read as one color-coded verdict. */
+  .rvchip.rg{color:#7CC287;border-color:rgba(124,194,135,.45);background:rgba(124,194,135,.08)}
   .rvrow{display:flex;align-items:baseline;gap:9px;padding:8px 10px;margin-bottom:6px;
     background:rgba(255,255,255,.015);border:1px solid var(--rule);border-left:3px solid var(--rule);
     border-radius:6px}
@@ -362,9 +394,9 @@
 
   <!-- ===================== HERO: blown lead ===================== -->
   <section class="scene hero" id="hero">
+    <h1><span class="em">Free</span> Chess.com game review.</h1>
     <div class="copy">
-      <h1>See how you<br><span class="em">actually play.</span></h1>
-      <p class="sub lede">rookbook reads your Chess.com history and shows you the whole picture &mdash; your <b>style and strengths</b>, the <a class="jump" href="#hero">blown leads</a> and <a class="jump" href="#mate">missed mates</a>, and the <a class="jump" href="#banned">opponents who were later banned</a> for cheating. <a class="jump" href="#review">Free game review</a>, move by move, as many games as you like.</p>
+      <p class="sub lede">rookbook reads your whole Chess.com history and shows you the picture one game can&rsquo;t &mdash; your <b>style and strengths</b>, the <a class="jump" href="#hero">blown leads</a> and <a class="jump" href="#mate">missed mates</a>, and the <a class="jump" href="#banned">opponents who were later banned</a> for cheating. And <a class="jump" href="#review">a full review of any game in it</a>.</p>
       <div class="form">
         <input type="text" id="u1" placeholder="your chess.com username" spellcheck="false" autocomplete="off" aria-label="chess.com username">
         <button type="button" data-go="u1">Analyze my games</button>
@@ -401,7 +433,7 @@
   <!-- ===================== FREE GAME REVIEW ===================== -->
   <section class="scene flip" id="review">
     <div class="copy">
-      <h2>Every game, reviewed. <span class="em">Free.</span></h2>
+      <h2>Move by move, <span class="em">where it went wrong.</span></h2>
       <p class="sub">On Chess.com, Game Review is one game a day until you subscribe. rookbook
         reviews <b>any game, move by move</b>, with an engine running in your browser &mdash; the
         blunders, the mistakes, and the checkmates you walked past, each one replayed on the board
@@ -412,15 +444,17 @@
     <div class="card">
       <div class="card-head"><span class="card-res dim">51 moves checked</span></div>
       <figure>
-        <div class="rvchips" role="img" aria-label="Review verdict: 2 blunders, 1 mistake, 1 missed mate.">
+        <div class="rvchips" role="img" aria-label="Review verdict: 2 blunders, 1 mistake, 1 missed mate, 2 engine&rsquo;s choices.">
           <span class="rvchip rb">2 blunders</span>
           <span class="rvchip rm">1 mistake</span>
           <span class="rvchip rx">1 missed mate</span>
+          <span class="rvchip rg">2 engine&rsquo;s choices</span>
         </div>
         <div class="rvrow rb"><span class="rvn">18.</span><span class="rvsan">Qxf7??</span><span class="rvwhy"><b class="rvv rb">blunder</b> &middot; &minus;37% win chance <span class="rvarc">(78% &rarr; 41%)</span> &middot; Nd5 was better</span><span class="rvt">2s</span></div>
         <div class="rvrow rm reveal" style="transition-delay:.35s"><span class="rvn">27.</span><span class="rvsan">Rd8?</span><span class="rvwhy"><b class="rvv rm">mistake</b> &middot; &minus;13% win chance <span class="rvarc">(42% &rarr; 29%)</span> &middot; Bb4 was better</span><span class="rvt">6s</span></div>
         <div class="rvrow rx reveal" style="transition-delay:.65s"><span class="rvn">31.</span><span class="rvsan">b5</span><span class="rvwhy"><b class="rvv rx">missed mate</b> &middot; Bh3 was checkmate, you played b5</span><span class="rvt">4s</span></div>
         <div class="rvrow rg reveal" style="transition-delay:.95s"><span class="rvn">34.</span><span class="rvsan">Re8!</span><span class="rvwhy"><b class="rvv rg">engine&rsquo;s choice</b> &middot; the move it would have played</span><span class="rvt">11s</span></div>
+        <div class="rvrow rg reveal" style="transition-delay:1.25s"><span class="rvn">41.</span><span class="rvsan">Bd4!</span><span class="rvwhy"><b class="rvv rg">engine&rsquo;s choice</b> &middot; the only move that held</span><span class="rvt">8s</span></div>
         <figcaption><b>Unlimited game reviews.</b> Mistakes and great moves highlighted.</figcaption>
       </figure>
     </div>
@@ -469,23 +503,7 @@
     </div>
   </section>
 
-<!-- ===================== EVERYTHING IT MEASURES ===================== -->
-    <!-- ===================== EVERYTHING ELSE, IN ONE LINE ===================== -->
-  <!-- This was a six-cell grid of feature names: 447px, 13% of the page, and not one link out
-       of it. The four scenes above already SHOW the best of it; a list that only tells is the
-       weakest thing on a landing page. One sentence keeps the breadth signal and the search
-       terms, and turns a dead end into the strongest internal link to /features.html. -->
-  <section class="scene wide" id="measures">
-    <div class="copy" style="max-width:760px">
-      <p class="alsoline">rookbook also reads your <b>playing style</b>, a <b>checkmate heatmap</b> of
-        where games end, your <b>openings</b> as a repertoire tree, <b>rating trends</b> and tilt,
-        <b>session</b> fatigue, and where your <b>clock</b> goes.
-        <a href="/features.html">See every feature &rarr;</a></p>
-    </div>
-  </section>
-
-
-  <!-- ===================== THE REAL THING ===================== -->
+<!-- ===================== THE REAL THING ===================== -->
   <section class="scene" id="real">
     <div class="copy">
       <h2>Not a mockup. <span class="em">The actual app.</span></h2>
@@ -525,6 +543,24 @@
           <p>Analysis runs in your browser and the results are cached there. Your games are never uploaded to us, because there's no us to upload them to.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ===================== EVERYTHING ELSE, IN ONE LINE ===================== -->
+  <!-- This was a six-cell grid of feature names: 447px, 13% of the page, and not one link out
+       of it. The four scenes above already SHOW the best of it; a list that only tells is the
+       weakest thing on a landing page. One sentence keeps the breadth signal and the search
+       terms, and turns a dead end into the strongest internal link to /features.html.
+       It sits here, after the showcase scenes and immediately before the closing ask, rather
+       than in the middle of them: it is the one section with no heading and no card, so wedged
+       between two full scenes it read as loose text that had lost its home. As a sweep of
+       everything not already shown, landing just before "See yours." it has a job. -->
+  <section class="scene wide" id="measures">
+    <div class="copy" style="max-width:760px">
+      <p class="alsoline">rookbook also reads your <b>playing style</b>, a <b>checkmate heatmap</b> of
+        where games end, your <b>openings</b> as a repertoire tree, <b>rating trends</b> and tilt,
+        <b>session</b> fatigue, and where your <b>clock</b> goes.
+        <a href="/features.html">See every feature &rarr;</a></p>
     </div>
   </section>
 
