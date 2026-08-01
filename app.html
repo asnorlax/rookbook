@@ -16944,6 +16944,16 @@ function syncReviewEmpty(){
        and shoved the page below it down. Re-measure on the next frame, once layout has run;
        measuring in this one still reads the hidden geometry. */
     requestAnimationFrame(()=>{ try{ fitReviewToViewport(); }catch(e){} });
+    /* Re-arm the auto-run on the way in. scheduleAutoAnalysis refuses to arm while this panel is
+       hidden — right, on a phone — but nothing armed it again once the panel opened, and the
+       branch above returns early whenever REV.game is already set. So any game that arrived while
+       you were on another tab (a background refresh adding one is the common case) sat unanalysed
+       with the button showing, and only games loaded WHILE Review was open ever auto-ran. That is
+       what made it look intermittent.
+
+       Safe to call unconditionally: it re-checks everything itself — a run in flight, an analysis
+       already stored, a game you explicitly stopped, and the panel being hidden. */
+    try{ scheduleAutoAnalysis(); }catch(e){}
     return;
   }
   const anyGames=(typeof games!=="undefined" && games && games.length);
