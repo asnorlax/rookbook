@@ -3353,6 +3353,10 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
        row genuinely runs out of width the whole button moves down intact, which reads as a
        wrap rather than as a typo. */
     .rh-swap{white-space:nowrap}
+    /* Prev/Next step through a list you already have; this one brings in a game that isn't in it.
+       A border is what separates it from the two chips it sits beside — same row, different job. */
+    .chip.revadd{border:1px solid var(--green);color:var(--green);white-space:nowrap}
+    .chip.revadd:hover{background:rgba(111,164,123,.12);border-color:var(--green)}
   </style>
   <div class="pastebox" id="pasteBox" hidden>
     <div class="pb-inner" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
@@ -3678,7 +3682,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <!-- The only way into a standalone review from inside the app. The welcome screen's
            game-ID field is unreachable for anyone with a cached account, which is every
            returning visitor — so the entry point has to live where the reviewer already is. -->
-      <button class="chip" id="revAdd" title="Review a game that isn't in your history — paste a PGN, or a chess.com game ID">+ any game</button>
+      <button class="chip revadd" id="revAdd" title="Review a game that isn't in your history — paste a PGN, or a chess.com game ID">Review New Game</button>
       <span class="isub" id="revMeta" style="margin:0"></span>
     </div>
     <div id="revEmpty" hidden></div>
@@ -16118,6 +16122,13 @@ function runPaste(side){
 // One line per game. Result and rating change sit together as a single unit — they answer the
 // same question — with the ending next to them. The opponent's name is the only elastic column,
 // so their rating, accuracy and length stay in vertical alignment down the whole list.
+/* Whose side of the board is being judged. A standalone game carries its own name; anything from
+   an account is whoever is loaded. Empty rather than "You" so callers can decide whether a name
+   they don't have is worth a placeholder — the picker skips it, the header falls back. */
+function revMeName(g){
+  if(g && g.meName) return g.meName;
+  return (typeof SHOWN_USER==="string" && SHOWN_USER) ? SHOWN_USER : "";
+}
 function revRowBits(g){
   const R={Win:["win","W"],Loss:["loss","L"],Draw:["draw","D"]}[g.result]||["draw","·"];
   /* One span, one class, coloured by the RESULT — byte-for-byte the shape fmtDelta uses for the
@@ -16126,10 +16137,13 @@ function revRowBits(g){
      This used to be two elements with a flex gap, the delta coloured by its own sign. That let
      them disagree: a win whose delta is negative after a fair-play refund rendered a green W
      beside a red (-4). Colouring by result keeps the row saying one thing. */
+  /* No delta, nothing to put in the brackets. A standalone game has no rating change to report —
+     nobody's account moved — and "W (—)" spends a bracket to say so. Just the letter. Draws keep
+     theirs: ½ is the score, not a rating change, so it is there whether or not a delta exists. */
   const inner = g.result==="Draw" ? "½"
-              : g.delta==null     ? "—"
+              : g.delta==null     ? null
               : (g.delta>0?"+":"")+g.delta;
-  const score = `<span class="res ${R[0]}">${R[1]} (${inner})</span>`;
+  const score = `<span class="res ${R[0]}">${R[1]}${inner==null?"":` (${inner})`}</span>`;
   return {R, score};
 }
 /* Has this game been analysed already? REVDIR keeps done/total per game, so a run that was
@@ -16188,7 +16202,16 @@ function reviewRowHTML(g,i){
     ${revMark(g)}
     <span class="rp-date">${fmtDate(g.date)}</span>
     <span class="rp-tc dim">${tcCap(g.tc)}</span>
-    <span class="rp-opp">${g.oppName}</span>
+    <span class="rp-opp">${(()=>{
+      /* Name both players on a standalone game — "vs Wizard_97" alone leaves you guessing whose
+         side is being judged, and for these it isn't yours. Own games stay as they were: your own
+         name on all 500 rows is noise, and rp-opp is the one elastic column holding the grid's
+         alignment, so this must not become a second column. Escaped: since pasted PGNs landed,
+         these names are no longer all from chess.com's API. */
+      const e=t=>String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      const me=g.pasted?revMeName(g):"";
+      return (me?e(me)+' <span class="rp-vs">vs</span> ':"")+e(g.oppName);
+    })()}</span>
     <span class="rp-oppelo dim">${g.oppElo!=null?`(${String(g.oppElo).padStart(4," ")})`:""}</span>
     <span class="rp-score">${score}</span>
     <span class="rp-how" title="${g.how||""}">${g.how||""}${flag}</span>
@@ -16212,7 +16235,9 @@ function updateRevPickLabel(){
     const sep = ' <span class="rpl-sep">·</span> ';
     const parts=[
       esc(fmtDate(g.date)), esc(tcCap(g.tc)),
-      `vs <b>${esc(g.oppName)}</b>${g.oppElo!=null?` (${g.oppElo})`:""}`,
+      /* Name both sides on a standalone game. "vs Wizard_97" is enough when the other player is
+         always you; on a game you didn't play it leaves the more important half unsaid. */
+      `${g.pasted&&revMeName(g)?`<b>${esc(revMeName(g))}</b> vs `:"vs "}<b>${esc(g.oppName)}</b>${g.oppElo!=null?` (${g.oppElo})`:""}`,
       score,
       esc(g.how||""), esc(acc), `${g.moves} moves`
     ].filter(Boolean);
@@ -17046,12 +17071,15 @@ function renderReview(){
         : `<div class="revsec"><div class="isub">Nothing found in the first ${REV_ANALYSIS.done||0} of ${REV_ANALYSIS.total} moves \u2014 still analyzing.</div></div>`;
   }
 
+  /* Both player names go into innerHTML here, and since pasted PGNs arrived they are no longer
+     all from chess.com's API. There is no global escape helper in this file — esc is a local
+     const redeclared inside three separate functions — so this scope needs its own. */
+  const rhEsc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   $("revHead").innerHTML=`
     <div class="revhead">
       <span class="star rh-star ${isStarred(g)?"on":""}" data-star="${gid(g)}" role="button" tabindex="0"
         title="Star this game — starred games get the ★ chip on the Game Log">${isStarred(g)?"★":"☆"}</span>
-      <span class="rh-sub">${fmtDate(g.date)} · ${g.color==="W"?"White":"Black"} vs <b>${g.oppName}</b>${g.oppElo!=null?` (${g.oppElo})`:""}</span>
-      <span class="rh-res ${resCls}">${({Win:"W",Loss:"L",Draw:"D"})[g.result]||"·"}${g.delta!=null?` (${g.delta>0?"+":""}${g.delta})`:""}</span>
+      <span class="rh-sub">${fmtDate(g.date)} · <b>${rhEsc(revMeName(g)||"You")}</b> <span class="rh-res ${resCls}">${({Win:"WON",Loss:"LOST",Draw:"DREW"})[g.result]||"—"}</span> as ${g.color==="W"?"white":"black"} vs <b>${rhEsc(g.oppName)}</b>${g.oppElo!=null?` (${g.oppElo})`:""}${g.delta!=null?` <span class="rh-res ${resCls}">${g.delta>0?"+":""}${g.delta}</span>`:""}</span>
       ${g.pasted?`<button type="button" class="ghostlink rh-swap" data-swap="1" title="Re-run the review from the other side of the board">review as ${String(g.oppName).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</button>`:""}
       ${g.url?`<a class="ghostlink rh-link" href="${g.url}" target="_blank" rel="noopener">open on chess.com &#8599;</a>`:""}
     </div>
