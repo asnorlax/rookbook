@@ -6,3 +6,8 @@
 # Clean, shareable player URLs: /player/<chess.com-username> serves the app (URL stays put),
 # and the app reads the username from the path and auto-loads it — no manual fetch.
 /player/*   /app.html   200
+
+# A review anyone can open cold: /review?gameid=<chess.com game id> serves the app, which asks
+# /api/game who played and when, pulls that month's archive straight from chess.com in the
+# browser, and opens the reviewer on the one game. No account, nobody's history fetched.
+/review   /app.html   200

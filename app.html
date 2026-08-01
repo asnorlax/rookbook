@@ -590,6 +590,9 @@
   /* same W/L/D dots as the tiles below — but those rules are scoped to .pf-tile-rec, so the
      colours are restated here rather than widening a selector another panel relies on */
   .rc-wld{display:flex;gap:10px;align-items:center}
+  /* The review card. Same shell as .rc above so the two read as a pair, but its own class —
+     .rc is the recent-games card and widening its selectors to cover this would couple two
+     things that will drift. */
   .rc-wld .wld{display:inline-flex;align-items:center;gap:4px}
   .rc-wld .wdot{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
   .rc-wld .wdot.w{background:var(--win)}
@@ -1532,6 +1535,18 @@
   }
   .wel-form input:focus{outline:none;border-color:var(--green)}
   .wel-form button{font-size:14px;padding:15px 28px}
+  /* Second entry point: one game, by id, for someone holding a link rather than an account.
+     Deliberately quieter than the username field above it — fetching your own history is still
+     the main path, and two equally loud inputs would just make the first decision harder. */
+  .wel-gid{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:0 0 10px}
+  .wel-gid input{font-family:var(--mono);font-size:12.5px;color:var(--ink);background:var(--panel);
+    border:1px solid var(--rule);padding:9px 11px;min-width:236px;flex:0 1 auto}
+  .wel-gid input::placeholder{color:#6A675B}
+  .wel-gid input:focus{outline:none;border-color:var(--green)}
+  .wel-gid button{font-size:12px;padding:9px 16px}
+  .wel-gid-msg{font-size:12.5px;color:var(--dim);margin:-4px 0 10px}
+  .wel-gid-msg[hidden]{display:none}
+  .wel-gid-msg.bad{color:#E0776C}
   .wel-sub{font-size:12.5px;line-height:1.7;color:var(--dim)}
   .lookup-count{margin-top:16px;font-size:13.5px;color:var(--read);text-align:center;font-family:var(--sans)}
   .lookup-count b{color:var(--win);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
@@ -3233,7 +3248,6 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       <a class="sn-item" data-tab="compare"  href="#tab=compare"><span class="sn-i">⇄</span><span class="sn-l">Compare</span></a>
     </div>
     <div class="sn-group sn-ref">
-      <a class="sn-item" data-tab="glossary" href="#tab=glossary"><span class="sn-i">✎</span><span class="sn-l">Reference</span></a>
     </div>
 
   </nav>
@@ -3309,6 +3323,49 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
     <!-- /EXPERIMENTAL -->
   </div>
 
+  <!-- ===================== PASTE A GAME =====================
+       The fallback when /review?gameid= can't resolve an id, and the only route that works for
+       a Lichess game, an OTB scoresheet, or anything chess.com never saw. Needs no network at
+       all: the PGN is parsed in this browser, which is why it can be the thing we fall back TO. -->
+  <style>
+    .pastebox{position:fixed;inset:0;z-index:80;background:rgba(8,9,10,.72);
+      display:flex;align-items:center;justify-content:center;padding:20px}
+    .pastebox[hidden]{display:none}
+    .pb-inner{position:relative;width:min(560px,100%);background:var(--panel);
+      border:1px solid var(--rule);padding:20px 20px 18px;max-height:90vh;overflow:auto}
+    .pb-inner h3{font-size:16px;margin:0 0 6px;color:var(--ink)}
+    .pb-note{font-size:12.5px;line-height:1.6;color:var(--dim);margin:0 0 12px}
+    .pb-x{position:absolute;top:8px;right:9px;background:none;border:none;color:var(--dim);
+      font-size:19px;line-height:1;cursor:pointer;padding:4px 7px}
+    .pb-x:hover{color:var(--ink)}
+    #pastePgn{width:100%;font-family:var(--mono,monospace);font-size:12px;line-height:1.5;
+      color:var(--ink);background:var(--bg);border:1px solid var(--rule);padding:10px;resize:vertical}
+    #pastePgn:focus{outline:none;border-color:var(--green,#6FA47B)}
+    .pb-err{font-size:12.5px;color:#E0776C;margin-top:9px}
+    .pb-err[hidden]{display:none}
+    /* The side buttons are not a nicety. A pasted game has no "you", and the reviewer runs a
+       best-move search for one player's moves — so somebody has to say whose game this is. */
+    .pb-side{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;
+      font-size:12.5px;color:var(--dim)}
+    .pb-side button{cursor:pointer}
+  </style>
+  <div class="pastebox" id="pasteBox" hidden>
+    <div class="pb-inner" role="dialog" aria-modal="true" aria-labelledby="pasteTitle">
+      <button class="pb-x" id="pasteClose" aria-label="Close">&times;</button>
+      <h3 id="pasteTitle">Review any game</h3>
+      <p class="pb-note" id="pasteNote">Paste a game&rsquo;s <b>PGN</b> &mdash; chess.com, Lichess,
+        over the board &mdash; or just a chess.com <b>game ID</b> or link.</p>
+      <textarea id="pastePgn" rows="7" spellcheck="false" autocomplete="off"
+        placeholder='172252535830&#10;&#10;— or —&#10;&#10;[Event "Live Chess"]&#10;1. e4 e5 2. Nf3 Nc6 ...'></textarea>
+      <div class="pb-err" id="pasteErr" hidden></div>
+      <div class="pb-side">
+        <span>Review as</span>
+        <button class="chip" id="pasteW" type="button">White</button>
+        <button class="chip" id="pasteB" type="button">Black</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== WELCOME ===================== -->
   <div class="welcome" id="welcome">
     <div class="wel-inner">
@@ -3334,6 +3391,15 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
       </div>
       <div class="wel-demo-line">
         No username handy? <a href="#" id="welDemo">Peek at a sample account &rarr;</a>
+      </div>
+      <div class="wel-gid">
+        <input type="text" id="welGameId" placeholder="or a chess.com game ID" spellcheck="false"
+               autocomplete="off" aria-label="chess.com game ID or link">
+        <button id="welGameGo" class="ghost" type="button">Review game</button>
+      </div>
+      <div class="wel-gid-msg" id="welGameMsg" hidden></div>
+      <div class="wel-demo-line">
+        Got the PGN instead? <a href="#" id="welPaste">Paste it here &rarr;</a>
       </div>
       <div class="wel-sub">
         Free. No account, no sign-in. Your games never leave your browser.
@@ -3777,7 +3843,7 @@ setTimeout(function(){ document.documentElement.classList.remove("booting"); }, 
     <div class="fine">&copy; 2026 Rookbook &middot; Unaffiliated with chess.com &middot;
       Engine <a href="https://github.com/niklasf/stockfish.js/tree/v10.0.2" target="_blank" rel="noopener">Stockfish.js</a>
       (<a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPLv3</a>)</div>
-    <div><span id="coffeeSlot"></span>Contact <a class="mailto" href="mailto:rookbookchess@gmail.com?subject=Rookbook%20feedback">rookbookchess@gmail.com</a> &middot; <a class="mailto" href="/reading.html">reading</a></div>
+    <div><span id="coffeeSlot"></span>Contact <a class="mailto" href="mailto:rookbookchess@gmail.com?subject=Rookbook%20feedback">rookbookchess@gmail.com</a> &middot; <a class="mailto" href="/reading.html">reading</a> &middot; <a class="mailto" href="#tab=glossary">reference</a></div>
   </footer>
 </div>
 
@@ -15817,7 +15883,199 @@ function scheduleAutoAnalysis(){
 }
 let REV_AUTO=null;        // autoplay interval, when the middle nav button is running
 let REV_AUTO_TICK=false;  // true only while autoplay itself is stepping, so revGo can tell it apart
-function reviewable(){ return games.filter(g=>g.pgn && g.pgn.length>20); }
+/* ===================== Reviewing a game nobody fetched =====================
+   Until now the reviewer could only ever see games that arrived with an account: reviewGame()
+   takes a URL and finds it in `games`. A pasted PGN has no account behind it.
+
+   These games are held in their own list rather than pushed into `games`, and that is the whole
+   safety story. `games` is what gets written to the account cache; a pasted game landing in it
+   would be saved into somebody's real saved history and then re-read as if they had played it.
+   Keeping them separate makes that impossible by construction rather than by remembering to
+   filter on the way out. Everything downstream still works because reviewable() is the single
+   list every reader already goes through — the picker, reviewGame, loadReview and the prev/next
+   chips all index into it, so prepending here is enough and nothing else needed changing.
+
+   Nothing here fetches. The PGN is read in the browser, which is the promise the landing page
+   makes in writing. */
+let PASTED=[];
+function reviewable(){
+  const own=games.filter(g=>g.pgn && g.pgn.length>20);
+  return PASTED.length ? PASTED.concat(own) : own;
+}
+
+function pgnHeader(pgn,name){
+  const m=new RegExp('\\['+name+'\\s+"([^"]*)"\\]').exec(pgn);
+  return m ? m[1] : "";
+}
+/* chess.com records how a game ended per player ("resigned", "checkmated", ...) and both HOW and
+   classify() read those codes. A PGN states it once, in prose, in Termination — so map it back to
+   the codes rather than teaching the rest of the app a second vocabulary. */
+function pgnResults(pgn){
+  const res=pgnHeader(pgn,"Result");
+  const t=(pgnHeader(pgn,"Termination")||"").toLowerCase();
+  let lost="resigned";
+  if(/checkmate/.test(t)) lost="checkmated";
+  else if(/time|flag/.test(t)) lost="timeout";
+  else if(/abandon/.test(t)) lost="abandoned";
+  let drew="agreed";
+  if(/stalemate/.test(t)) drew="stalemate";
+  else if(/repetition/.test(t)) drew="repetition";
+  else if(/insufficient/.test(t)) drew="insufficient";
+  else if(/50/.test(t)) drew="50move";
+  if(res==="1-0") return {white:"win", black:lost};
+  if(res==="0-1") return {white:lost, black:"win"};
+  return {white:drew, black:drew};
+}
+/* "180" -> blitz, "600+5" -> rapid, "1/86400" -> daily. chess.com's own cutoffs, so the same game
+   buckets identically whether it was pasted or pulled from an account. */
+function pgnTimeClass(tc){
+  if(!tc) return "rapid";
+  if(tc.indexOf("/")>=0) return "daily";
+  const base=parseInt(tc,10)||0;
+  return base<180 ? "bullet" : base<600 ? "blitz" : "rapid";
+}
+function pgnEndTime(pgn){
+  const d=pgnHeader(pgn,"UTCDate")||pgnHeader(pgn,"EndDate")||pgnHeader(pgn,"Date");
+  /* Midday, not midnight, when a PGN carries a date but no time. The date is read back as UTC
+     and shown in local time, so 00:00 UTC lands on the previous evening for every reader west
+     of it — a game played on the 29th listed itself as the 28th. Noon can't cross a day
+     boundary in either direction. Real chess.com exports carry UTCTime and never hit this;
+     hand-trimmed PGNs, which is most of what gets pasted, always do. */
+  const t=(pgnHeader(pgn,"UTCTime")||pgnHeader(pgn,"EndTime")||"12:00:00").replace(/\s.*$/,"");
+  const ms=Date.parse(d.replace(/\./g,"-")+"T"+t+"Z");
+  return isNaN(ms) ? Math.floor(Date.now()/1000) : Math.floor(ms/1000);
+}
+/* reviewGame keys off the URL and gameId() wants a trailing number. A paste with no Link header
+   still needs a stable id, and it has to be derived from the text: pasting the same game twice
+   then lands on the one record instead of stacking duplicates in the picker. */
+function pgnUrl(pgn){
+  const link=pgnHeader(pgn,"Link");
+  if(/\d+\s*$/.test(link)) return link.trim();
+  let h=0; for(let i=0;i<pgn.length;i++) h=(h*31+pgn.charCodeAt(i))|0;
+  return "https://rookbook.net/pasted/"+Math.abs(h);
+}
+/* Turn a PGN into the exact record mapApiGame builds, then review it. `side` is "w" or "b":
+   a pasted game has no "you", and the reviewer searches a best move for one player's moves, so
+   the caller has to say whose game this is. Returns {ok} or {ok:false,err} — the caller owns the
+   message, since this is reachable from the paste box, a ?gameid= link and the landing page. */
+function reviewPgn(pgn, side){
+  pgn=String(pgn||"").trim();
+  if(!/\[White\s/i.test(pgn) && !/\b1\s*\.\s*\S/.test(pgn)) return {ok:false, err:"That doesn't look like a PGN."};
+  const white=pgnHeader(pgn,"White")||"White", black=pgnHeader(pgn,"Black")||"Black";
+  const R=pgnResults(pgn), url=pgnUrl(pgn);
+  const api={
+    url, pgn, rated:true,
+    end_time: pgnEndTime(pgn),
+    time_class: pgnTimeClass(pgnHeader(pgn,"TimeControl")),
+    white:{username:white, rating:parseInt(pgnHeader(pgn,"WhiteElo"),10)||null, result:R.white},
+    black:{username:black, rating:parseInt(pgnHeader(pgn,"BlackElo"),10)||null, result:R.black}
+  };
+  let rec;
+  try{ rec=mapApiGame(api, (side==="b"?black:white).toLowerCase()); }
+  catch(e){ return {ok:false, err:"Couldn't read that game's moves."}; }
+  if(!rec.moves) return {ok:false, err:"Couldn't read that game's moves — is the move list complete?"};
+  rec.pasted=true;
+  const at=PASTED.findIndex(g=>g.url===url);
+  if(at>=0) PASTED[at]=rec; else PASTED.unshift(rec);
+  if($("welcome") && !$("welcome").hidden) enterApp();
+  fillReviewPicker();
+  reviewGame(url, true);
+  return {ok:true, rec};
+}
+
+/* Open a review from nothing but a chess.com game id — what /review?gameid=<id> runs.
+   Two hops, and only the first one needs us: /api/game turns the id into a player and a month
+   (chess.com's own by-id endpoint sends no CORS header, so a browser can't ask it directly),
+   then the archive comes from api.chess.com to this browser, which does send one. The moves
+   never touch our server. The archive PGN is also the better copy — it carries [%clk], so the
+   clock column fills in; chess.com's copy-PGN button strips those. */
+async function reviewByGameId(id, side){
+  id=String(id||"").replace(/\D/g,"");
+  if(!id) return {ok:false, err:"That doesn't look like a chess.com game id."};
+  let meta=null;
+  try{
+    const r=await fetch("/api/game?id="+encodeURIComponent(id));
+    meta=await r.json();
+  }catch(e){ /* offline, or the function isn't deployed — handled just below */ }
+  if(!meta || !meta.ok){
+    /* Every failure here is soft on purpose. The lookup leans on an undocumented chess.com
+       endpoint, so when it breaks the answer is the paste box, which needs no network at all. */
+    return {ok:false, err: (meta && meta.err==="not_found")
+      ? "chess.com doesn't have a game with that id."
+      : "Couldn't look that id up. You can paste the game's PGN instead."};
+  }
+  /* The game sits in both players' archives and the PGN is identical either way, so a closed or
+     renamed account on one side isn't fatal — ask the other. */
+  for(const who of [meta.white, meta.black]){
+    if(!who) continue;
+    try{
+      const r=await fetch("https://api.chess.com/pub/player/"+encodeURIComponent(String(who).toLowerCase())
+                          +"/games/"+meta.year+"/"+meta.month);
+      if(!r.ok) continue;
+      const list=(await r.json()).games||[];
+      const hit=list.find(g=>g.url && g.url.indexOf(id)>=0);
+      if(hit && hit.pgn) return reviewPgn(hit.pgn, side||"w");
+    }catch(e){ /* try the other player */ }
+  }
+  return {ok:false, err:"Found that game, but couldn't load its moves."};
+}
+
+/* ---- the paste box ---- */
+function openPasteBox(msg){
+  const box=$("pasteBox"); if(!box) return;
+  box.hidden=false;
+  const err=$("pasteErr");
+  if(err){ err.textContent=msg||""; err.hidden=!msg; }
+  syncPasteSides();
+  try{ $("pastePgn").focus(); }catch(e){}
+}
+function closePasteBox(){ const b=$("pasteBox"); if(b) b.hidden=true; }
+/* Relabel the side buttons with the real players the moment the pasted text has headers.
+   "Review as White" is a question you have to translate; "Review as Hikaru" is the question. */
+function syncPasteSides(){
+  const t=$("pastePgn"); if(!t) return;
+  const p=t.value||"";
+  const w=pgnHeader(p,"White"), b=pgnHeader(p,"Black");
+  const bw=$("pasteW"), bb=$("pasteB");
+  if(bw) bw.textContent = w || "White";
+  if(bb) bb.textContent = b || "Black";
+}
+function runPaste(side){
+  const t=$("pastePgn"), err=$("pasteErr");
+  if(!t) return;
+  const raw=(t.value||"").trim();
+  const say=m=>{ if(err){ err.textContent=m; err.hidden=!m; } };
+  /* One box, either kind of input. Somebody holding a game id or a chess.com link shouldn't have
+     to know a PGN is a different sort of thing. Moves or header brackets mean it's a PGN; failing
+     that, a long run of digits is an id and we go and fetch the PGN ourselves. Checking for the
+     PGN shape FIRST matters — a real PGN contains plenty of long numbers (ratings, timestamps,
+     the Link header), so testing for digits first would send every paste down the id path. */
+  if(!/\[|\b1\s*\.\s*[A-Za-z]/.test(raw) && /\d{6,}/.test(raw)){
+    say("Looking that game up…");
+    reviewByGameId(raw, side).then(res=>{
+      if(res && res.ok){ say(""); closePasteBox(); return; }
+      say((res && res.err) || "Couldn't open that game.");
+    });
+    return;
+  }
+  const res=reviewPgn(raw, side);
+  if(res.ok){ say(""); closePasteBox(); return; }
+  say(res.err);
+}
+(function(){
+  const t=$("pastePgn"); if(!t) return;
+  t.addEventListener("input", syncPasteSides);
+  const bw=$("pasteW"), bb=$("pasteB"), x=$("pasteClose"), box=$("pasteBox");
+  if(bw) bw.addEventListener("click", ()=>runPaste("w"));
+  if(bb) bb.addEventListener("click", ()=>runPaste("b"));
+  if(x) x.addEventListener("click", closePasteBox);
+  // Click the backdrop to dismiss, but only the backdrop — a click inside the dialog that
+  // happens to bubble must not close a box someone has just pasted 3KB into.
+  if(box) box.addEventListener("click", e=>{ if(e.target===box) closePasteBox(); });
+  document.addEventListener("keydown", e=>{
+    if(e.key==="Escape" && box && !box.hidden) closePasteBox();
+  });
+})();
 // One line per game. Result and rating change sit together as a single unit — they answer the
 // same question — with the ending next to them. The opponent's name is the only elastic column,
 // so their rating, accuracy and length stay in vertical alignment down the whole list.
@@ -17994,8 +18252,62 @@ $("welGo").addEventListener("click",()=>{
 });
 $("welUser").addEventListener("keydown",e=>{ if(e.key==="Enter") $("welGo").click(); });
 $("welDemo").addEventListener("click",e=>{ e.preventDefault(); enterDemo("overview"); });
+(function(){ const p=$("welPaste"); if(p) p.addEventListener("click",e=>{ e.preventDefault(); openPasteBox(); }); })();
+/* Review one game straight from its id, from the front door. Accepts a bare id or any chess.com
+   URL containing one, since what people actually have on the clipboard is the link. */
+(function(){
+  const inp=$("welGameId"), go=$("welGameGo"), msg=$("welGameMsg");
+  if(!inp || !go) return;
+  const say=(m,bad)=>{ if(!msg) return; msg.textContent=m||""; msg.hidden=!m; msg.classList.toggle("bad", !!bad); };
+  let busy=false;
+  function run(){
+    if(busy) return;
+    const id=(inp.value||"").replace(/\D/g,"");
+    if(!id){ say("Paste a chess.com game ID, or the link to the game.", true); inp.focus(); return; }
+    busy=true; go.disabled=true; say("Looking up game "+id+"…", false);
+    reviewByGameId(id, "w").then(res=>{
+      busy=false; go.disabled=false;
+      if(res && res.ok){
+        say("", false);
+        /* Leave a shareable URL behind. Somebody who found a game this way will want to send
+           it on, and the address bar still saying /app.html gives them nothing to copy. */
+        try{ history.replaceState(null,"","/review?gameid="+encodeURIComponent(id)); }catch(e){}
+        return;
+      }
+      say((res && res.err) || "Couldn't open that game.", true);
+    });
+  }
+  go.addEventListener("click", run);
+  inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); run(); } });
+})();
 // The landing page links straight to the sample account as /app.html#demo.
 if(/(^|[#&])demo([&=]|$)/.test(location.hash)) enterDemo("overview");
+
+/* Set when the URL names a game to open. The boot chain further down checks it the same way it
+   checks DEMO: both are "this page was opened to show one specific thing", and the cache/welcome
+   boot would otherwise load the last account used here and steal the screen back. */
+var GAMEID_BOOT=false;
+/* /review?gameid=<chess.com game id> — a review someone can open cold, with no account and
+   nothing of their own fetched. Runs at boot, before any cached account would auto-load, so a
+   shared link always lands on the game it names rather than on whoever used this browser last.
+   `side` picks whose moves get the engine's attention; default White, ?side=b for Black. */
+(function(){
+  var q; try{ q=new URLSearchParams(location.search||""); }catch(e){ return; }
+  var gid=String(q.get("gameid")||q.get("game")||"").replace(/\D/g,"");
+  if(!gid) return;
+  GAMEID_BOOT=true;                       // tells the normal boot path to keep its hands off
+  var side=String(q.get("side")||"").toLowerCase()==="b" ? "b" : "w";
+  enterApp();
+  showTab("review");
+  $("status").textContent="Looking up game "+gid+"…";
+  reviewByGameId(gid, side).then(function(res){
+    if(res && res.ok){ $("status").textContent=""; return; }
+    /* Say what failed and leave a way forward. Landing on an empty reviewer with no explanation
+       is the worst version of this, and the paste box needs no network to work. */
+    $("status").textContent=(res && res.err) || "Couldn't open that game.";
+    openPasteBox((res && res.err) || "");
+  });
+})();
 // Clicking the wordmark takes you back to the front page — otherwise anyone with saved
 // games (i.e. you) can never see it again.
 function goHome(e){
@@ -18319,7 +18631,7 @@ if(HAD_CACHE) try{ bumpStat("returning"); }catch(e){}
    the frame that appears is already the right one, so nothing jitters afterwards. If the
    cache then turns out to be unreadable, the else-branch below calls backToWelcome() and
    corrects the view. */
-if(!DEMO && !fresh && wanted && HAD_CACHE){
+if(!DEMO && !GAMEID_BOOT && !fresh && wanted && HAD_CACHE){
   enterApp();
   /* Land on Overview, not Insights. Insights is a long analytical read and a poor first thing
      to face on every open; Overview is the summary of the account you just loaded, it is first
@@ -18333,10 +18645,13 @@ if(!DEMO && !fresh && wanted && HAD_CACHE){
   for(const t of TABS){ const pnl=$("panel-"+t); if(pnl) pnl.hidden = (t!==bootTab); }
 }
 
-if(DEMO){
+if(DEMO || GAMEID_BOOT){
   // Arrived via #demo — enterDemo() (up top) already loaded the sample, opened Insights and
   // raised the banner. The cache/welcome boot below would only undo that (its else-branch
   // calls backToWelcome), so the sample tour explicitly owns the boot and skips all of it.
+  // /review?gameid= is the same deal: it has already entered the app and is fetching the game
+  // it was sent for. Letting the cache branch run would swap in whoever last used this browser
+  // — the one thing a shared review link must never do.
 } else if(!fresh && wanted && !URL_FETCH_CFG && loadCache(wanted)){   // false on missing, corrupt, or incompatible cache
   enterApp();
   SHOWN_USER=(wanted||"").toLowerCase();   // this account is on screen — a refetch of it keeps your tab
