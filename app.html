@@ -3954,6 +3954,11 @@ let DEMO = false;
    borrow a real handle — least of all the one still sitting in the username field from whoever
    last used this browser. Obviously fictional on sight, which is the point. */
 const DEMO_USER = "CheckmateCharlie";
+/* Whatever was in the username field before the tour started. The field is cleared while the
+   demo is up — leaving your handle above a screen of invented games labels them as yours — but
+   it cannot simply be blanked: leaveDemo hands the value on to the welcome screen's input, so
+   losing it here makes you retype your own name to get out. */
+let DEMO_PREV_USER = "";
 function hasRealData(){
   if(typeof games !== "undefined" && games.some(g=>g.url) && !DEMO) return true;
   const el=$("user");
@@ -18655,6 +18660,12 @@ document.querySelectorAll(".sn-item, .wel-link").forEach(el=>{
 function enterDemo(tab){
   track("demo"); bumpStat("demo");                     // anonymous tally: someone toured the sample
   DEMO=true;
+  /* Take your name off the screen for the duration. Everything here is invented, and a username
+     field still reading your handle is the one element left claiming these games are yours.
+     Stashed rather than dropped — leaveDemo passes it to the welcome input, so blanking it
+     outright would make you retype your own name to leave. */
+  DEMO_PREV_USER = $("user").value;
+  $("user").value = "";
   document.body.classList.add("demo");
   SCOUT=null;
   $("compare").innerHTML='<div class="empty">Enter a username to compare stat-for-stat.</div>';
@@ -18675,6 +18686,9 @@ function enterDemo(tab){
 }
 function leaveDemo(){
   DEMO=false;
+  // Hand your name back before backToWelcome reads it into the welcome screen's input.
+  if(DEMO_PREV_USER && !$("user").value) $("user").value = DEMO_PREV_USER;
+  DEMO_PREV_USER = "";
   document.body.classList.remove("demo");
   SCOUT=null;
   $("scout").innerHTML='<div class="empty" style="line-height:2">Enter any chess.com username for a read on how they play \u2014 the same breakdown you get for yourself.</div>';
