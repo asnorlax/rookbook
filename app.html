@@ -3950,6 +3950,10 @@ const $ = id => document.getElementById(id);
 // Is there real data loaded (fetched or cached), as opposed to the made-up demo set?
 // Everything that decides whether to show sample data hangs off this.
 let DEMO = false;
+/* The name the sample account renders under. Everything in the tour is invented, so it must not
+   borrow a real handle — least of all the one still sitting in the username field from whoever
+   last used this browser. Obviously fictional on sight, which is the point. */
+const DEMO_USER = "CheckmateCharlie";
 function hasRealData(){
   if(typeof games !== "undefined" && games.some(g=>g.url) && !DEMO) return true;
   const el=$("user");
@@ -8270,7 +8274,11 @@ function renderProfile(list){
   const box=$("profileBody"); if(!box) return;
   const gs=games||[];
   if(!gs.length){ box.innerHTML='<div class="empty">Fetch your games to build your profile.</div>'; return; }
-  const user=($("user").value||"you").trim();
+  /* The sample account needs its own name. This reads the username field, which still holds
+     whoever last used this browser — so the demo rendered 120 invented games under your real
+     handle, which is both confusing and the wrong thing to screenshot. The field itself is left
+     alone: it is a live input, and having your name already in it is how you leave the tour. */
+  const user = (typeof DEMO!=="undefined" && DEMO) ? DEMO_USER : ($("user").value||"you").trim();
 
   const order=["rapid","blitz","bullet","daily"];
   const byTc={}; gs.forEach(g=>{ (byTc[g.tc]=byTc[g.tc]||[]).push(g); });
@@ -8350,7 +8358,11 @@ function renderProfile(list){
   // account location + when it was created (chess.com profile). The rating lives in the tiles
   // now, so it's out of the subtitle. Fetched lazily; re-render once it lands. Skipped in demo.
   const key=user.toLowerCase();
-  const prof=(MY_PROFILE && MY_PROFILE.username===key) ? MY_PROFILE : null;
+  /* Never your real profile on invented games. The fetch below is already skipped in demo, but
+     MY_PROFILE survives from before you entered the tour — so the header could still hang your
+     country, join date and a link to your Chess.com member page off the sample account. */
+  const prof=(typeof DEMO!=="undefined" && DEMO) ? null
+           : (MY_PROFILE && MY_PROFILE.username===key) ? MY_PROFILE : null;
   if(!prof && typeof DEMO!=="undefined" && !DEMO){
     loadMyProfile(user).then(()=>{ if(CURRENT_TAB==="overview") renderProfile(games); });
   }
